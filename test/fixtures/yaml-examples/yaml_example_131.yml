@@ -1,0 +1,11 @@
+# --- [title] Example 7.16. Flow Mapping Entries
+
+{
+? explicit: entry,
+implicit: entry,
+?
+}
+
+# --- [success] documents[0].content
+
+{"explicit":"entry","implicit":"entry","null":null}

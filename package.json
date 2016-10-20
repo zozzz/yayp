@@ -1,0 +1,24 @@
+{
+  "name": "yaml-parser",
+  "version": "1.0.0",
+  "description": "Extenable YAML Parser",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "mocha test/**/*.spec.ts",
+    "make-yaml-examples": "ts-node test/fixtures/yaml-examples/generate.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "get-object-path": "0.0.3",
+    "js-yaml": "^3.6.1",
+    "jsdom": "^9.8.0",
+    "mocha": "^3.1.0",
+    "ts-node": "^1.4.1",
+    "typescript": "^2.0.3"
+  },
+  "dependencies": {
+    "is-plain-object": "^2.0.1"
+  }
+}

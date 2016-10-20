@@ -1,0 +1,10 @@
+# --- [title] Example 7.3. Completely Empty Flow Nodes
+
+{
+  ? foo :,
+  : bar,
+}
+
+# --- [success] documents[0].content
+
+{"foo":null,"null":"bar"}

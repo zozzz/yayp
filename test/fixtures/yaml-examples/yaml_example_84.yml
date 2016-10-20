@@ -1,0 +1,5 @@
+# --- [title] Example 6.19. Secondary Tag Handle
+
+%YAML 1.2
+---
+!<tag:example.com,2000:app/int> "1 - 3"

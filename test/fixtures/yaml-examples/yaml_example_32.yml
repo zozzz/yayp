@@ -1,0 +1,17 @@
+# --- [title] Example 5.3. Block Structure Indicators
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "sequence"
+  : !!seq [ !!str "one", !!str "two" ],
+  ? !!str "mapping"
+  : !!map {
+    ? !!str "sky" : !!str "blue",
+    ? !!str "sea" : !!str "green",
+  },
+}
+
+# --- [success] documents[0].content
+
+{"sequence":["one","two"],"mapping":{"sky":"blue","sea":"green"}}

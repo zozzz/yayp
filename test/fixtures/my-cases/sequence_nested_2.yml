@@ -1,0 +1,13 @@
+# --- [title] Sequence / Nested / Simple 2
+
+- - v1
+  - something
+
+# --- [success] documents[0].content
+
+[
+  [
+    "v1",
+    "something"
+  ]
+]

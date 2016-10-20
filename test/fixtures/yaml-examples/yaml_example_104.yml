@@ -1,0 +1,12 @@
+# --- [title] Example 7.2. Empty Content
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "foo" : !!str "",
+  ? !!str ""    : !!str "bar",
+}
+
+# --- [success] documents[0].content
+
+{"foo":"","":"bar"}

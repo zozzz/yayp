@@ -1,0 +1,12 @@
+# --- [title] Example 10.1. !!map Examples
+
+Block style: !!map
+  Clark : Evans
+  Ingy  : döt Net
+  Oren  : Ben-Kiki
+
+Flow style: !!map { Clark: Evans, Ingy: döt Net, Oren: Ben-Kiki }
+
+# --- [success] documents[0].content
+
+{"Block style":{"Clark":"Evans","Ingy":"döt Net","Oren":"Ben-Kiki"},"Flow style":{"Clark":"Evans","Ingy":"döt Net","Oren":"Ben-Kiki"}}

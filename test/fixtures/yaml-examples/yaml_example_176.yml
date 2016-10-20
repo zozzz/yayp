@@ -1,0 +1,15 @@
+# --- [title] Example 8.16. Block Mappings
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "block mapping"
+  : !!map {
+    ? !!str "key"
+    : !!str "value",
+  },
+}
+
+# --- [success] documents[0].content
+
+{"block mapping":{"key":"value"}}

@@ -1,0 +1,87 @@
+# --- [title] Mapping / Nested / ABC
+
+outer: mapping
+sub:
+  x: 1
+  y:
+    too: deep
+    to: handle
+    or: maybe
+    can: handle
+  z: 0
+outer2: tricky
+abc:
+  a:
+    b:
+      c:
+        d:
+          e:
+            f:
+              g:
+                h:
+                  i:
+                    j:
+                      k:
+                        l:
+                          m:
+                            n: "n"
+                            o: "o"
+                          p: m
+                        q: l
+                      r: k
+                  s: i
+        t: d
+  u: a
+
+# --- [success] documents[0].content
+
+{
+  "outer": "mapping",
+  "sub": {
+    "x": 1,
+    "y": {
+      "too": "deep",
+      "to": "handle",
+      "or": "maybe",
+      "can": "handle"
+    },
+    "z": 0
+  },
+  "outer2": "tricky",
+  "abc": {
+    "a": {
+      "b": {
+        "c": {
+          "d": {
+            "e": {
+              "f": {
+                "g": {
+                  "h": {
+                    "i": {
+                      "j": {
+                        "k": {
+                          "l": {
+                            "m": {
+                              "n": "n",
+                              "o": "o"
+                            },
+                            "p": "m"
+                          },
+                          "q": "l"
+                        },
+                        "r": "k"
+                      }
+                    },
+                    "s": "i"
+                  }
+                }
+              }
+            }
+          },
+          "t": "d"
+        }
+      }
+    },
+    "u": "a"
+  }
+}

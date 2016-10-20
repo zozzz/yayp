@@ -1,0 +1,11 @@
+# --- [title] Mapping / Basic / Simple 3
+
+hello: world
+other: key
+
+# --- [success] documents[0].content
+
+{
+  "hello": "world",
+  "other": "key"
+}

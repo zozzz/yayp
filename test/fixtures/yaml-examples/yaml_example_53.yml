@@ -1,0 +1,10 @@
+# --- [title] Example 6.2. Indentation Indicators
+
+?·a
+:·-→b
+··-··-→c
+·····-·d
+
+# --- [success] documents[0].content
+
+"?·a :·-→b ··-··-→c ·····-·d"

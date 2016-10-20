@@ -1,0 +1,9 @@
+# --- [title] Example 6.26. Tag Shorthands
+
+%YAML 1.2
+---
+!!seq [
+  !<!local> "foo",
+  !<tag:yaml.org,2002:str> "bar",
+  !<tag:example.com,2000:app/tag!> "baz"
+]

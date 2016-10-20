@@ -1,0 +1,4 @@
+# --- [title] Example 5.6. Node Property Indicators
+
+anchored: !local &anchor value
+alias: *anchor

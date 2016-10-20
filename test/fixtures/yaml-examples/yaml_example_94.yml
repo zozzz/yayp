@@ -1,0 +1,8 @@
+# --- [title] Example 6.24. Verbatim Tags
+
+%YAML 1.2
+---
+!!map {
+  ? !<tag:yaml.org,2002:str> "foo"
+  : !<!bar> "baz",
+}

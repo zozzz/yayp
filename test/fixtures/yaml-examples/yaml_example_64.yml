@@ -1,0 +1,9 @@
+# --- [title] Example 6.7. Block Folding
+
+%YAML 1.2
+--- !!str
+"foo \n\n\t bar\n\nbaz\n"
+
+# --- [success] documents[0].content
+
+"foo \n\n\t bar\n\nbaz\n"

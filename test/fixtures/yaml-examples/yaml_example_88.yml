@@ -1,0 +1,9 @@
+# --- [title] Example 6.21. Local Tag Prefix
+
+%YAML 1.2
+---
+!<!my-light> "fluorescent"
+...
+%YAML 1.2
+---
+!<!my-light> "green"

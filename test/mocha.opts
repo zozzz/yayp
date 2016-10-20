@@ -1,0 +1,4 @@
+--check-leaks
+--full-trace
+--inline-diffs
+--compilers ts:ts-node/register,tsx:ts-node/register

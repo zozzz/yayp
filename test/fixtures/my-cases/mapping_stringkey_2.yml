@@ -1,0 +1,7 @@
+# --- [title] Mapping / Quoted string key / Single 1
+
+'Hello': 'World'
+
+# --- [success] documents[0].content
+
+{"Hello": "World"}

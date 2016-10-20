@@ -1,0 +1,9 @@
+# --- [title] Example 7.18. Flow Mapping Adjacent Values
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "adjacent" : !!str "value",
+  ? !!str "readable" : !!str "value",
+  ? !!str "empty"    : !!null "",
+}

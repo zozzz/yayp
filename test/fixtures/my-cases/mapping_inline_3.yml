@@ -1,0 +1,15 @@
+# --- [title] Mapping / Inline / Simple 3
+
+{
+"adjacent":value,
+"readable": value,
+"empty":
+}
+
+# --- [success] documents[0].content
+
+{
+  "adjacent": "value",
+  "readable": "value",
+  "empty": null
+}

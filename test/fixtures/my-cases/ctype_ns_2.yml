@@ -1,0 +1,13 @@
+# --- [title] Custom Type / Namespace / Simple 2
+
+%TAG !! tag:package.org,2016:
+---
+- !!world
+  mapping: really
+  x: y
+
+# --- [success] documents[0].content
+
+[
+  {"!<tag:package.org,2016:world>": {"mapping": "really", "x": "y"}}
+]

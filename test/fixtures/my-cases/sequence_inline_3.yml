@@ -1,0 +1,49 @@
+# --- [title] Sequence / Inline / Advanced
+
+seq: [
+  [1, 2, 3]
+]
+seq2: [1,
+  [2, [3,
+    [4], [5], [6]
+  ], 7, hello world,
+  aaaaa], [i cant, understand, and handle this]
+]
+
+# --- [success] documents[0].content
+
+{
+  "seq": [
+    [
+      1,
+      2,
+      3
+    ]
+  ],
+  "seq2": [
+    1,
+    [
+      2,
+      [
+        3,
+        [
+          4
+        ],
+        [
+          5
+        ],
+        [
+          6
+        ]
+      ],
+      7,
+      "hello world",
+      "aaaaa"
+    ],
+    [
+      "i cant",
+      "understand",
+      "and handle this"
+    ]
+  ]
+}

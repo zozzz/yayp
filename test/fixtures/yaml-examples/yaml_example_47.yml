@@ -1,0 +1,12 @@
+# --- [title] Example 5.12. Tabs and Spaces
+
+# Tabs and spaces
+quoted:·"Quoted →"
+block:→|
+··void main() {
+··→printf("Hello, world!\n");
+··}
+
+# --- [success] documents[0].content
+
+"quoted:·\"Quoted →\" block:→| ··void main() { ··→printf(\"Hello, world!\\n\"); ··}"

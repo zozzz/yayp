@@ -1,0 +1,9 @@
+# --- [title] Example 2.5. Sequence of Sequences
+
+- [name        , hr, avg  ]
+- [Mark McGwire, 65, 0.278]
+- [Sammy Sosa  , 63, 0.288]
+
+# --- [success] documents[0].content
+
+[["name","hr","avg"],["Mark McGwire",65,0.278],["Sammy Sosa",63,0.288]]

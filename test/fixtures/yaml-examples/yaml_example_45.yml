@@ -1,0 +1,9 @@
+# --- [title] Example 5.11. Line Break Characters
+
+|
+  Line break (no glyph)
+  Line break (glyphed)↓
+
+# --- [success] documents[0].content
+
+"Line break (no glyph)\nLine break (glyphed)↓\n"

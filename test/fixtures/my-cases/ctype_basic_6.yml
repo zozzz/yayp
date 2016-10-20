@@ -1,0 +1,44 @@
+# --- [title] Custom Type / Core Schema / Simple 1
+
+- !!str world
+- !!str "world"
+- !!str 'world'
+- !!str !!str !!str !!str !!str "Hello"
+
+- !!map {"Hello": "World"}
+- !!map
+  x: "y"
+  nice: one
+
+- !!seq [1, 2, 3]
+- !!seq
+  - 1
+  - 2
+  - 3
+
+- !!bool on
+- !!bool On
+- !!bool ON
+
+- [nulla, anull, truea, atrue, falsea, afalse]
+
+- !!int 1
+- !!int "2"
+- !!int "3242352345"
+
+- !!float 1.2
+- !!float "1.2"
+
+# --- [success] documents[0].content
+
+[
+  "world", "world", "world", "Hello",
+  {"Hello": "World"},
+  {"x": "y", "nice": "one"},
+  [1, 2, 3],
+  [1, 2, 3],
+  true, true, true,
+  ["nulla", "anull", "truea", "atrue", "falsea", "afalse"],
+  1, 2, 3242352345,
+  1.2, 1.2
+]

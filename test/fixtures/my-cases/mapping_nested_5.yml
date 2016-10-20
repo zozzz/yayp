@@ -1,0 +1,21 @@
+
+# --- [title] Mapping / Nested / With sequence
+
+array:
+  - 1
+  - 2
+  - x: 3
+    y: 4
+
+# --- [success] documents[0].content
+
+{
+  "array": [
+    1,
+    2,
+    {
+      "x": 3,
+      "y": 4
+    }
+  ]
+}

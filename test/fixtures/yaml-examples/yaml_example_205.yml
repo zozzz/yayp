@@ -1,0 +1,8 @@
+# --- [title] Example 10.5. !!bool Examples
+
+YAML is a superset of JSON: !!bool true
+Pluto is a planet: !!bool false
+
+# --- [success] documents[0].content
+
+{"YAML is a superset of JSON":true,"Pluto is a planet":false}

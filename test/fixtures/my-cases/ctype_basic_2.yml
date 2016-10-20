@@ -1,0 +1,11 @@
+# --- [title] Custom Type / Basic / Simple 2
+
+- !hello
+  - world
+  - nice
+
+# --- [success] documents[0].content
+
+[
+  {"!<!hello>": ["world", "nice"]}
+]

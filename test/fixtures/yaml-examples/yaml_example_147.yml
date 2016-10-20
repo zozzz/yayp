@@ -1,0 +1,15 @@
+# --- [title] Example 8.1. Block Scalar Header
+
+- | # Empty header↓
+ literal
+- >1 # Indentation indicator↓
+ ·folded
+- |+ # Chomping indicator↓
+ keep
+
+- >1- # Both indicators↓
+ ·strip
+
+# --- [success] documents[0].content
+
+["literal\n","·folded\n","keep\n\n","·strip"]

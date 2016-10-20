@@ -1,0 +1,8 @@
+# --- [title] String / Plain / Simple 2
+
+multi line
+plain string
+
+# --- [success] documents[0].content
+
+"multi line plain string"

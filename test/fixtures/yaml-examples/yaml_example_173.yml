@@ -1,0 +1,8 @@
+# --- [title] Example 8.15. Block Sequence Entry Types
+
+- # Empty
+- |
+ block node
+-·- one # Compact
+··- two # sequence
+- one: two # Compact mapping

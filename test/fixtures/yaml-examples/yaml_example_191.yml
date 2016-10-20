@@ -1,0 +1,10 @@
+# --- [title] Example 9.2. Document Markers
+
+%YAML 1.2
+---
+Document
+... # Suffix
+
+# --- [success] documents[0].content
+
+"Document"

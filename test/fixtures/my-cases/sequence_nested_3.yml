@@ -1,0 +1,15 @@
+# --- [title] Sequence / Nested / Simple 3
+
+- A
+- - B
+- - - C
+- - - - D
+
+# --- [success] documents[0].content
+
+[
+  "A",
+  ["B"],
+  [["C"]],
+  [[["D"]]]
+]

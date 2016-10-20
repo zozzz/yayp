@@ -1,0 +1,18 @@
+# --- [title] Mapping / Nested / Basic + dedent
+
+outer: mapping
+sub:
+  x: 1
+  y: 2
+outer2: tricky
+
+# --- [success] documents[0].content
+
+{
+  "outer": "mapping",
+  "sub": {
+    "x": 1,
+    "y": 2
+  },
+  "outer2": "tricky"
+}

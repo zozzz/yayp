@@ -1,0 +1,7 @@
+# --- [title] Sequence / Inline / Simple 2
+
+seq: [[1, 2, 3]]
+
+# --- [success] documents[0].content
+
+{"seq": [[1, 2, 3]]}

@@ -1,0 +1,8 @@
+# --- [title] Sequence / Basic / Simple 2
+
+- 1
+- hello: world
+
+# --- [success] documents[0].content
+
+[1, {"hello": "world"}]

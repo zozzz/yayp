@@ -1,0 +1,11 @@
+# --- [title] Example 7.18. Flow Mapping Adjacent Values
+
+{
+"adjacent":value,
+"readable":·value,
+"empty":
+}
+
+# --- [success] documents[0].content
+
+{"adjacent":"value","readable":"·value","empty":null}

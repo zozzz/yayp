@@ -1,0 +1,10 @@
+# --- [title] Example 7.12. Plain Lines
+
+1st non-empty↓
+↓
+·2nd non-empty·
+→3rd non-empty
+
+# --- [success] documents[0].content
+
+"1st non-empty↓ ↓ ·2nd non-empty· →3rd non-empty"

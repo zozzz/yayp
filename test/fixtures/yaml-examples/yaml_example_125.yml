@@ -1,0 +1,8 @@
+# --- [title] Example 7.13. Flow Sequence
+
+- [ one, two, ]
+- [three ,four]
+
+# --- [success] documents[0].content
+
+[["one","two"],["three","four"]]

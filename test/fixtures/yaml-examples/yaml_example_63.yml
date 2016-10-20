@@ -1,0 +1,12 @@
+# --- [title] Example 6.7. Block Folding
+
+>
+··foo·↓
+·↓
+··→·bar↓
+↓
+··baz↓
+
+# --- [success] documents[0].content
+
+"··foo·↓ ·↓ ··→·bar↓ ↓ ··baz↓ "

@@ -1,0 +1,8 @@
+# --- [title] Example 8.6. Empty Scalar Chomping
+
+strip: >-
+↓
+clip: >
+↓
+keep: |+
+↓

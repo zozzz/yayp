@@ -1,0 +1,4 @@
+# --- [title] Example 10.4. !!null Examples
+
+!!null null: value for null key
+key with null value: !!null null

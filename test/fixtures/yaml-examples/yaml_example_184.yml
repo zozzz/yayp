@@ -1,0 +1,16 @@
+# --- [title] Example 8.20. Block Node Types
+
+%YAML 1.2
+---
+!!seq [
+  !!str "flow in block",
+  !!str "Block scalar\n",
+  !!map {
+    ? !!str "foo"
+    : !!str "bar",
+  },
+]
+
+# --- [success] documents[0].content
+
+["flow in block","Block scalar\n",{"foo":"bar"}]

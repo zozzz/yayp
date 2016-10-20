@@ -1,0 +1,12 @@
+# --- [title] String / Plain / Simple 3
+
+multi line
+
+  plain string      dd
+
+
+with empty lines  plus     spaces .. .     . ..  .  .
+
+# --- [success] documents[0].content
+
+"multi line\nplain string      dd\n\nwith empty lines  plus     spaces .. .     . ..  .  ."

@@ -1,0 +1,9 @@
+# --- [title] Example 9.1. Document Prefix
+
+%YAML 1.2
+---
+!!str "Document"
+
+# --- [success] documents[0].content
+
+"Document"

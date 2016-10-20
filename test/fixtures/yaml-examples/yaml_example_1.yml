@@ -1,0 +1,9 @@
+# --- [title] Example 2.1.  Sequence of Scalars (ball players)
+
+- Mark McGwire
+- Sammy Sosa
+- Ken Griffey
+
+# --- [success] documents[0].content
+
+["Mark McGwire","Sammy Sosa","Ken Griffey"]

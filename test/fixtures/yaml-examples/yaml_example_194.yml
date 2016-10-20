@@ -1,0 +1,8 @@
+# --- [title] Example 9.3. Bare Documents
+
+%YAML 1.2
+---
+!!str "Bare document"
+%YAML 1.2
+---
+!!str "%!PS-Adobe-2.0\n"

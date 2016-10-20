@@ -1,0 +1,10 @@
+# --- [title] Example 6.14. “YAML” directive
+
+%YAML 1.3 # Attempt parsing
+           # with a warning
+---
+"foo"
+
+# --- [success] documents[0].content
+
+"foo"

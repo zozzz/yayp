@@ -1,0 +1,9 @@
+# --- [title] Example 10.6. !!int Examples
+
+negative: !!int -12
+zero: !!int 0
+positive: !!int 34
+
+# --- [success] documents[0].content
+
+{"negative":-12,"zero":0,"positive":34}

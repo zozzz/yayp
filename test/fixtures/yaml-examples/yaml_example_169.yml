@@ -1,0 +1,17 @@
+# --- [title] Example 8.13. Final Empty Lines
+
+>
+ folded
+ line
+
+ next
+ line
+   * bullet
+
+   * list
+   * line
+
+ last
+ line↓
+↓
+# Comment

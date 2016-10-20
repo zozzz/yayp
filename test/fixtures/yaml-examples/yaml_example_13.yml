@@ -1,0 +1,10 @@
+# --- [title] Example 2.13.  In literals, newlines are preserved
+
+# ASCII Art
+--- |
+  \//||\/||
+  // ||  ||__
+
+# --- [success] documents[0].content
+
+"\\//||\\/||\n// ||  ||__\n"

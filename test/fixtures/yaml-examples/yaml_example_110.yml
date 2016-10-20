@@ -1,0 +1,11 @@
+# --- [title] Example 7.5. Double Quoted Line Breaks
+
+%YAML 1.2
+---
+!!str "folded to a space,\n\
+      to a line feed, \
+      or \t \tnon-content"
+
+# --- [success] documents[0].content
+
+"folded to a space,\nto a line feed, or \t \tnon-content"

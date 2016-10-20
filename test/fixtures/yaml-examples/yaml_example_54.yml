@@ -1,0 +1,15 @@
+# --- [title] Example 6.2. Indentation Indicators
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "a"
+  : !!seq [
+    !!str "b",
+    !!seq [ !!str "c", !!str "d" ]
+  ],
+}
+
+# --- [success] documents[0].content
+
+{"a":["b",["c","d"]]}

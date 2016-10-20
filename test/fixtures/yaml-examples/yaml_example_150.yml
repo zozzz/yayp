@@ -1,0 +1,14 @@
+# --- [title] Example 8.2. Block Indentation Indicator
+
+%YAML 1.2
+---
+!!seq [
+  !!str "detected\n",
+  !!str "\n\n# detected\n",
+  !!str "·explicit\n",
+  !!str "\t·detected\n",
+]
+
+# --- [success] documents[0].content
+
+["detected\n","\n\n# detected\n","·explicit\n","\t·detected\n"]

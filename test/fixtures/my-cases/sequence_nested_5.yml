@@ -1,0 +1,34 @@
+# --- [title] Sequence / Nested / Simple 5
+
+- - "A"
+  -
+    -
+      -
+        - "X"
+        - "Y"
+      - - "Z"
+- - "C"
+  - "D"
+
+# --- [success] documents[0].content
+
+[
+  [
+    "A",
+    [
+      [
+        [
+          "X",
+          "Y"
+        ],
+        [
+          "Z"
+        ]
+      ]
+    ]
+  ],
+  [
+    "C",
+    "D"
+  ]
+]

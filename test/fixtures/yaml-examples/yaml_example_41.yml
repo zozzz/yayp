@@ -1,0 +1,8 @@
+# --- [title] Example 5.8. Quoted Scalar Indicators
+
+single: 'text'
+double: "text"
+
+# --- [success] documents[0].content
+
+{"single":"text","double":"text"}

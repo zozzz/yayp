@@ -1,0 +1,9 @@
+# --- [title] Example 6.3. Separation Spaces
+
+-·foo:→·bar
+- -·baz
+  -→baz
+
+# --- [success] documents[0].content
+
+"-·foo:→·bar - -·baz -→baz"

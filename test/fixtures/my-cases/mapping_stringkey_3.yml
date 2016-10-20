@@ -1,0 +1,22 @@
+# --- [title] Mapping / Quoted string key / Advanced
+
+'Hello': 'World'
+"X"                 : 1
+'Y':
+  'z': hello
+  alma: 4
+  "ugly"      : 23
+  but: need to work
+
+# --- [success] documents[0].content
+
+{
+  "Hello": "World",
+  "X": 1,
+  "Y": {
+    "z": "hello",
+    "alma": 4,
+    "ugly": 23,
+    "but": "need to work"
+  }
+}

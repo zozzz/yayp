@@ -1,0 +1,10 @@
+# --- [title] Example 7.20. Single Pair Explicit Entry
+
+[
+? foo
+ bar : baz
+]
+
+# --- [success] documents[0].content
+
+[{"foo bar":"baz"}]

@@ -1,0 +1,10 @@
+# --- [title] Example 6.11. Multi-Line Comments
+
+key:····# Comment↓
+········# lines↓
+  value↓
+↓
+
+# --- [success] documents[0].content
+
+"key:····# Comment↓ ········# lines↓ value↓ ↓"

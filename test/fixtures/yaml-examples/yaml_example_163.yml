@@ -1,0 +1,22 @@
+# --- [title] Example 8.10. Folded Lines
+
+>
+
+·folded↓
+·line↓
+↓
+·next
+·line↓
+   * bullet
+
+   * list
+   * lines
+
+·last↓
+·line↓
+
+# Comment
+
+# --- [success] documents[0].content
+
+"\n·folded↓ ·line↓ ↓ ·next ·line↓\n   * bullet\n\n   * list\n   * lines\n\n·last↓ ·line↓\n# Comment "

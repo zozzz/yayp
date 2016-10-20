@@ -1,0 +1,18 @@
+# --- [title] Example 8.11. More Indented Lines
+
+>
+
+ folded
+ line
+
+ next
+ line
+···* bullet↓
+↓
+···* list↓
+···* lines↓
+
+ last
+ line
+
+# Comment

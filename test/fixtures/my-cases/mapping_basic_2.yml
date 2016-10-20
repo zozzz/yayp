@@ -1,0 +1,7 @@
+# --- [title] Mapping / Basic / Simple 2
+
+hello: world
+
+# --- [success] documents[0].content
+
+{"hello": "world"}

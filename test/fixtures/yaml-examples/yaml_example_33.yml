@@ -1,0 +1,8 @@
+# --- [title] Example 5.4. Flow Collection Indicators
+
+sequence: [ one, two, ]
+mapping: { sky: blue, sea: green }
+
+# --- [success] documents[0].content
+
+{"sequence":["one","two"],"mapping":{"sky":"blue","sea":"green"}}

@@ -1,0 +1,6 @@
+# --- [title] Example 8.18. Implicit Block Mapping Entries
+
+plain key: in-line value
+: # Both empty
+"quoted key":
+- entry

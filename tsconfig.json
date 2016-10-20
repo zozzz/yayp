@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"charset": "utf-8",
+		"forceConsistentCasingInFileNames": true,
+		"module": "commonjs",
+		"noEmitOnError": true,
+		"noUnusedLocals": false,
+		"outDir": "./dist",
+		"pretty": true,
+		"rootDir": "./",
+		"target": "es6",
+		"sourceMap": true,
+		"moduleResolution": "node",
+		"experimentalDecorators": true,
+		"preserveConstEnums": false,
+		// "strictNullChecks": true,
+		"lib": [
+			"es2015"
+		]
+	},
+	"include": [
+		"typings/index.d.ts",
+		"src/**/*.ts",
+		"test/**/*.ts"
+	],
+	"compileOnSave": true
+}

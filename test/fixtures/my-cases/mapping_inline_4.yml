@@ -1,0 +1,11 @@
+# --- [title] Mapping / Inline / Simple 4
+
+[
+foo: bar
+]
+
+# --- [success] documents[0].content
+
+[
+  {"foo": "bar"}
+]

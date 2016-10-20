@@ -1,0 +1,8 @@
+# --- [title] Example 8.20. Block Node Types
+
+-↓
+··"flow in block"↓
+-·>
+ Block scalar↓
+-·!!map # Block collection
+  foo : bar↓

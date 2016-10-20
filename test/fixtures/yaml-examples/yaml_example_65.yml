@@ -1,0 +1,13 @@
+# --- [title] Example 6.8. Flow Folding
+
+"↓
+··foo·↓
+·↓
+··→·bar↓
+↓
+··baz↓
+"
+
+# --- [success] documents[0].content
+
+"↓ ··foo·↓ ·↓ ··→·bar↓ ↓ ··baz↓ "

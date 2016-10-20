@@ -1,0 +1,17 @@
+# --- [title] Example 8.11. More Indented Lines
+
+%YAML 1.2
+---
+!!str "\n\
+      folded line\n\
+      next line\n\
+      \  * bullet\n
+      \n\
+      \  * list\n\
+      \  * lines\n\
+      \n\
+      last line\n"
+
+# --- [success] documents[0].content
+
+"\nfolded line\nnext line\n  * bullet\n \n  * list\n  * lines\n\nlast line\n"
