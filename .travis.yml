@@ -1,3 +1,10 @@
 language: node_js
 node_js:
   - "6"
+before_install:
+  - npm install -g typings
+  - npm install -g typescript
+before_script:
+  - typings install
+script:
+  - npm test
