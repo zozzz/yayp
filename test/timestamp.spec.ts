@@ -1,12 +1,12 @@
 import {expect} from "chai"
-import {Parser, YamlDocument} from "../src"
+import {Loader, YamlDocument} from "../src"
 
 
 describe("Timestamp parsing", () => {
 
 	function test(yaml: string, date: any) {
 		it(yaml, () => {
-			let d = new Parser(YamlDocument).parse(`${yaml}`)
+			let d = new Loader(YamlDocument).load(`${yaml}`)
 			expect(d[0]).to.have.property("content").and.eql(date)
 		})
 	}

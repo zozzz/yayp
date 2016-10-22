@@ -4,7 +4,7 @@ import * as path from "path"
 import {expect} from "chai"
 let getObjPath = require("get-object-path")
 
-import {Parser, YamlDocument, TagFactory, CORE_SCHEMA, SchemaCollection, ISchema} from "../src"
+import {Loader, YamlDocument, TagFactory, CORE_SCHEMA, SchemaCollection, ISchema} from "../src"
 
 
 type FixtureFile = {
@@ -56,13 +56,6 @@ class TesterDocument extends YamlDocument {
 	public constructor(parser) {
 		super(parser, TEST_SCHEMA)
 	}
-
-	// public onTagStart(handle: string, name: string): TagFactory {
-	// 	let prefix = this._tagNS[handle] || handle
-	// 	return (value: any) => {
-	// 		return {[`!<${prefix}${name}>`]: value}
-	// 	}
-	// }
 
 	public onMappingKey(mapping, key, value) {
 		if (key === null) {
@@ -148,9 +141,9 @@ function addToFixtures(fileName: string) {
 
 function createTestCase(file: FixtureFile): () => void {
 	return () => {
-		let p = new Parser(TesterDocument)
+		let p = new Loader(TesterDocument)
 		let l = {
-			documents: p.parse(file.yaml, file.path)
+			documents: p.load(file.yaml, file.path)
 		}
 
 		let c = getObjPath(l, file.property)

@@ -1,4 +1,5 @@
 import { YamlDocument, Directive, Mapping, Sequence, TagName } from "./document"
+import { Loader } from "./loader"
 import {
 	CharCode,
 	IS_NBS,
@@ -89,14 +90,6 @@ class CollectionStack extends Array<CollectionItem> {
 }
 
 
-export type DocumentFactory<D extends YamlDocument> = (parser: Parser<D>) => D
-
-
-export interface DocumentCls<D extends YamlDocument> {
-	create(parser: Parser<D>): D
-}
-
-
 export type Location = {
 	file: string,
 	column: number,
@@ -112,14 +105,13 @@ export class YamlError extends Error {
 }
 
 
-export class Parser<D extends YamlDocument> {
+export class Parser {
 	public fileName: string
 
 	protected offset: number
 	protected data: string
-	protected documents: D[] = []
-	protected doc: D
-	protected documentFactory: any
+	protected documents: YamlDocument[] = []
+	protected doc: YamlDocument
 	protected linePosition: number
 
 	protected _currentString: string // maybe collection?
@@ -129,11 +121,10 @@ export class Parser<D extends YamlDocument> {
 	protected _anchor: string
 	protected _implicitKey: number = 0
 
-	public constructor(documentFactory: DocumentFactory<D> | DocumentCls<D>) {
-		this.documentFactory = documentFactory
+	public constructor(protected loader: Loader) {
 	}
 
-	public parse(data: string, fileName: string = null): D[] {
+	public parse(data: string, fileName: string): YamlDocument[] {
 		this.linePosition = 0
 		this.offset = 0
 		this.data = data.replace(/\s+$/m, "")
@@ -166,7 +157,7 @@ export class Parser<D extends YamlDocument> {
 		}
 	}
 
-	public get column(): number {
+	protected get column(): number {
 		return this.offset - this.linePosition
 	}
 
@@ -174,11 +165,7 @@ export class Parser<D extends YamlDocument> {
 		this.nextLine()
 
 		if (!this.doc) {
-			if (typeof this.documentFactory.create === "function") {
-				this.doc = this.documentFactory.create(this)
-			} else {
-				this.doc = this.documentFactory(this)
-			}
+			this.doc = this.loader.onDocumentStart()
 		}
 
 		switch (this.data[this.offset]) {
@@ -469,7 +456,7 @@ export class Parser<D extends YamlDocument> {
 		if (this._lastPlainStringType === PlainStringType.MAPPING_KEY) {
 			return this.blockMapping(column, str)
 		} else {
-			return this.doc.onPlainString(str)
+			return this.doc.onScalar(str)
 		}
 	}
 
@@ -511,15 +498,6 @@ export class Parser<D extends YamlDocument> {
 		}
 
 		return this.doc.onMappingEnd(mapping)
-	}
-
-	protected comment(minColumn: number) {
-		if (this.data[this.offset] === "#") {
-			++this.offset
-			this.eatNBS()
-			this.doc.onComment(this._read(RX_NB_CHARS))
-			this.eatNBS()
-		}
 	}
 
 	protected number(float?: string, base: number = 10): any {
@@ -718,7 +696,7 @@ export class Parser<D extends YamlDocument> {
 		return this.doc.onAlias(id)
 	}
 
-	public unexpected(expected?: string | string[]) {
+	protected unexpected(expected?: string | string[]) {
 		if (typeof expected === "string") {
 			this.error(`Unexpected character: '${this.data[this.offset]}'${expected ? ` expected: '${expected}'` : ""}`)
 		} else {
@@ -726,7 +704,7 @@ export class Parser<D extends YamlDocument> {
 		}
 	}
 
-	public error(message: string, offset: number = null): void {
+	protected error(message: string, offset: number = null): void {
 		throw new YamlError(message, this.getLocation(offset))
 	}
 
@@ -804,7 +782,7 @@ export class Parser<D extends YamlDocument> {
 						ch = data.charCodeAt(pos++)
 					} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
 					--pos // backtrack to CR or LF char
-					this.doc.onComment(data.slice(commentStart, pos))
+					this.loader.onComment(data.slice(commentStart, pos))
 				break
 
 				case CharCode.TAB:

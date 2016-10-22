@@ -1,5 +1,6 @@
 import {Parser, Location} from "./parser"
 import {ISchema, CORE_SCHEMA} from "./schema"
+import {Loader} from "./loader"
 
 
 export interface Mapping extends Object {
@@ -49,19 +50,20 @@ export type Directive = {
 }
 
 
+export type YamlDocumentClass = {
+	new(loader: Loader, schema?: ISchema): YamlDocument
+}
+
+
 export class YamlDocument {
 	public readonly schema: ISchema
 	protected _content: any
-	protected _references = {}
-	protected _tagNS = {
+	protected references = {}
+	protected tagNS = {
 		"!!": "tag:yaml.org,2002:"
 	}
 
-	public static create(parser: Parser<any>): any {
-		return new this(parser)
-	}
-
-	public constructor(protected _parser: Parser<YamlDocument>, schema: ISchema = CORE_SCHEMA) {
+	public constructor(protected loader: Loader, schema: ISchema = CORE_SCHEMA) {
 		this.schema = schema
 	}
 
@@ -71,7 +73,7 @@ export class YamlDocument {
 	 */
 	public onDirective(name: string, value: any): void {
 		if (name === "TAG") {
-			this._tagNS[(<TagDirective> value).prefix] = (<TagDirective> value).namespace
+			this.tagNS[(<TagDirective> value).prefix] = (<TagDirective> value).namespace
 		}
 	}
 
@@ -126,7 +128,7 @@ export class YamlDocument {
 	 * or NULL when not found a factory function
 	 */
 	public onTagStart(handle: string, name: string): TagFactory {
-		return this.schema.resolveTag(this._tagNS[handle] || handle, name)
+		return this.schema.resolveTag(this.tagNS[handle] || handle, name)
 	}
 
 	/**
@@ -141,17 +143,17 @@ export class YamlDocument {
 	 * Called when a anchor found (&anchor)
 	 */
 	public onAnchor(name: string, value: any): void {
-		this._references[name] = value
+		this.references[name] = value
 	}
 
 	/**
 	 * Called when an alias found (*alias)
 	 */
 	public onAlias(name: string): any {
-		if (!this._references.hasOwnProperty(name)) {
+		if (!this.references.hasOwnProperty(name)) {
 			this.error(`Missing reference for this name: '${name}'.`)
 		}
-		return this._references[name]
+		return this.references[name]
 	}
 
 	/**
@@ -164,7 +166,7 @@ export class YamlDocument {
 	/**
 	 * Called when an unqouted string found
 	 */
-	public onPlainString(value: string): any {
+	public onScalar(value: string): any {
 		let resolved = this.schema.resolveScalar(this, value)
 		if (resolved !== undefined) {
 			return resolved
@@ -188,54 +190,17 @@ export class YamlDocument {
 		return value
 	}
 
-	public onComment(comment: string): void {
-
-	}
-
-	public onDate(date: Date): Date {
-		return date
-	}
-
-	/**
-	 * Called when error occured
-	 */
-	public onError(message: string, location: Location): void {
-		throw new Error(`${message} at ${location.file ? location.file + ":" : ""}${location.line},${location.column}`)
-	}
-
 	public get content(): any {
 		return this._content
 	}
 
-	// public newMapping(): Mapping {
-	// 	return {}
-	// }
-
-	// public setEntryOnMapping(mapping: Mapping, key: any, value: any): void {
-	// 	mapping[key] = value
-	// }
-
-	// public newSequence(): Sequence {
-	// 	return []
-	// }
-
-	// public addEntryToSequence(sequence: Sequence, value: any): void {
-	// 	sequence.push(value)
-	// }
-
-	// public newType(name: TagName, value: any): any {
-	// 	return {[name.toString()]: value}
-	// }
-
-
-
 	public error(message: string): void {
-		this.onError(message, this._parser.getLocation())
+		this.loader.onError(message, this.loader.parser.getLocation())
 	}
 
 	public dispose() {
-		delete this._parser
 		delete this._content
-		delete this._references
+		delete this.references
+		delete this.schema
 	}
 }
