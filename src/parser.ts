@@ -2,6 +2,7 @@ import { YamlDocument, Directive, Mapping, Sequence, TagName } from "./document"
 import {
 	CharCode,
 	IS_NBS,
+	IS_EOL,
 
 	EOL,
 	RX_MULTI_EOL,
@@ -171,8 +172,6 @@ export class Parser<D extends YamlDocument> {
 
 	protected parseFile(): any {
 		this.nextLine()
-
-		console.log("XXXX", this.data.slice(this.offset))
 
 		if (!this.doc) {
 			if (typeof this.documentFactory.create === "function") {
@@ -502,7 +501,7 @@ export class Parser<D extends YamlDocument> {
 	}
 
 	protected blockMapping(column: number, mappingKey: any): any {
-		console.log("Mapping", column)
+
 		let mapping = this.storeAnchor(this.getBlockCollection(column, BlockCollection.MAPPING))
 		this.nextLine()
 		this.doc.onMappingKey(mapping, mappingKey, this.parseValue())
@@ -798,9 +797,14 @@ export class Parser<D extends YamlDocument> {
 
 				case CharCode.HASH:
 					// TODO: maybe merge comments
-					let start = pos
-					while (IS_NBS[data.charCodeAt(pos)]) ++pos // eat all chars expect linebreaks
-					this.doc.onComment(data.slice(start, pos))
+					let commentStart = pos,
+						ch
+					// eat all chars expect linebreaks
+					do {
+						ch = data.charCodeAt(pos++)
+					} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
+					--pos // backtrack to CR or LF char
+					this.doc.onComment(data.slice(commentStart, pos))
 				break
 
 				case CharCode.TAB:
@@ -818,59 +822,17 @@ export class Parser<D extends YamlDocument> {
 						this.linePosition = linePosition
 					}
 
+					this.offset = pos - 1
+
 					if (minColumn !== null && minColumn > this.column) {
 						this.linePosition = lp
 						this.offset = start
 						return false
-					} else {
-						this.offset = pos - 1
 					}
 
 					return linePosition !== null
 			}
 		}
-
-		/*
-		this.eatNBS()
-		this.comment(minColumn)
-
-		let pos = this.position,
-			ch
-
-		while (true) {
-			ch = this.data[this.position]
-			if (ch === "\r" || ch === "\n") {
-				++this.position
-			} else {
-				break
-			}
-		}
-
-		if (pos !== this.position) {
-			this.linePosition = this.position
-
-			while (true) {
-				ch = this.data[this.position]
-				if (ch === " ") {
-					++this.position
-				} else if (ch === "\t") { // a tab karakter lehet engedélyezett
-					this.error("Document cannot contains tab character as indention character")
-				} else {
-					break
-				}
-			}
-
-			if (minColumn !== null && minColumn > this.column) {
-				this.position = pos
-				return false
-			}
-
-			// this.parseStartOfLine()
-			return true
-		}
-
-		return false
-		*/
 	}
 
 
@@ -1043,7 +1005,6 @@ export class Parser<D extends YamlDocument> {
 	protected getBlockCollection(column: number, kind: BlockCollection.SEQUENCE): Sequence;
 
 	protected getBlockCollection(column: number, kind: BlockCollection): any {
-		console.log("getBlockCollection", column, kind)
 		let current = this._blockCollectionStack.current
 		if (current) {
 			if (current.column === column) {
@@ -1056,7 +1017,6 @@ export class Parser<D extends YamlDocument> {
 				return this._blockCollectionStack.add(kind, this.newBlockCollection(kind), column)
 			} else {
 				this._blockCollectionStack.removeUntil(column)
-				console.log("AAAAAAAAA", column, this._blockCollectionStack)
 				return this.getBlockCollection(column, <any> kind)
 			}
 		}
