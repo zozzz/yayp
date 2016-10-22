@@ -187,6 +187,15 @@ export const IS_EOL: {[key: number]: boolean} = {
 	[CharCode.LF]: true
 }
 
+
+export const IS_WS: {[key: number]: boolean} = {
+	[CharCode.SPACE]: true,
+	[CharCode.TAB]: true,
+	[CharCode.CR]: true,
+	[CharCode.LF]: true
+}
+
+
 export function isPrintable(charcode: number): boolean {
 	return charcode === CharCode.TAB
 		|| charcode === CharCode.LF

@@ -13,6 +13,10 @@ export abstract class TagFactory {
 	public createFromScalar(document: YamlDocument, value: Scalar): any {
 		document.error("Unsupported value")
 	}
+
+	public createFromString(document: YamlDocument, value: string): any {
+		document.error("Unsupported value")
+	}
 }
 
 

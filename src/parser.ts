@@ -1,9 +1,11 @@
 import { YamlDocument, Directive, Mapping, Sequence, TagName } from "./document"
+import { TagFactory } from "./schema"
 import { Loader } from "./loader"
 import {
 	CharCode,
 	IS_NBS,
 	IS_EOL,
+	IS_WS,
 
 	EOL,
 	RX_MULTI_EOL,
@@ -45,6 +47,14 @@ export type Cursor = {
 	line: number
 	col: number
 };
+
+
+const enum ValueKind {
+	MAPPING,
+	SEQUENCE,
+	SCALAR,
+	STRING
+}
 
 
 const enum BlockCollection {
@@ -120,6 +130,7 @@ export class Parser {
 	protected _blockCollectionStack: CollectionStack
 	protected _anchor: string
 	protected _implicitKey: number = 0
+	protected _lastValueKind: ValueKind
 
 	public constructor(protected loader: Loader) {
 	}
@@ -191,44 +202,23 @@ export class Parser {
 			case "\"": return this.quotedString("\"")
 			case "[": return this.inlineSequence()
 			case "{": return this.inlineMapping()
-			case "!": return this.tag()
+			case "!":
+				// if (this._tagFactory) {
+				// 	this.error("Tag constructors not supporting from tag values")
+				// }
+				return this.tag()
 			case "&": return this.anchor()
-			case "*": return this.alias()
+			case "*":
+				// if (this._tagFactory) {
+				// 	this.error("Tag constructors not supporting from alias")
+				// }
+				return this.alias()
 			case "?": return this.implicitKey()
-
-			case "0":
-			case "1":
-			case "2":
-			case "3":
-			case "4":
-			case "5":
-			case "6":
-			case "7":
-			case "8":
-			case "9":
-				return this.number()
-
-			case "+": ++this.offset; return this.number()
-			case "-":
-				// TODO: ez itt szerintem lehetne optimálisabb
-				++this.offset
-
-				let maybeNumber = this.number()
-				if (maybeNumber !== null) {
-					return -maybeNumber
-				}
-				return this.blockSequence()
-
-			case ".":
-				let maybeFloat = this.number("0")
-				if (maybeFloat !== null) {
-					return maybeFloat
-				}
-				return this.documentEnd()
-
+			case "-": return this.blockSequence()
+			case ".": return this.documentEnd()
 			case "@": return this.error("reserved character '@'")
 			case "`": return this.error("reserved character '`'")
-			default: return this.plainString()
+			default: return this.scalar()
 		}
 	}
 
@@ -285,24 +275,25 @@ export class Parser {
 			return null
 		}
 
-		if (this.data[++this.offset] === ".") {
-			if (this.data[++this.offset] === ".") {
+		if (this.data[this.offset + 1] === ".") {
+			if (this.data[this.offset + 2] === ".") {
+				this.offset += 2
 				this.documents.push(this.doc)
 			} else {
-				this.unexpected(".")
+				return this.scalar()
 			}
 		} else {
-			this.unexpected(".")
+			return this.scalar()
 		}
 
 		return null
 	}
 
 	protected blockSequence(): any {
-		// nincs szóköz azaz megy a számokhoz
-		// if (p === this.position) {
-		// 	return this.number()
-		// }
+		// nincs szóköz azaz scalar érték lesz
+		if (!IS_WS[this.data.charCodeAt(this.offset + 1)]) {
+			return this.scalar()
+		}
 
 		let col = this.column - 1,
 			seq = this.storeAnchor(this.getBlockCollection(col, BlockCollection.SEQUENCE))
@@ -314,6 +305,7 @@ export class Parser {
 			this.parseValue()
 		}
 
+		this._lastValueKind = ValueKind.SEQUENCE
 		return this.doc.onSequenceEnd(seq)
 	}
 
@@ -339,6 +331,7 @@ export class Parser {
 					if (this.data[this.offset] === "]") {
 						--this._inFlow
 						++this.offset
+						this._lastValueKind = ValueKind.SEQUENCE
 						return this.doc.onSequenceEnd(seq)
 					}
 				break
@@ -346,6 +339,7 @@ export class Parser {
 				case "]":
 					--this._inFlow
 					++this.offset
+					this._lastValueKind = ValueKind.SEQUENCE
 					return this.doc.onSequenceEnd(seq)
 
 				default:
@@ -361,6 +355,7 @@ export class Parser {
 			key
 
 		if (this.data[++this.offset] === "}") { // empty mapping
+			this._lastValueKind = ValueKind.MAPPING
 			return mapping
 		}
 
@@ -388,6 +383,7 @@ export class Parser {
 				case "}": // if ends with comma
 					--this._inFlow
 					++this.offset
+					this._lastValueKind = ValueKind.MAPPING
 					return this.doc.onMappingEnd(mapping)
 
 				case ":":
@@ -424,6 +420,7 @@ export class Parser {
 				case "}":
 					--this._inFlow
 					++this.offset
+					this._lastValueKind = ValueKind.MAPPING
 					return this.doc.onMappingEnd(mapping)
 
 				default:
@@ -446,16 +443,18 @@ export class Parser {
 			return this.blockMapping(column, str)
 		}
 
+		this._lastValueKind = ValueKind.STRING
 		return this.doc.onQuotedString(str, quote)
 	}
 
-	protected plainString(): any {
+	protected scalar(): any {
 		let column = this.column,
 			str = this.readPlainString()
 
 		if (this._lastPlainStringType === PlainStringType.MAPPING_KEY) {
 			return this.blockMapping(column, str)
 		} else {
+			this._lastValueKind = ValueKind.SCALAR
 			return this.doc.onScalar(str)
 		}
 	}
@@ -497,157 +496,8 @@ export class Parser {
 			this.parseValue()
 		}
 
+		this._lastValueKind = ValueKind.MAPPING
 		return this.doc.onMappingEnd(mapping)
-	}
-
-	protected number(float?: string, base: number = 10): any {
-		if (!float) {
-			if (this.data[this.offset] === "0" && base === 10) {
-				switch (this.data[this.offset + 1]) {
-					case "x":
-						this.offset += 2
-						return this.number(null, 16)
-
-					case "o":
-						this.offset += 2
-						return this.number(null, 8)
-
-					case ".":
-						++this.offset
-						return this.number("0", base)
-
-					default:
-						++this.offset
-						return 0
-
-				}
-			} else if (this.data[this.offset] === ".") {
-				return this.number("0", base)
-			}
-
-			let int = base === 10 ? this._read(RX_INT_DEC)
-				: base === 8 ? this._read(RX_INT_OCT)
-					: base === 16 ? this._read(RX_INT_HEX)
-						: this.error("Unknown integer param: base=" + base)
-
-			if (typeof int === "string" && int.length) {
-				let c = this.data[this.offset]
-				if (c === "." || c === "e" || c === "E") {
-					return this.number(int)
-				} else if (c === "-") {
-					return this.timestamp(int)
-				} else {
-					return parseInt(int, base)
-				}
-			}
-		} else {
-			let part = this._read(RX_FLOAT_SECOND_PART)
-			if (part.length) {
-				if (part === "nan" || part === "Nan" || part === "NAN") {
-					return NaN
-				} else if (part === "inf" || part === "Inf" || part === "INF") {
-					return Infinity
-				} else {
-					return parseFloat(`${float}${part}`)
-				}
-			}
-		}
-		return null
-	}
-
-	// TODO: fáj a szívem érte, de leht át kéne alakítani úgy, hogy a schema értelmezze
-	protected timestamp(year: string): Date | string {
-		let start = this.offset - 4,
-			month, day, hour, minute, second, ms
-		++this.offset
-
-		if (!(month = this._read(RX_TIMESTAMP_PART)) || this.data[this.offset++] !== "-") {
-			this.offset = start; return this.plainString()
-		}
-
-		if (!(day = this._read(RX_TIMESTAMP_PART))) {
-			this.offset = start; return this.plainString()
-		}
-
-		if (this.data[this.offset] === "t" || this.data[this.offset] === "T") {
-			++this.offset
-			if (!(hour = this._read(RX_TIMESTAMP_PART)) || this.data[this.offset++] !== ":") {
-				this.offset = start; return this.plainString()
-			}
-		} else {
-			this.eatNBS()
-			if (!(hour = this._read(RX_TIMESTAMP_PART))) {
-				let ch = this.data[this.offset]
-				if (ch === "," || ch === "]" || ch === "}" || ch === "\r" || ch === "\n" || ch === "#" || !ch) {
-					return new Date(`${year}-${month}-${day}`)
-				} else {
-					this.offset = start; return this.plainString()
-				}
-			} else if (this.data[this.offset++] !== ":") {
-				this.offset = start; return this.plainString()
-			}
-		}
-
-		if (!(minute = this._read(RX_TIMESTAMP_PART)) || this.data[this.offset++] !== ":") {
-			this.offset = start; return this.plainString()
-		}
-
-		if (!(second = this._read(RX_TIMESTAMP_PART))) {
-			this.offset = start; return this.plainString()
-		}
-
-		if (this.data[this.offset] === ".") {
-			++this.offset
-			if (ms = this._read(RX_TIMESTAMP_MS)) {
-				ms = parseInt(ms, 10)
-			} else {
-				this.offset = start; return this.plainString()
-			}
-		} else {
-			ms = 0
-		}
-
-		if (this.data[this.offset] === "z" || this.data[this.offset] === "Z") {
-			++this.offset
-			return new Date(Date.UTC(
-				parseInt(year, 10),
-				parseInt(month, 10) - 1,
-				parseInt(day, 10),
-				parseInt(hour, 10),
-				parseInt(minute, 10),
-				parseInt(second, 10),
-				ms
-			))
-		} else {
-			this.eatNBS()
-
-			if (this.data[this.offset] === "+" || this.data[this.offset] === "-") {
-				let tzs = this.offset, tz
-				++this.offset
-				tz = this._read(RX_TIMESTAMP_TZ)
-
-				if (tz) {
-					if (tz.length === 4) {
-						tz = `${tz.slice(0,2)}:${tz.slice(2)}`
-					}
-
-					let h = parseInt(tz.split(/:/)[0], 10),
-						m = parseInt(tz.split(/:/)[1] || "0", 10)
-					tz = `${this.data[tzs]}${h < 10 ? `0${h}` : h}${m < 10 ? `0${m}` : m}`
-
-					return new Date(this.data.slice(start, tzs).trim() + tz)
-				} else {
-					this.offset = start; return this.plainString()
-				}
-			} else {
-				let ch = this.data[this.offset]
-				if (ch === "," || ch === "]" || ch === "}" || ch === "\r" || ch === "\n" || ch === "#" || !ch) {
-					return new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`)
-				} else {
-					this.offset = start; return this.plainString()
-				}
-			}
-		}
 	}
 
 	protected tag() {
@@ -664,7 +514,14 @@ export class Parser {
 		}
 
 		this.nextLine()
-		return this.doc.onTagEnd(factory(this.doc, this.parseValue()))
+		let value = this.parseValue()
+
+		switch (this._lastValueKind) {
+			case ValueKind.MAPPING:  return factory.createFromMapping(this.doc, value)
+			case ValueKind.SCALAR:   return factory.createFromScalar(this.doc, value)
+			case ValueKind.SEQUENCE: return factory.createFromSequence(this.doc, value)
+			case ValueKind.STRING:   return factory.createFromString(this.doc, value)
+		}
 	}
 
 	protected anchor() {
