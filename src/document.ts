@@ -1,6 +1,6 @@
 import {Parser, Location} from "./parser"
-import {ISchema, CORE_SCHEMA} from "./schema"
 import {Loader} from "./loader"
+import {SCHEMA_CORE, ISchema, TagFactory} from "./schema"
 
 
 export interface Mapping extends Object {
@@ -13,8 +13,11 @@ export interface Sequence extends Array<any> {
 }
 
 
+export type Scalar = string;
+
+
 export interface TagDirective {
-	prefix: string
+	handle: string
 	namespace: string
 }
 
@@ -27,9 +30,6 @@ export class TagName {
 		return `!<${this.namespace}${this.localName}>`
 	}
 }
-
-
-export type TagFactory = (document: YamlDocument, value: any) => any
 
 
 export type Directive = {
@@ -63,7 +63,7 @@ export class YamlDocument {
 		"!!": "tag:yaml.org,2002:"
 	}
 
-	public constructor(protected loader: Loader, schema: ISchema = CORE_SCHEMA) {
+	public constructor(protected loader: Loader, schema: ISchema = SCHEMA_CORE) {
 		this.schema = schema
 	}
 
@@ -73,7 +73,7 @@ export class YamlDocument {
 	 */
 	public onDirective(name: string, value: any): void {
 		if (name === "TAG") {
-			this.tagNS[(<TagDirective> value).prefix] = (<TagDirective> value).namespace
+			this.tagNS[(<TagDirective> value).handle] = (<TagDirective> value).namespace
 		}
 	}
 
