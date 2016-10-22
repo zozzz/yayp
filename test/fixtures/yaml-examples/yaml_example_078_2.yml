@@ -1,0 +1,9 @@
+# --- [title] Example 7.7. / Single Quoted Characters (2)
+
+%YAML 1.2
+---
+!!str "here's to \"quotes\""
+
+# --- [success] documents[0].content
+
+"here's to \"quotes\""

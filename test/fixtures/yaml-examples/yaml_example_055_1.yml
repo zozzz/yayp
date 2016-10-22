@@ -1,0 +1,9 @@
+# --- [title] Example 6.13. / Reserved Directives (1)
+
+%FOO  bar baz # Should be ignored
+               # with a warning.
+--- "foo"
+
+# --- [success] documents[0].content
+
+"foo"

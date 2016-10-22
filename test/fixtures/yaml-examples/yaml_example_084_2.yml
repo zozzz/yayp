@@ -1,0 +1,18 @@
+# --- [title] Example 7.13. / Flow Sequence (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!seq [
+    !!str "one",
+    !!str "two",
+  ],
+  !!seq [
+    !!str "three",
+    !!str "four",
+  ],
+]
+
+# --- [success] documents[0].content
+
+[["one","two"],["three","four"]]

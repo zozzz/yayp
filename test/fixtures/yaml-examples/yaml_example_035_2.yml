@@ -1,0 +1,14 @@
+# --- [title] Example 5.7. / Block Scalar Indicators (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "literal"
+  : !!str "some\ntext\n",
+  ? !!str "folded"
+  : !!str "some text\n",
+}
+
+# --- [success] documents[0].content
+
+{"literal":"some\ntext\n","folded":"some text\n"}

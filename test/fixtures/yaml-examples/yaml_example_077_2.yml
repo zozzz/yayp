@@ -1,0 +1,11 @@
+# --- [title] Example 7.6. / Double Quoted Lines (2)
+
+%YAML 1.2
+---
+!!str " 1st non-empty\n\
+      2nd non-empty \
+      3rd non-empty "
+
+# --- [success] documents[0].content
+
+" 1st non-empty\n2nd non-empty 3rd non-empty "

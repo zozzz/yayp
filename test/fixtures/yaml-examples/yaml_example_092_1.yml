@@ -1,0 +1,9 @@
+# --- [title] Example 7.21. / Single Pair Implicit Entries (1)
+
+- [ YAML·: separate ]
+- [ : empty key entry ]
+- [ {JSON: like}:adjacent ]
+
+# --- [success] documents[0].content
+
+[[{"YAML·":"separate"}],[{"null":"empty key entry"}],[{"[object Object]":"adjacent"}]]

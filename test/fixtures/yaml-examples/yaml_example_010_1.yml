@@ -1,0 +1,14 @@
+# --- [title] Example 2.10. / Node for “Sammy Sosa” appears twice in this document (1)
+
+---
+hr:
+  - Mark McGwire
+  # Following node labeled SS
+  - &SS Sammy Sosa
+rbi:
+  - *SS # Subsequent occurrence
+  - Ken Griffey
+
+# --- [success] documents[0].content
+
+{"hr":["Mark McGwire","Sammy Sosa"],"rbi":["Sammy Sosa","Ken Griffey"]}

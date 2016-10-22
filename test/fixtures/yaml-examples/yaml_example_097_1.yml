@@ -1,0 +1,13 @@
+# --- [title] Example 8.2. / Block Indentation Indicator (1)
+
+- |
+·detected
+- >
+·
+··
+··# detected
+- |1
+··explicit
+- >
+·→
+·detected

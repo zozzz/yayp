@@ -1,0 +1,13 @@
+# --- [title] Example 6.28. / Non-Specific Tags (2)
+
+%YAML 1.2
+---
+!!seq [
+  !<tag:yaml.org,2002:str> "12",
+  !<tag:yaml.org,2002:int> "12",
+  !<tag:yaml.org,2002:str> "12",
+]
+
+# --- [success] documents[0].content
+
+["12",12,"12"]

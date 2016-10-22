@@ -1,0 +1,11 @@
+# --- [title] Example 7.19. / Single Pair Flow Mappings (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!map { ? !!str "foo" : !!str "bar" }
+]
+
+# --- [success] documents[0].content
+
+[{"foo":"bar"}]

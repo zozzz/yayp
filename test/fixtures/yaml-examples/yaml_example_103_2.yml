@@ -1,0 +1,9 @@
+# --- [title] Example 8.8. / Literal Content (2)
+
+%YAML 1.2
+---
+!!str "\n\nliteral\n·\n\ntext\n"
+
+# --- [success] documents[0].content
+
+"\n\nliteral\n·\n\ntext\n"

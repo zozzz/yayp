@@ -1,9 +1,0 @@
-# --- [title] Example 7.19. Single Pair Flow Mappings
-
-[
-foo: bar
-]
-
-# --- [success] documents[0].content
-
-[{"foo":"bar"}]

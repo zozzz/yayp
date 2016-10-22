@@ -1,0 +1,9 @@
+# --- [title] Example 6.16. / “TAG” directive (1)
+
+%TAG !yaml! tag:yaml.org,2002:
+---
+!yaml!str "foo"
+
+# --- [success] documents[0].content
+
+"foo"

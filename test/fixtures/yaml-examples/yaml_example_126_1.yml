@@ -1,0 +1,10 @@
+# --- [title] Example 10.3. / !!str Examples (1)
+
+Block style: !!str |-
+  String: just a theory.
+
+Flow style: !!str "String: just a theory."
+
+# --- [success] documents[0].content
+
+{"Block style":"String: just a theory.","Flow style":"String: just a theory."}

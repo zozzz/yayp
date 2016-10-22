@@ -1,0 +1,22 @@
+# --- [title] Example 8.12. / Empty Separation Lines (1)
+
+>
+↓
+ folded
+ line↓
+↓
+ next
+ line↓
+   * bullet
+
+   * list
+   * line↓
+↓
+ last
+ line
+
+# Comment
+
+# --- [success] documents[0].content
+
+"↓\n folded\n line↓\n↓\n next\n line↓\n   * bullet\n\n   * list\n   * line↓\n↓\n last\n line\n\n# Comment "

@@ -1,0 +1,15 @@
+# --- [title] Example 7.24. / Flow Nodes (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!str "a",
+  !!str "b",
+  &A !!str "c",
+  *A,
+  !!str "",
+]
+
+# --- [success] documents[0].content
+
+["a","b","c","c",""]

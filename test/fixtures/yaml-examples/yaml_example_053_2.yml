@@ -1,0 +1,12 @@
+# --- [title] Example 6.11. / Multi-Line Comments (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "key"
+  : !!str "value",
+}
+
+# --- [success] documents[0].content
+
+{"key":"value"}

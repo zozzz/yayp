@@ -1,0 +1,19 @@
+# --- [title] Example 8.22. / Block Collection Nodes (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "sequence"
+  : !!seq [
+    !!str "entry",
+    !!seq [ !!str "nested" ],
+  ],
+  ? !!str "mapping"
+  : !!map {
+    ? !!str "foo" : !!str "bar",
+  },
+}
+
+# --- [success] documents[0].content
+
+{"sequence":["entry",["nested"]],"mapping":{"foo":"bar"}}

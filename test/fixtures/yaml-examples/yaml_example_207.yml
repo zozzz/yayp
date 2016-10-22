@@ -1,7 +1,0 @@
-# --- [title] Example 10.7. !!float Examples
-
-negative: !!float -1
-zero: !!float 0
-positive: !!float 2.3e4
-infinity: !!float .inf
-not a number: !!float .nan

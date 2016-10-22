@@ -1,0 +1,9 @@
+# --- [title] Example 6.13. / Reserved Directives (2)
+
+%YAML 1.2
+--- !!str
+"foo"
+
+# --- [success] documents[0].content
+
+"foo"

@@ -1,0 +1,14 @@
+# --- [title] Example 6.29. / Node Anchors (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "First occurrence"
+  : &A !!str "Value",
+  ? !!str "Second occurrence"
+  : *A,
+}
+
+# --- [success] documents[0].content
+
+{"First occurrence":"Value","Second occurrence":"Value"}

@@ -1,0 +1,26 @@
+# --- [title] Example 7.21. / Single Pair Implicit Entries (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!seq [
+    !!map {
+      ? !!str "YAML"
+      : !!str "separate"
+    },
+  ],
+  !!seq [
+    !!map {
+      ? !!null ""
+      : !!str "empty key entry"
+    },
+  ],
+  !!seq [
+    !!map {
+      ? !!map {
+        ? !!str "JSON"
+        : !!str "like"
+      } : "adjacent",
+    },
+  ],
+]

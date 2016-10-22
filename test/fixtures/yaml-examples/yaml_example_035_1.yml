@@ -1,0 +1,12 @@
+# --- [title] Example 5.7. / Block Scalar Indicators (1)
+
+literal: |
+  some
+  text
+folded: >
+  some
+  text
+
+# --- [success] documents[0].content
+
+{"literal":"some\ntext\n","folded":"some text\n"}

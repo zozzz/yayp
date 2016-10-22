@@ -1,0 +1,13 @@
+# --- [title] Example 2.25. / Unordered Sets (1)
+
+# Sets are represented as a
+# Mapping where each key is
+# associated with a null value
+--- !!set
+? Mark McGwire
+? Sammy Sosa
+? Ken Griff
+
+# --- [success] documents[0].content
+
+{"Mark McGwire":null,"Sammy Sosa":null,"Ken Griff":null}

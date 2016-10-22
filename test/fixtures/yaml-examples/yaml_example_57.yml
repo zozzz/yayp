@@ -1,9 +1,0 @@
-# --- [title] Example 6.4. Line Prefixes
-
-plain: text
-··lines
-quoted: "text
-··→lines"
-block: |
-··text
-···→lines

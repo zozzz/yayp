@@ -1,8 +1,0 @@
-# --- [title] Example 6.9. Separated Comment
-
-key:····# Comment↓
-  valueeof
-
-# --- [success] documents[0].content
-
-"key:····# Comment↓ valueeof"

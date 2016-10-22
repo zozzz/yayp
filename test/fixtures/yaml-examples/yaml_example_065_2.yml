@@ -1,0 +1,14 @@
+# --- [title] Example 6.23. / Node Properties (2)
+
+%YAML 1.2
+---
+!!map {
+  ? &B1 !!str "foo"
+  : !!str "bar",
+  ? !!str "baz"
+  : *B1,
+}
+
+# --- [success] documents[0].content
+
+{"foo":"bar","baz":"foo"}

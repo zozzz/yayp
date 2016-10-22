@@ -1,0 +1,16 @@
+# --- [title] Example 8.15. / Block Sequence Entry Types (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!null "",
+  !!str "block node\n",
+  !!seq [
+    !!str "one"
+    !!str "two",
+  ],
+  !!map {
+    ? !!str "one"
+    : !!str "two",
+  },
+]

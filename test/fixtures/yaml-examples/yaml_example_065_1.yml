@@ -1,0 +1,5 @@
+# --- [title] Example 6.23. / Node Properties (1)
+
+!!str &a1 "foo":
+  !!str bar
+&a2 baz : *a1

@@ -1,0 +1,12 @@
+# --- [title] Example 2.18. / Multi-line Flow Scalars (1)
+
+plain:
+  This unquoted scalar
+  spans many lines.
+
+quoted: "So does this
+  quoted scalar.\n"
+
+# --- [success] documents[0].content
+
+{"plain":"This unquoted scalar spans many lines.","quoted":"So does this quoted scalar.\n"}

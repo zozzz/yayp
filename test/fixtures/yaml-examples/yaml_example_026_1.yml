@@ -1,0 +1,13 @@
+# --- [title] Example 2.26. / Ordered Mappings (1)
+
+# Ordered maps are represented as
+# A sequence of mappings, with
+# each mapping having one key
+--- !!omap
+- Mark McGwire: 65
+- Sammy Sosa: 63
+- Ken Griffy: 58
+
+# --- [success] documents[0].content
+
+[{"Mark McGwire":65},{"Sammy Sosa":63},{"Ken Griffy":58}]

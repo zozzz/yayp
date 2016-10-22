@@ -1,0 +1,16 @@
+# --- [title] Example 8.6. / Empty Scalar Chomping (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "strip"
+  : !!str "",
+  ? !!str "clip"
+  : !!str "",
+  ? !!str "keep"
+  : !!str "\n",
+}
+
+# --- [success] documents[0].content
+
+{"strip":"","clip":"","keep":"\n"}

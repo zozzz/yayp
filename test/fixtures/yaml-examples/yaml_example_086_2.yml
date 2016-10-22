@@ -1,0 +1,18 @@
+# --- [title] Example 7.15. / Flow Mappings (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!map {
+    ? !!str "one"   : !!str "two",
+    ? !!str "three" : !!str "four",
+  },
+  !!map {
+    ? !!str "five"  : !!str "six",
+    ? !!str "seven" : !!str "eight",
+  },
+]
+
+# --- [success] documents[0].content
+
+[{"one":"two","three":"four"},{"five":"six","seven":"eight"}]

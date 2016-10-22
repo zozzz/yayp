@@ -1,0 +1,9 @@
+# --- [title] Example 2.21. / Miscellaneous (1)
+
+null:
+booleans: [ true, false ]
+string: '012345'
+
+# --- [success] documents[0].content
+
+{"null":null,"booleans":[true,false],"string":"012345"}

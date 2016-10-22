@@ -1,0 +1,14 @@
+# --- [title] Example 2.3. / Mapping Scalars to Sequences (ball clubs in each league) (1)
+
+american:
+  - Boston Red Sox
+  - Detroit Tigers
+  - New York Yankees
+national:
+  - New York Mets
+  - Chicago Cubs
+  - Atlanta Braves
+
+# --- [success] documents[0].content
+
+{"american":["Boston Red Sox","Detroit Tigers","New York Yankees"],"national":["New York Mets","Chicago Cubs","Atlanta Braves"]}

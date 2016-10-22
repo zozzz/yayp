@@ -1,0 +1,18 @@
+# --- [title] Example 7.1. / Alias Nodes (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "First occurrence"
+  : &A !!str "Foo",
+  ? !!str "Override anchor"
+  : &B !!str "Bar",
+  ? !!str "Second occurrence"
+  : *A,
+  ? !!str "Reuse anchor"
+  : *B,
+}
+
+# --- [success] documents[0].content
+
+{"First occurrence":"Foo","Override anchor":"Bar","Second occurrence":"Foo","Reuse anchor":"Bar"}

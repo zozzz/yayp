@@ -1,0 +1,8 @@
+# --- [title] Example 5.9. / Directive Indicator (1)
+
+%YAML 1.2
+--- text
+
+# --- [success] documents[0].content
+
+"text"

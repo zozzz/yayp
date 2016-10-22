@@ -1,8 +1,0 @@
-# --- [title] Example 7.15. Flow Mappings
-
-- { one : two , three: four , }
-- {five: six,seven : eight}
-
-# --- [success] documents[0].content
-
-[{"one":"two","three":"four"},{"five":"six","seven":"eight"}]

@@ -1,0 +1,13 @@
+# --- [title] Example 5.13. / Escaped Characters (2)
+
+%YAML 1.2
+---
+"Fun with \x5C
+\x22 \x07 \x08 \x1B \x0C
+\x0A \x0D \x09 \x0B \x00
+\x20 \xA0 \x85 \u2028 \u2029
+A A A"
+
+# --- [success] documents[0].content
+
+"Fun with \\ \" \u0007 \b \u001b \f \n \r \t \u000b \u0000          A A A"

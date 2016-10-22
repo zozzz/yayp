@@ -1,0 +1,9 @@
+# --- [title] Example 7.11. / Plain Implicit Keys (1)
+
+implicit block key : [
+  implicit flow key : value,
+ ]
+
+# --- [success] documents[0].content
+
+{"implicit block key":[{"implicit flow key":"value"}]}

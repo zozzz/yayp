@@ -1,0 +1,9 @@
+# --- [title] Example 8.9. / Folded Scalar (2)
+
+%YAML 1.2
+---
+!!str "folded text\n"
+
+# --- [success] documents[0].content
+
+"folded text\n"

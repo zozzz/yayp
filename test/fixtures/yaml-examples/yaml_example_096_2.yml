@@ -1,0 +1,14 @@
+# --- [title] Example 8.1. / Block Scalar Header (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!str "literal\n",
+  !!str "·folded\n",
+  !!str "keep\n\n",
+  !!str "·strip",
+]
+
+# --- [success] documents[0].content
+
+["literal\n","·folded\n","keep\n\n","·strip"]

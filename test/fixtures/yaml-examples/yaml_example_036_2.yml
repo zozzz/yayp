@@ -1,0 +1,14 @@
+# --- [title] Example 5.8. / Quoted Scalar Indicators (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "single"
+  : !!str "text",
+  ? !!str "double"
+  : !!str "text",
+}
+
+# --- [success] documents[0].content
+
+{"single":"text","double":"text"}

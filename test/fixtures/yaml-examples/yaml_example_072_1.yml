@@ -1,0 +1,10 @@
+# --- [title] Example 7.1. / Alias Nodes (1)
+
+First occurrence: &anchor Foo
+Second occurrence: *anchor
+Override anchor: &anchor Bar
+Reuse anchor: *anchor
+
+# --- [success] documents[0].content
+
+{"First occurrence":"Foo","Second occurrence":"Foo","Override anchor":"Bar","Reuse anchor":"Bar"}

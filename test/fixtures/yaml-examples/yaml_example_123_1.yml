@@ -1,0 +1,21 @@
+# --- [title] Example 9.6. / Stream (1)
+
+Document
+---
+# Empty
+...
+%YAML 1.2
+---
+matches %: 20
+
+# --- [success] documents[0].content
+
+"Document"
+
+# --- [success] documents[1].content
+
+null
+
+# --- [success] documents[2].content
+
+{"matches %":20}

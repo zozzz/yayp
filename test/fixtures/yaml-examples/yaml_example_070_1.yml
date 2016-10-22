@@ -1,0 +1,10 @@
+# --- [title] Example 6.28. / Non-Specific Tags (1)
+
+# Assuming conventional resolution:
+- "12"
+- 12
+- ! 12
+
+# --- [success] documents[0].content
+
+["12",12,"12"]

@@ -1,0 +1,22 @@
+# --- [title] Example 6.12. / Separation Spaces (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!map {
+    ? !!str "first"
+    : !!str "Sammy",
+    ? !!str "last"
+    : !!str "Sosa",
+  }
+  : !!map {
+    ? !!str "hr"
+    : !!int "65",
+    ? !!str "avg"
+    : !!float "0.278",
+  },
+}
+
+# --- [success] documents[0].content
+
+{"[object Object]":{"hr":65,"avg":0.278}}

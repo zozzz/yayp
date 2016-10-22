@@ -1,0 +1,14 @@
+# --- [title] Example 6.5. / Empty Lines (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "Folding"
+  : !!str "Empty line\nas a line feed",
+  ? !!str "Chomping"
+  : !!str "Clipped empty lines\n",
+}
+
+# --- [success] documents[0].content
+
+{"Folding":"Empty line\nas a line feed","Chomping":"Clipped empty lines\n"}

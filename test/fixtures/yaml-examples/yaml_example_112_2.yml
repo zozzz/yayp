@@ -1,0 +1,17 @@
+# --- [title] Example 8.17. / Explicit Block Mapping Entries (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "explicit key"
+  : !!str "",
+  ? !!str "block key\n"
+  : !!seq [
+    !!str "one",
+    !!str "two",
+  ],
+}
+
+# --- [success] documents[0].content
+
+{"explicit key":"","block key\n":["one","two"]}

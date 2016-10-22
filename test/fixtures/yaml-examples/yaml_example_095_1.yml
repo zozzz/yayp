@@ -1,0 +1,11 @@
+# --- [title] Example 7.24. / Flow Nodes (1)
+
+- !!str "a"
+- 'b'
+- &anchor "c"
+- *anchor
+- !!str
+
+# --- [success] documents[0].content
+
+["a","b","c","c",""]

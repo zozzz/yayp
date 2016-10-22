@@ -1,0 +1,13 @@
+# --- [title] Example 5.3. / Block Structure Indicators (1)
+
+sequence:
+- one
+- two
+mapping:
+  ? sky
+  : blue
+  sea : green
+
+# --- [success] documents[0].content
+
+{"sequence":["one","two"],"mapping":{"sky":"blue","sea":"green"}}

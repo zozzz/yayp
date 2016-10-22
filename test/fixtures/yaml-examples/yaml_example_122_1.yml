@@ -1,0 +1,14 @@
+# --- [title] Example 9.5. / Directives Documents (1)
+
+%YAML 1.2
+--- |
+%!PS-Adobe-2.0
+...
+%YAML1.2
+---
+# Empty
+...
+
+# --- [success] documents[0].content
+
+"%!PS-Adobe-2.0\n...\n%YAML1.2\n---\n# Empty\n...\n"

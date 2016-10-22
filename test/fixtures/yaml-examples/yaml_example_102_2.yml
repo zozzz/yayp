@@ -1,0 +1,9 @@
+# --- [title] Example 8.7. / Literal Scalar (2)
+
+%YAML 1.2
+---
+!!str "literal\n\ttext\n"
+
+# --- [success] documents[0].content
+
+"literal\n\ttext\n"

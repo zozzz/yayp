@@ -1,0 +1,5 @@
+# --- [title] Example 6.22. / Global Tag Prefix (1)
+
+%TAG !e! tag:example.com,2000:app/
+---
+- !e!foo "bar"

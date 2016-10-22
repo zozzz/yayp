@@ -1,0 +1,14 @@
+# --- [title] Example 6.3. / Separation Spaces (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!map {
+    ? !!str "foo" : !!str "bar",
+  },
+  !!seq [ !!str "baz", !!str "baz" ],
+]
+
+# --- [success] documents[0].content
+
+[{"foo":"bar"},["baz","baz"]]

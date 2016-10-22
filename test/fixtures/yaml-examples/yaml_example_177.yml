@@ -1,7 +1,0 @@
-# --- [title] Example 8.17. Explicit Block Mapping Entries
-
-? explicit key # Empty value↓
-? |
-  block key↓
-:·- one # Explicit compact
-··- two # block value↓

@@ -1,4 +1,0 @@
-# --- [title] Example 6.24. Verbatim Tags
-
-!<tag:yaml.org,2002:str> foo :
-  !<!bar> baz

@@ -1,0 +1,11 @@
+# --- [title] Example 9.4. / Explicit Documents (2)
+
+%YAML 1.2
+---
+!!map {
+  !!str "matches %": !!int "20"
+}
+...
+%YAML 1.2
+---
+!!null ""

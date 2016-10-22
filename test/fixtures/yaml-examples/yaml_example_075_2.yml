@@ -1,0 +1,17 @@
+# --- [title] Example 7.4. / Double Quoted Implicit Keys (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "implicit block key"
+  : !!seq [
+    !!map {
+      ? !!str "implicit flow key"
+      : !!str "value",
+    }
+  ]
+}
+
+# --- [success] documents[0].content
+
+{"implicit block key":[{"implicit flow key":"value"}]}

@@ -1,0 +1,9 @@
+# --- [title] Example 6.4. / Line Prefixes (1)
+
+plain: text
+··lines
+quoted: "text
+··→lines"
+block: |
+··text
+···→lines

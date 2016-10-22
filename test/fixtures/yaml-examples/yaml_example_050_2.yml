@@ -1,0 +1,9 @@
+# --- [title] Example 6.8. / Flow Folding (2)
+
+%YAML 1.2
+--- !!str
+" foo\nbar\nbaz "
+
+# --- [success] documents[0].content
+
+" foo\nbar\nbaz "

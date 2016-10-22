@@ -1,0 +1,12 @@
+# --- [title] Example 8.18. / Implicit Block Mapping Entries (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "plain key"
+  : !!str "in-line value",
+  ? !!null ""
+  : !!null "",
+  ? !!str "quoted key"
+  : !!seq [ !!str "entry" ],
+}

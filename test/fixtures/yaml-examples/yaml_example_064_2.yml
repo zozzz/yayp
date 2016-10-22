@@ -1,0 +1,5 @@
+# --- [title] Example 6.22. / Global Tag Prefix (2)
+
+%YAML 1.2
+---
+!<tag:example.com,2000:app/foo> "bar"

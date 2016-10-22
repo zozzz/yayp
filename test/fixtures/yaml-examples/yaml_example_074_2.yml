@@ -1,0 +1,8 @@
+# --- [title] Example 7.3. / Completely Empty Flow Nodes (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "foo" : !!null "",
+  ? !!null ""   : !!str "bar",
+}

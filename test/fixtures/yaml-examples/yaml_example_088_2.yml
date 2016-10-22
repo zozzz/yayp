@@ -1,0 +1,10 @@
+# --- [title] Example 7.17. / Flow Mapping Separate Values (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "unquoted" : !!str "separate",
+  ? !!str "http://foo.com" : !!null "",
+  ? !!str "omitted value" : !!null "",
+  ? !!null "" : !!str "omitted key",
+}

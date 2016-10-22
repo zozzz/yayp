@@ -1,0 +1,16 @@
+# --- [title] Example 8.5. / Chomping Trailing Lines (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "strip"
+  : !!str "# text",
+  ? !!str "clip"
+  : !!str "# text\n",
+  ? !!str "keep"
+  : !!str "# text\n",
+}
+
+# --- [success] documents[0].content
+
+{"strip":"# text","clip":"# text\n","keep":"# text\n"}

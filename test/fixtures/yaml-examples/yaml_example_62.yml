@@ -1,9 +1,0 @@
-# --- [title] Example 6.6. Line Folding
-
-%YAML 1.2
----
-!!str "trimmed\n\n\nas space"
-
-# --- [success] documents[0].content
-
-"trimmed\n\n\nas space"

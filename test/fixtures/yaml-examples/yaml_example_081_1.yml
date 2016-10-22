@@ -1,0 +1,18 @@
+# --- [title] Example 7.10. / Plain Characters (1)
+
+# Outside flow collection:
+- ::vector
+- ": - ()"
+- Up, up, and away!
+- -123
+- http://example.com/foo#bar
+# Inside flow collection:
+- [ ::vector,
+  ": - ()",
+  "Up, up and away!",
+  -123,
+  http://example.com/foo#bar ]
+
+# --- [success] documents[0].content
+
+["::vector",": - ()","Up, up, and away!",-123,"http://example.com/foo#bar",["::vector",": - ()","Up, up and away!",-123,"http://example.com/foo#bar"]]

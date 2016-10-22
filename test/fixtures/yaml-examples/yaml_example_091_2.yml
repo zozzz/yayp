@@ -1,0 +1,14 @@
+# --- [title] Example 7.20. / Single Pair Explicit Entry (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!map {
+    ? !!str "foo bar"
+    : !!str "baz",
+  },
+]
+
+# --- [success] documents[0].content
+
+[{"foo bar":"baz"}]

@@ -1,0 +1,12 @@
+# --- [title] Example 8.4. / Chomping Final Line Break (1)
+
+strip: |-
+  text↓
+clip: |
+  text↓
+keep: |+
+  text↓
+
+# --- [success] documents[0].content
+
+{"strip":"text↓","clip":"text↓\n","keep":"text↓\n"}

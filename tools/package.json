@@ -1,0 +1,8 @@
+{
+  "name": "tools",
+  "version": "1.0.0",
+  "dependencies": {
+    "js-yaml": "^3.6.1",
+    "jsdom": "^9.8.0"
+  }
+}

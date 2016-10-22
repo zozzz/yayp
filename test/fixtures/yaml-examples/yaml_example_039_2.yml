@@ -1,0 +1,10 @@
+# --- [title] Example 5.11. / Line Break Characters (2)
+
+%YAML 1.2
+---
+!!str "line break (no glyph)\n\
+      line break (glyphed)\n"
+
+# --- [success] documents[0].content
+
+"line break (no glyph)\nline break (glyphed)\n"

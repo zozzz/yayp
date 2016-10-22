@@ -1,0 +1,18 @@
+# --- [title] Example 8.14. / Block Sequence (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "block sequence"
+  : !!seq [
+    !!str "one",
+    !!map {
+      ? !!str "two"
+      : !!str "three"
+    },
+  ],
+}
+
+# --- [success] documents[0].content
+
+{"block sequence":["one",{"two":"three"}]}

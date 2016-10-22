@@ -1,0 +1,16 @@
+# --- [title] Example 6.4. / Line Prefixes (2)
+
+%YAML 1.2
+---
+!!map {
+  ? !!str "plain"
+  : !!str "text lines",
+  ? !!str "quoted"
+  : !!str "text lines",
+  ? !!str "block"
+  : !!str "text\n·→lines\n",
+}
+
+# --- [success] documents[0].content
+
+{"plain":"text lines","quoted":"text lines","block":"text\n·→lines\n"}

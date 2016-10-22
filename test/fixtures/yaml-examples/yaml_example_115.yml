@@ -1,9 +1,0 @@
-# --- [title] Example 7.8. Single Quoted Implicit Keys
-
-'implicit block key' : [
-  'implicit flow key' : value,
- ]
-
-# --- [success] documents[0].content
-
-{"implicit block key":[{"implicit flow key":"value"}]}

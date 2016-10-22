@@ -1,0 +1,9 @@
+# --- [title] Example 9.5. / Directives Documents (2)
+
+%YAML 1.2
+---
+!!str "%!PS-Adobe-2.0\n"
+...
+%YAML 1.2
+---
+!!null ""

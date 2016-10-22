@@ -1,9 +1,0 @@
-# --- [title] Example 8.19. Compact Block Mappings
-
-- sun: yellow↓
-- ? earth: blue↓
-  : moon: white↓
-
-# --- [success] documents[0].content
-
-[{"sun":"yellow↓"},{"[object Object]":{"moon":"white↓"}}]

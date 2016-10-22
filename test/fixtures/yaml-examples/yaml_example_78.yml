@@ -1,9 +1,0 @@
-# --- [title] Example 6.14. “YAML” directive
-
-%YAML 1.2
----
-!!str "foo"
-
-# --- [success] documents[0].content
-
-"foo"

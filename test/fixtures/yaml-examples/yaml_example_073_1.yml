@@ -1,0 +1,6 @@
+# --- [title] Example 7.2. / Empty Content (1)
+
+{
+  foo : !!str,
+  !!str : bar,
+}

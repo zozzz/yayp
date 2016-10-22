@@ -1,0 +1,8 @@
+# --- [title] Example 6.29. / Node Anchors (1)
+
+First occurrence: &anchor Value
+Second occurrence: *anchor
+
+# --- [success] documents[0].content
+
+{"First occurrence":"Value","Second occurrence":"Value"}

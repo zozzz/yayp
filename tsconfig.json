@@ -21,7 +21,8 @@
 	"include": [
 		"typings/index.d.ts",
 		"src/**/*.ts",
-		"test/**/*.ts"
+		"test/**/*.ts",
+		"tools/*.ts"
 	],
 	"compileOnSave": true
 }

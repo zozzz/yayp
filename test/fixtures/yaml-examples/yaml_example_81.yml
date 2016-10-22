@@ -1,9 +1,0 @@
-# --- [title] Example 6.18. Primary Tag Handle
-
-# Private
-!foo "bar"
-...
-# Global
-%TAG ! tag:example.com,2000:app/
----
-!foo "bar"

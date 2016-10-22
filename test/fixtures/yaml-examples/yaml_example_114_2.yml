@@ -1,0 +1,23 @@
+# --- [title] Example 8.19. / Compact Block Mappings (2)
+
+%YAML 1.2
+---
+!!seq [
+  !!map {
+     !!str "sun" : !!str "yellow",
+  },
+  !!map {
+    ? !!map {
+      ? !!str "earth"
+      : !!str "blue"
+    },
+    : !!map {
+      ? !!str "moon"
+      : !!str "white"
+    },
+  }
+]
+
+# --- [success] documents[0].content
+
+[{"sun":"yellow"},{"[object Object]":null,"null":{"moon":"white"}}]

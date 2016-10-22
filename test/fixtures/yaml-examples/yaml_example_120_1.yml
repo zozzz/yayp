@@ -1,0 +1,21 @@
+# --- [title] Example 9.3. / Bare Documents (1)
+
+Bare
+document
+...
+# No document
+...
+|
+%!PS-Adobe-2.0 # Not the first line
+
+# --- [success] documents[0].content
+
+"Bare document"
+
+# --- [success] documents[1].content
+
+null
+
+# --- [success] documents[2].content
+
+"%!PS-Adobe-2.0 # Not the first line\n"

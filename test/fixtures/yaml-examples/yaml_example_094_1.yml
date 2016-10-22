@@ -1,0 +1,11 @@
+# --- [title] Example 7.23. / Flow Content (1)
+
+- [ a, b ]
+- { a: b }
+- "a"
+- 'b'
+- c
+
+# --- [success] documents[0].content
+
+[["a","b"],{"a":"b"},"a","b","c"]
