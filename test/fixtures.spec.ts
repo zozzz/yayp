@@ -4,7 +4,7 @@ import * as path from "path"
 import {expect} from "chai"
 let getObjPath = require("get-object-path")
 
-import {Loader, YamlDocument, TagFactory, CORE_SCHEMA, SchemaCollection, ISchema} from "../src"
+import {Loader, YamlDocument, TypeFactory, SCHEMA_CORE, SchemaCollection, ISchema, Mapping, Sequence, Scalar} from "../src"
 
 
 type FixtureFile = {
@@ -32,12 +32,46 @@ type FixtureFile = {
 }
 
 
+class FakeTF extends TypeFactory {
+	public constructor(public namespace: string, public name: string) {
+		super()
+	}
+
+	public onMappingStart(): Mapping {
+		return {"$type": `!<${this.namespace}${this.name}>`}
+	}
+
+	public onSequenceStart(): any {
+		let s = this.onMappingStart()
+		s["sequence"] = []
+		return s
+	}
+
+	public onSequenceEntry(sequence: any, entry: any): void {
+		sequence["sequence"].push(entry)
+	}
+
+	public onScalar(value: string): any {
+		return `!<${this.namespace}${this.name}>(${value})`
+	}
+
+	public onQuotedString(value: string, quote: string): any {
+		return `!<${this.namespace}${this.name}>${quote}${value}${quote}`
+	}
+
+	public onBlockString(value: string, isFolded: boolean): any {
+		return `!<${this.namespace}${this.name}>(folded=${isFolded})(${value})`
+	}
+
+	public onTagStart(handle: string, name: string): TypeFactory {
+		return this.document.onTagStart(handle, name)
+	}
+}
+
+
 class TestSchema implements ISchema {
-	public resolveTag(namespace: string, name: string) {
-		return (document, value) => {
-			let x = `!<${namespace}${name}>`
-			return {[x]: value}
-		}
+	public resolveTag(namespace: string, name: string): TypeFactory {
+		return new FakeTF(namespace, name)
 	}
 
 	public resolveScalar() {
@@ -47,7 +81,7 @@ class TestSchema implements ISchema {
 
 
 const TEST_SCHEMA = new SchemaCollection([
-	CORE_SCHEMA,
+	SCHEMA_CORE,
 	new TestSchema()
 ])
 

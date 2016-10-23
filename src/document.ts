@@ -1,19 +1,8 @@
 import {Parser, Location} from "./parser"
 import {Loader} from "./loader"
-import {SCHEMA_CORE, ISchema, TagFactory} from "./schema"
-
-
-export interface Mapping extends Object {
-	[key: string]: any
-}
-
-
-export interface Sequence extends Array<any> {
-
-}
-
-
-export type Scalar = string;
+import {SCHEMA_CORE, ISchema, TypeFactory} from "./schema"
+import {Mapping, Sequence, Scalar} from "./node"
+import {IDocumentHandler} from "./handler"
 
 
 export interface TagDirective {
@@ -55,7 +44,7 @@ export type YamlDocumentClass = {
 }
 
 
-export class YamlDocument {
+export class YamlDocument implements IDocumentHandler {
 	public readonly schema: ISchema
 	protected _content: any
 	protected references = {}
@@ -127,7 +116,7 @@ export class YamlDocument {
 	 * Called when a tag start, and must return a factory function
 	 * or NULL when not found a factory function
 	 */
-	public onTagStart(handle: string, name: string): TagFactory {
+	public onTagStart(handle: string, name: string): TypeFactory {
 		return this.schema.resolveTag(this.tagNS[handle] || handle, name)
 	}
 
@@ -154,13 +143,6 @@ export class YamlDocument {
 			this.error(`Missing reference for this name: '${name}'.`)
 		}
 		return this.references[name]
-	}
-
-	/**
-	 * Called when a number found (int / float)
-	 */
-	public onNumber(value: number): any {
-		return value
 	}
 
 	/**

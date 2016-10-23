@@ -1,26 +1,61 @@
-import {YamlDocument, Mapping, Sequence, Scalar} from "../document"
+import {YamlDocument} from "../document"
+import {Mapping, Sequence, Scalar} from "../node"
+import {ITypeFactory} from "../handler"
 
 
-export abstract class TagFactory {
-	public createFromMapping(document: YamlDocument, value: Mapping): any {
-		document.error("Unsupported value")
+export abstract class TypeFactory implements ITypeFactory {
+	public document: YamlDocument
+
+	public onMappingStart(): Mapping {
+		this.document.error("Unsupported value")
+		return null
 	}
 
-	public createFromSequence(document: YamlDocument, value: Sequence): any {
-		document.error("Unsupported value")
+	public onMappingEnd(mapping: Mapping): Mapping {
+		return mapping
 	}
 
-	public createFromScalar(document: YamlDocument, value: Scalar): any {
-		document.error("Unsupported value")
+	public onMappingKey(mapping: Mapping, key: any, value: any): void {
+		mapping[key] = value
 	}
 
-	public createFromString(document: YamlDocument, value: string): any {
-		document.error("Unsupported value")
+	public onSequenceStart(): Sequence {
+		this.document.error("Unsupported value")
+		return null
+	}
+
+	public onSequenceEnd(sequence: Sequence): Sequence {
+		return sequence
+	}
+
+	public onSequenceEntry(sequence: Sequence, entry: any): void {
+		sequence.push(entry)
+	}
+
+	public onScalar(value: string): any {
+		this.document.error("Unsupported value")
+	}
+
+	public onQuotedString(value: string, quote: string): any {
+		this.document.error("Unsupported value")
+	}
+
+	public onBlockString(value: string, isFolded: boolean): any {
+		this.document.error("Unsupported value")
+	}
+
+	public onTagStart(handle: string, name: string): TypeFactory {
+		this.document.error("Unsupported value")
+		return null
+	}
+
+	public onTagEnd(value: any): any {
+		return value
 	}
 }
 
 
 export interface ISchema {
-	resolveTag(namespace: string, name: string): TagFactory | null
+	resolveTag(namespace: string, name: string): TypeFactory | null
 	resolveScalar(document: YamlDocument, value: Scalar): any | undefined
 }

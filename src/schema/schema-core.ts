@@ -1,5 +1,6 @@
-import {YamlDocument, Mapping, Sequence, Scalar} from "../document"
-import {ISchema, TagFactory} from "./schema"
+import {YamlDocument} from "../document"
+import {Mapping, Sequence, Scalar} from "../node"
+import {ISchema, TypeFactory} from "./schema"
 import {FromScalarFactory, JSONSchema} from "./schema-json"
 
 
@@ -71,16 +72,30 @@ const enum TimestampPart {
 }
 
 
+console.log([
+		"^(?:",
+			"([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])", // group 1: YYYY-MM-DD
+			"|",
+			"(?:",
+				"([0-9][0-9][0-9][0-9]-[0-9]{1,2}-[0-9]{1,2})",
+				"(?:[Tt]|[ \t]+)",
+				"([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}(?:\\.\\d+)?)",
+				"(?:[ \t]*(?:(Z)|([-+][0-9]{1,2}(?::[0-9]{1,2}))))?",
+			")",
+		")$"
+	].join(""))
+
+
 const TimestampFactory = new FromScalarFactory(
 	new RegExp([
 		"^(?:",
 			"([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])", // group 1: YYYY-MM-DD
 			"|",
 			"(?:",
-				"([0-9][0-9][0-9][0-9]-[0-9]{1,2}-[0-9]{1,2}",
+				"([0-9][0-9][0-9][0-9]-[0-9]{1,2}-[0-9]{1,2})",
 				"(?:[Tt]|[ \t]+)",
 				"([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}(?:\\.\\d+)?)",
-				"(?:[ \t]*(?:(Z)|([-+][0-9]{1,2}(?::[0-9]{1,2})))?",
+				"(?:[ \t]*(?:(Z)|([-+][0-9]{1,2}(?::?[0-9]{1,2})?)))?",
 			")",
 		")$"
 	].join("")),
@@ -94,10 +109,14 @@ const TimestampFactory = new FromScalarFactory(
 				let offset = match[TimestampPart.TZ_OFFSET]
 				let sign = offset[0]
 				let parts = offset.slice(1).split(/:/)
+				if (parts[0].length === 4) {
+					parts[1] = parts[0].slice(2)
+					parts[0] = parts[0].slice(0, 2)
+				}
 				if (parts[0].length === 1) {
-					ds += "0${parts[0]}"
+					ds += `${sign}0${parts[0]}00`
 				} else {
-					ds += "${parts[0]}"
+					ds += `${sign}${parts[0]}`
 					if (!parts[1]) {
 						ds += "00"
 					} else {
@@ -112,7 +131,7 @@ const TimestampFactory = new FromScalarFactory(
 	}
 )
 
-class BoolFactory extends TagFactory {
+class BoolFactory extends TypeFactory {
 	public createFromScalar(document: YamlDocument, value: Scalar): any {
 		let result = TrueFactory.resolveFromScalar(document, value)
 		if (result !== undefined) {
@@ -128,11 +147,12 @@ class BoolFactory extends TagFactory {
 }
 
 
-const FACTORIES: {[key: string]: TagFactory} = {
+const FACTORIES: {[key: string]: TypeFactory} = {
 	"null": NullFactory,
 	"bool": new BoolFactory,
 	"int": IntFactory,
-	"float": FloatFactory
+	"float": FloatFactory,
+	"timestamp": TimestampFactory
 }
 
 
@@ -141,12 +161,13 @@ const FROM_SCALAR: FromScalarFactory[] = [
 	TrueFactory,
 	FalseFactory,
 	IntFactory,
-	FloatFactory
+	FloatFactory,
+	TimestampFactory
 ]
 
 
 export class CoreSchema extends JSONSchema implements ISchema {
-	public resolveTag(namespace: string, name: string): TagFactory | null {
+	public resolveTag(namespace: string, name: string): TypeFactory | null {
 		if (namespace === "tag:yaml.org,2002:") {
 			return FACTORIES[name]
 		}

@@ -1,19 +1,32 @@
-import {YamlDocument, Mapping, Sequence, Scalar} from "../document"
-import {ISchema, TagFactory} from "./schema"
+import {YamlDocument} from "../document"
+import {Mapping, Sequence, Scalar} from "../node"
+import {ISchema, TypeFactory} from "./schema"
 import {FailsafeSchema} from "./schema-failsafe"
 
 
-export class FromScalarFactory extends TagFactory {
+export class FromScalarFactory extends TypeFactory {
 	public constructor(public pattern: RegExp, public converter: (document: YamlDocument, match: RegExpMatchArray) => any) {
 		super()
 	}
 
-	public createFromScalar(document: YamlDocument, value: Scalar): any {
+	public onScalar(value: string): any {
+		return this.createFromScalar(value)
+	}
+
+	public onQuotedString(value: string, quote: string): any {
+		return this.createFromScalar(value)
+	}
+
+	public onBlockString(value: string, isFolded: boolean): any {
+		return this.createFromScalar(value)
+	}
+
+	public createFromScalar(value: Scalar): any {
 		let match = value.match(this.pattern)
 		if (match) {
-			return this.converter(document, match)
+			return this.converter(this.document, match)
 		} else {
-			document.error(`Unexpected value: '${value}'`)
+			this.document.error(`Unexpected value: '${value}'`)
 		}
 	}
 
@@ -33,7 +46,7 @@ const IntFactory = new FromScalarFactory(/^-?(0|[1-9][0-9]*)$/, (d, v) => parseI
 const FloatFactory = new FromScalarFactory(/^-?(0|[1-9][0-9]*)(\.[0-9]*)?([eE][-+]?[0-9]+)?$/, (d, v) => parseFloat(v[0]))
 
 
-class BoolFactory extends TagFactory {
+class BoolFactory extends TypeFactory {
 	public createFromScalar(document: YamlDocument, value: Scalar): any {
 		let result = TrueFactory.resolveFromScalar(document, value)
 		if (result !== undefined) {
@@ -49,7 +62,7 @@ class BoolFactory extends TagFactory {
 }
 
 
-const FACTORIES: {[key: string]: TagFactory} = {
+const FACTORIES: {[key: string]: TypeFactory} = {
 	"null": NullFactory,
 	"bool": new BoolFactory,
 	"int": IntFactory,
@@ -68,7 +81,7 @@ const FROM_SCALAR: FromScalarFactory[] = [
 
 export class JSONSchema extends FailsafeSchema implements ISchema {
 
-	public resolveTag(namespace: string, name: string): TagFactory | null {
+	public resolveTag(namespace: string, name: string): TypeFactory | null {
 		if (namespace === "tag:yaml.org,2002:") {
 			return FACTORIES[name]
 		}

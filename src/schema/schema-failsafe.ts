@@ -1,29 +1,38 @@
-import {YamlDocument, Mapping, Sequence, Scalar} from "../document"
-import {ISchema, TagFactory} from "./schema"
+import {YamlDocument} from "../document"
+import {Mapping, Sequence, Scalar} from "../node"
+import {ISchema, TypeFactory} from "./schema"
 
 
-class MapFactory extends TagFactory {
-	public createFromMapping(document: YamlDocument, value: Mapping): any {
+class MapFactory extends TypeFactory {
+	public onMappingStart(): Mapping {
+		return {}
+	}
+}
+
+
+class SeqFactory extends TypeFactory {
+	public onSequenceStart(): Sequence {
+		return []
+	}
+}
+
+
+class StrFactory extends TypeFactory {
+	public onScalar(value: string): any {
+		return value
+	}
+
+	public onQuotedString(value: string, quote: string): any {
+		return value
+	}
+
+	public onBlockString(value: string, isFolded: boolean): any {
 		return value
 	}
 }
 
 
-class SeqFactory extends TagFactory {
-	public createFromSequence(document: YamlDocument, value: Sequence): any {
-		return value
-	}
-}
-
-
-class StrFactory extends TagFactory {
-	public createFromScalar(document: YamlDocument, value: Scalar): any {
-		return value
-	}
-}
-
-
-const FACTORIES: {[key: string]: TagFactory} = {
+const FACTORIES: {[key: string]: TypeFactory} = {
 	"map": new MapFactory,
 	"seq": new SeqFactory,
 	"str": new StrFactory
@@ -31,7 +40,7 @@ const FACTORIES: {[key: string]: TagFactory} = {
 
 
 export class FailsafeSchema implements ISchema {
-	public resolveTag(namespace: string, name: string): TagFactory | null {
+	public resolveTag(namespace: string, name: string): TypeFactory | null {
 		if (namespace === "tag:yaml.org,2002:") {
 			return FACTORIES[name]
 		}

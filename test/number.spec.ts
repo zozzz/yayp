@@ -2,7 +2,7 @@ import {expect} from "chai"
 import {Loader, YamlDocument} from "../src"
 
 
-describe.only("Number parsing", () => {
+describe("Number parsing", () => {
 
 	function test(num: number) {
 		let dec = (num < 0 ? "-" : "") + Math.abs(num).toString(10),

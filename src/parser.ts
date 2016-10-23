@@ -1,6 +1,8 @@
-import { YamlDocument, Directive, Mapping, Sequence, TagName } from "./document"
-import { TagFactory } from "./schema"
+import { YamlDocument, Directive, TagName } from "./document"
+import {Mapping, Sequence, Scalar} from "./node"
+import { TypeFactory } from "./schema"
 import { Loader } from "./loader"
+import {ITypeFactory} from "./handler"
 import {
 	CharCode,
 	IS_NBS,
@@ -120,8 +122,10 @@ export class Parser {
 
 	protected offset: number
 	protected data: string
-	protected documents: YamlDocument[] = []
+	protected documents: YamlDocument[]
 	protected doc: YamlDocument
+	protected handlerStack: ITypeFactory[]
+	protected handler: ITypeFactory
 	protected linePosition: number
 
 	protected _currentString: string // maybe collection?
@@ -140,6 +144,8 @@ export class Parser {
 		this.offset = 0
 		this.data = data.replace(/\s+$/m, "")
 		this.fileName = fileName
+		this.documents = []
+		this.handlerStack = []
 		this.parseFile()
 		this.documentEnd()
 		return this.documents
@@ -176,7 +182,8 @@ export class Parser {
 		this.nextLine()
 
 		if (!this.doc) {
-			this.doc = this.loader.onDocumentStart()
+			this.handler = this.doc = this.loader.onDocumentStart()
+			this.handlerStack.push(this.doc)
 		}
 
 		switch (this.data[this.offset]) {
@@ -299,28 +306,28 @@ export class Parser {
 			seq = this.storeAnchor(this.getBlockCollection(col, BlockCollection.SEQUENCE))
 
 		this.nextLine()
-		this.doc.onSequenceEntry(seq, this.parseValue())
+		this.handler.onSequenceEntry(seq, this.parseValue())
 
 		if (this.nextLine(col)) {
 			this.parseValue()
 		}
 
 		this._lastValueKind = ValueKind.SEQUENCE
-		return this.doc.onSequenceEnd(seq)
+		return this.handler.onSequenceEnd(seq)
 	}
 
 	protected inlineSequence() {
-		let seq = this.storeAnchor(this.doc.onSequenceStart())
+		let seq = this.storeAnchor(this.handler.onSequenceStart())
 
 		if (this.data[++this.offset] === "]") { // empty array
-			return this.doc.onSequenceEnd(seq)
+			return this.handler.onSequenceEnd(seq)
 		}
 
 		++this._inFlow
 		this.nextLine()
 
 		while (true) {
-			this.doc.onSequenceEntry(seq, this.parseValue())
+			this.handler.onSequenceEntry(seq, this.parseValue())
 			this.nextLine()
 
 			switch (this.data[this.offset]) {
@@ -331,16 +338,14 @@ export class Parser {
 					if (this.data[this.offset] === "]") {
 						--this._inFlow
 						++this.offset
-						this._lastValueKind = ValueKind.SEQUENCE
-						return this.doc.onSequenceEnd(seq)
+						return this.handler.onSequenceEnd(seq)
 					}
 				break
 
 				case "]":
 					--this._inFlow
 					++this.offset
-					this._lastValueKind = ValueKind.SEQUENCE
-					return this.doc.onSequenceEnd(seq)
+					return this.handler.onSequenceEnd(seq)
 
 				default:
 					--this._inFlow
@@ -351,12 +356,11 @@ export class Parser {
 	}
 
 	protected inlineMapping() {
-		let mapping = this.storeAnchor(this.doc.onMappingStart()),
+		let mapping = this.storeAnchor(this.handler.onMappingStart()),
 			key
 
 		if (this.data[++this.offset] === "}") { // empty mapping
-			this._lastValueKind = ValueKind.MAPPING
-			return mapping
+			return this.handler.onMappingEnd(mapping)
 		}
 
 		++this._inFlow
@@ -383,8 +387,7 @@ export class Parser {
 				case "}": // if ends with comma
 					--this._inFlow
 					++this.offset
-					this._lastValueKind = ValueKind.MAPPING
-					return this.doc.onMappingEnd(mapping)
+					return this.handler.onMappingEnd(mapping)
 
 				case ":":
 					key = null
@@ -405,10 +408,10 @@ export class Parser {
 			if (this.data[this.offset] === ":") {
 				++this.offset
 				this.nextLine()
-				this.doc.onMappingKey(mapping, key, this.parseValue())
+				this.handler.onMappingKey(mapping, key, this.parseValue())
 				this.nextLine()
 			} else {
-				this.doc.onMappingKey(mapping, key, null)
+				this.handler.onMappingKey(mapping, key, null)
 			}
 
 			switch (this.data[this.offset]) {
@@ -421,7 +424,7 @@ export class Parser {
 					--this._inFlow
 					++this.offset
 					this._lastValueKind = ValueKind.MAPPING
-					return this.doc.onMappingEnd(mapping)
+					return this.handler.onMappingEnd(mapping)
 
 				default:
 					--this._inFlow
@@ -444,7 +447,7 @@ export class Parser {
 		}
 
 		this._lastValueKind = ValueKind.STRING
-		return this.doc.onQuotedString(str, quote)
+		return this.handler.onQuotedString(str, quote)
 	}
 
 	protected scalar(): any {
@@ -455,7 +458,7 @@ export class Parser {
 			return this.blockMapping(column, str)
 		} else {
 			this._lastValueKind = ValueKind.SCALAR
-			return this.doc.onScalar(str)
+			return this.handler.onScalar(str)
 		}
 	}
 
@@ -490,14 +493,14 @@ export class Parser {
 
 		let mapping = this.storeAnchor(this.getBlockCollection(column, BlockCollection.MAPPING))
 		this.nextLine()
-		this.doc.onMappingKey(mapping, mappingKey, this.parseValue())
+		this.handler.onMappingKey(mapping, mappingKey, this.parseValue())
 
 		if (this.nextLine(column)) {
 			this.parseValue()
 		}
 
 		this._lastValueKind = ValueKind.MAPPING
-		return this.doc.onMappingEnd(mapping)
+		return this.handler.onMappingEnd(mapping)
 	}
 
 	protected tag() {
@@ -508,20 +511,20 @@ export class Parser {
 			this.error(`The ${handle} handle has no suffix.`)
 		}
 
-		let factory = this.doc.onTagStart(handle, name)
-		if (!factory) {
+		let handler = this.handler
+		this.handler = handler.onTagStart(handle, name)
+		if (!this.handler) {
 			this.error(`The ${handle}${name} tag is unknown.`)
 		}
 
+		(this.handler as any).document = this.doc // ugly, but working
+		this.handlerStack.push(this.handler)
+
 		this.nextLine()
 		let value = this.parseValue()
-
-		switch (this._lastValueKind) {
-			case ValueKind.MAPPING:  return factory.createFromMapping(this.doc, value)
-			case ValueKind.SCALAR:   return factory.createFromScalar(this.doc, value)
-			case ValueKind.SEQUENCE: return factory.createFromSequence(this.doc, value)
-			case ValueKind.STRING:   return factory.createFromString(this.doc, value)
-		}
+		(this.handler as any).document = null // ugly, but working
+		this.handler = this.handlerStack.pop()
+		return handler.onTagEnd(value)
 	}
 
 	protected anchor() {
