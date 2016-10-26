@@ -152,6 +152,7 @@ export const enum CharCode {
 	QUOTE_DOUBLE   = 0x22, // "
 	QUOTE_SINGLE   = 0x27, // "
 	HASH           = 0x23, // #
+	PERCENT        = 0x25, // %
 	AMPERSAND      = 0x26, // &
 	LPAREN         = 0x28, // (
 	RPAREN         = 0x29, // )
@@ -163,6 +164,9 @@ export const enum CharCode {
 	SLASH          = 0x2F, // /
 	COLON          = 0x3A, // :
 	SEMICOLON      = 0x3B, // ;
+	LANGLE         = 0x3C, // <
+	RANGLE         = 0x3E, // >
+	EQ             = 0x3D, // =
 	QUESTION       = 0x3F, // ?
 	AT             = 0x40, // @
 	LBRACKET       = 0x5B, // [
@@ -171,8 +175,9 @@ export const enum CharCode {
 	BACKTICK       = 0x60, // `
 	LBRACE         = 0x7B, // {
 	RBRACE         = 0x7D, // {
-	TILDE          = 0x7E  // ~
-
+	PIPE           = 0x7C, // |
+	TILDE          = 0x7E, // ~
+	BOM            = 0xFEFF
 }
 
 
@@ -184,7 +189,8 @@ export const IS_NBS: {[key: number]: boolean} = {
 
 export const IS_EOL: {[key: number]: boolean} = {
 	[CharCode.CR]: true,
-	[CharCode.LF]: true
+	[CharCode.LF]: true,
+	[NaN]: true // EOF
 }
 
 
@@ -193,6 +199,60 @@ export const IS_WS: {[key: number]: boolean} = {
 	[CharCode.TAB]: true,
 	[CharCode.CR]: true,
 	[CharCode.LF]: true
+}
+
+
+export const IS_INDICATOR: {[key: number]: boolean} = {
+	[CharCode.DASH]: true,
+	[CharCode.QUESTION]: true,
+	[CharCode.COLON]: true,
+	[CharCode.COMMA]: true,
+	[CharCode.LBRACKET]: true,
+	[CharCode.RBRACKET]: true,
+	[CharCode.LBRACE]: true,
+	[CharCode.RBRACE]: true,
+	[CharCode.HASH]: true,
+	[CharCode.AMPERSAND]: true,
+	[CharCode.ASTERIX]: true,
+	[CharCode.EXCLAMATION]: true,
+	[CharCode.PIPE]: true,
+	[CharCode.RANGLE]: true,
+	[CharCode.LANGLE]: true,
+	[CharCode.QUOTE_SINGLE]: true,
+	[CharCode.QUOTE_DOUBLE]: true,
+	[CharCode.PERCENT]: true,
+	[CharCode.AT]: true,
+	[CharCode.BACKTICK]: true
+}
+
+
+export const IS_SCALAR_FIRST_CHAR_DECISION: {[key: number]: boolean} = {
+	[CharCode.DASH]: true,
+	[CharCode.QUESTION]: true,
+	[CharCode.COMMA]: true
+}
+
+
+export const IS_FLOW_INDICATOR: {[key: number]: boolean} = {
+	[CharCode.COMMA]: true,
+	[CharCode.LBRACKET]: true,
+	[CharCode.RBRACKET]: true,
+	[CharCode.LBRACE]: true,
+	[CharCode.RBRACE]: true,
+}
+
+
+export const IS_DIGIT: {[key: number]: boolean} = {
+	[0x30]: true,
+	[0x31]: true,
+	[0x32]: true,
+	[0x33]: true,
+	[0x34]: true,
+	[0x35]: true,
+	[0x36]: true,
+	[0x37]: true,
+	[0x38]: true,
+	[0x39]: true
 }
 
 

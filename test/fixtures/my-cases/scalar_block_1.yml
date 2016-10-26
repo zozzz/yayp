@@ -1,0 +1,9 @@
+# --- [only]
+# --- [title] Scalar / Block / Basic 1
+
+scalar: |
+ 1
+  2
+   3
+
+# --- [success] documents[0].content

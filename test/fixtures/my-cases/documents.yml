@@ -1,0 +1,48 @@
+# --- [title] Documents / Multiple
+
+---
+- array
+- value
+
+---
+["array", value]
+
+---
+!!seq [array, value]
+
+---
+mapping: value
+
+---
+{mapping: value}
+
+---
+!!map {mapping: value}
+
+---
+hello world
+
+---
+"hello world"
+
+---
+'hello world'
+
+# --- [success] documents[0].content
+["array", "value"]
+# --- [success] documents[1].content
+["array", "value"]
+# --- [success] documents[2].content
+["array", "value"]
+# --- [success] documents[3].content
+{"mapping": "value"}
+# --- [success] documents[4].content
+{"mapping": "value"}
+# --- [success] documents[5].content
+{"mapping": "value"}
+# --- [success] documents[6].content
+"hello world"
+# --- [success] documents[7].content
+"hello world"
+# --- [success] documents[8].content
+"hello world"

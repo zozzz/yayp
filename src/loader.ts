@@ -4,8 +4,16 @@ import {YamlDocument, YamlDocumentClass} from "./document"
 import {Parser, Location} from "./parser"
 
 
+export interface TagDirective {
+	handle: string
+	namespace: string
+}
+
+
 export class Loader {
 	public readonly parser = new Parser(this)
+	protected namespaces: {[key: string]: string} = {}
+	protected version: number
 
 	public constructor(public readonly documentClass: YamlDocumentClass) {
 	}
@@ -20,10 +28,27 @@ export class Loader {
 	}
 
 	/**
+	 * Called when the directive found, not test if the directive is available
+	 * in the YAML spec.
+	 */
+	public onDirective(name: string, value: any): void {
+		if (name === "TAG") {
+			this.namespaces[(<TagDirective> value).handle] = (<TagDirective> value).namespace
+		} else if (name === "YAML") {
+			this.version = parseFloat(value)
+		}
+	}
+
+	/**
 	 * Called when starts a new document
 	 */
 	public onDocumentStart(): YamlDocument {
-		return new this.documentClass(this)
+		let doc = new this.documentClass(this);
+		(doc as any).version = this.version
+		for (let k in this.namespaces) {
+			doc.addNamespace(k, this.namespaces[k])
+		}
+		return doc
 	}
 
 	/**

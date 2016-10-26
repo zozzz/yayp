@@ -4,6 +4,4 @@
 
 # --- [success] documents[0].content
 
-[
-  {"!<!hello>": "world"}
-]
+["!<!hello>(world)"]

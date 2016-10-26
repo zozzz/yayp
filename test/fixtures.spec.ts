@@ -16,15 +16,17 @@ type FixtureFile = {
 	 * Input YAML string
 	 */
 	yaml: string
-	/**
-	 * Expected result in JSON format
-	 */
-	json?: string
-	/**
-	 * Property path where sit the expected data
-	 * default: documents[0].content
-	 */
-	property?: string
+	properties?: {
+		/**
+		 * Property path where sit the expected data
+		 * default: documents[0].content
+		 */
+		property: string,
+		/**
+		 * Expected result in JSON format
+		 */
+		json: string
+	}[]
 	/**
 	 * Test only this fixture
 	 */
@@ -38,17 +40,19 @@ class FakeTF extends TypeFactory {
 	}
 
 	public onMappingStart(): Mapping {
-		return {"$type": `!<${this.namespace}${this.name}>`}
+		return {"$type": `!<${this.namespace}${this.name}>`, "$mapping": {}}
+	}
+
+	public onMappingKey(mapping: Mapping, key: any, value: any): void {
+		mapping["$mapping"][key] = value
 	}
 
 	public onSequenceStart(): any {
-		let s = this.onMappingStart()
-		s["sequence"] = []
-		return s
+		return {"$type": `!<${this.namespace}${this.name}>`, "$sequence": []}
 	}
 
 	public onSequenceEntry(sequence: any, entry: any): void {
-		sequence["sequence"].push(entry)
+		sequence["$sequence"].push(entry)
 	}
 
 	public onScalar(value: string): any {
@@ -118,7 +122,7 @@ function parseFile(fileName: string): {title: string [], file: FixtureFile} {
 			path: fileName,
 			yaml: "",
 			json: null,
-			property: "documents[0].content",
+			properties: [],
 			only: false
 		}
 	}
@@ -138,13 +142,27 @@ function parseFile(fileName: string): {title: string [], file: FixtureFile} {
 
 			case "success":
 			case "error":
-				if (m[2] && m[2].length) {
-					result.file.property = m[2]
+				if (!result.file.yaml) {
+					result.file.yaml = content.slice(yamlStart, m.index)
 				}
 
-				result.file.yaml = content.slice(yamlStart, m.index)
-				result.file.json = content.slice(m.index + m[0].length)
+				if (result.file.properties.length > 0) {
+					let p = result.file.properties[result.file.properties.length - 1]
+					p.json = content.slice(p.json, m.index).trim()
+				}
+
+				if (m[2] && m[2].length) {
+					result.file.properties.push({
+						property: m[2],
+						json: m.index + m[0].length
+					})
+				}
 		}
+	}
+
+	if (result.file.properties.length > 0) {
+		let p = result.file.properties[result.file.properties.length - 1]
+		p.json = content.slice(p.json).trim()
 	}
 
 	return result
@@ -180,13 +198,17 @@ function createTestCase(file: FixtureFile): () => void {
 			documents: p.load(file.yaml, file.path)
 		}
 
-		let c = getObjPath(l, file.property)
-		c = JSON.parse(JSON.stringify(c))
+		// console.log(require("util").inspect(l, {depth: null}))
 
-		// console.log(require("util").inspect(c, {depth: null}))
-		// console.log(require("util").inspect(JSON.parse(file.json), {depth: null}))
+		for (let prop of file.properties) {
+			let c = getObjPath(l, prop.property)
+			c = JSON.parse(JSON.stringify(c))
 
-		expect(c).to.be.eql(JSON.parse(file.json))
+			console.log(require("util").inspect(c, {depth: null}))
+			console.log(require("util").inspect(JSON.parse(prop.json), {depth: null}))
+
+			expect(c).to.be.eql(JSON.parse(prop.json))
+		}
 	}
 }
 

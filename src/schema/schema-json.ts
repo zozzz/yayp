@@ -47,13 +47,21 @@ const FloatFactory = new FromScalarFactory(/^-?(0|[1-9][0-9]*)(\.[0-9]*)?([eE][-
 
 
 class BoolFactory extends TypeFactory {
-	public createFromScalar(document: YamlDocument, value: Scalar): any {
-		let result = TrueFactory.resolveFromScalar(document, value)
+	public onScalar(value: string): any {
+		return this.createFromScalar(value)
+	}
+
+	public onQuotedString(value: string, quote: string): any {
+		return this.createFromScalar(value)
+	}
+
+	public createFromScalar(value: Scalar): any {
+		let result = TrueFactory.resolveFromScalar(this.document, value)
 		if (result !== undefined) {
 			return result
 		}
 
-		result = FalseFactory.resolveFromScalar(document, value)
+		result = FalseFactory.resolveFromScalar(this.document, value)
 
 		if (result !== undefined) {
 			return result
@@ -82,7 +90,7 @@ const FROM_SCALAR: FromScalarFactory[] = [
 export class JSONSchema extends FailsafeSchema implements ISchema {
 
 	public resolveTag(namespace: string, name: string): TypeFactory | null {
-		if (namespace === "tag:yaml.org,2002:") {
+		if (namespace === "tag:yaml.org,2002:" && FACTORIES[name]) {
 			return FACTORIES[name]
 		}
 		return super.resolveTag(namespace, name)

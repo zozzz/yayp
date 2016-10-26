@@ -5,38 +5,32 @@ import {Mapping, Sequence, Scalar} from "./node"
 import {IDocumentHandler} from "./handler"
 
 
-export interface TagDirective {
-	handle: string
-	namespace: string
-}
+// export class TagName {
+// 	public constructor(public localName: string, public namespace: string) {
+// 	}
+
+// 	public toString() {
+// 		return `!<${this.namespace}${this.localName}>`
+// 	}
+// }
 
 
-export class TagName {
-	public constructor(public localName: string, public namespace: string) {
-	}
-
-	public toString() {
-		return `!<${this.namespace}${this.localName}>`
-	}
-}
-
-
-export type Directive = {
-	/**
-	 * Any key-value pair that starts with %
-	 * like %YAML 1.2
-	 * BUT CURRENTLY ONLY SUPPORTS YAML AND TAG DIRECTIVES
-	 */
-	[key: string]: any
-	/**
-	 * YAML version number
-	 */
-	YAML?: string
-	/**
-	 * TAG ns definitions
-	 */
-	TAG?: TagDirective
-}
+// export type Directive = {
+// 	/**
+// 	 * Any key-value pair that starts with %
+// 	 * like %YAML 1.2
+// 	 * BUT CURRENTLY ONLY SUPPORTS YAML AND TAG DIRECTIVES
+// 	 */
+// 	[key: string]: any
+// 	/**
+// 	 * YAML version number
+// 	 */
+// 	YAML?: string
+// 	/**
+// 	 * TAG ns definitions
+// 	 */
+// 	TAG?: TagDirective
+// }
 
 
 export type YamlDocumentClass = {
@@ -46,24 +40,21 @@ export type YamlDocumentClass = {
 
 export class YamlDocument implements IDocumentHandler {
 	public readonly schema: ISchema
-	protected _content: any
-	protected references = {}
-	protected tagNS = {
+	public readonly version: number
+	public readonly content: any
+	public readonly namespaces: {[key: string]: string} = {
 		"!!": "tag:yaml.org,2002:"
 	}
 
-	public constructor(protected loader: Loader, schema: ISchema = SCHEMA_CORE) {
+	protected references = {}
+
+
+	public constructor(public readonly loader: Loader, schema: ISchema = SCHEMA_CORE) {
 		this.schema = schema
 	}
 
-	/**
-	 * Called when the directive found, not test if the directive is available
-	 * in the YAML spec.
-	 */
-	public onDirective(name: string, value: any): void {
-		if (name === "TAG") {
-			this.tagNS[(<TagDirective> value).handle] = (<TagDirective> value).namespace
-		}
+	public addNamespace(handle: string, namespace: string) {
+		this.namespaces[handle] = namespace
 	}
 
 	/**
@@ -117,7 +108,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * or NULL when not found a factory function
 	 */
 	public onTagStart(handle: string, name: string): TypeFactory {
-		return this.schema.resolveTag(this.tagNS[handle] || handle, name)
+		return this.schema.resolveTag(this.namespaces[handle] || handle, name)
 	}
 
 	/**
@@ -172,16 +163,12 @@ export class YamlDocument implements IDocumentHandler {
 		return value
 	}
 
-	public get content(): any {
-		return this._content
-	}
-
 	public error(message: string): void {
 		this.loader.onError(message, this.loader.parser.getLocation())
 	}
 
 	public dispose() {
-		delete this._content
+		delete this.content
 		delete this.references
 		delete this.schema
 	}

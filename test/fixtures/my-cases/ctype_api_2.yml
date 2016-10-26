@@ -1,0 +1,26 @@
+# --- [title] Custom Type / API / Sequence
+
+%TAG ! API:
+
+inline: !inline [1, 2, 3, [4, 5, 6], 7]
+block: !block
+  - 1
+  - 2
+  - 3
+  - - 4
+    - 5
+    - 6
+  - 7
+
+# --- [success] documents[0].content
+
+{
+  "inline": {
+    "$type": "!<API:inline>",
+    "$sequence": [1, 2, 3, [ 4, 5, 6 ], 7 ]
+  },
+  "block": {
+    "$type": "!<API:block>",
+    "$sequence": [1, 2, 3, [ 4, 5, 6 ], 7 ]
+  }
+}

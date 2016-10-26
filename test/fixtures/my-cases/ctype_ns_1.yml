@@ -9,5 +9,11 @@
 # --- [success] documents[0].content
 
 [
-  {"!<tag:package.org,2016:world>": {"mapping": "really", "x": "y"}}
+  {
+    "$type": "!<tag:package.org,2016:world>",
+    "$mapping": {
+      "mapping": "really",
+      "x": "y"
+    }
+  }
 ]

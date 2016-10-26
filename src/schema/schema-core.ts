@@ -72,20 +72,6 @@ const enum TimestampPart {
 }
 
 
-console.log([
-		"^(?:",
-			"([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])", // group 1: YYYY-MM-DD
-			"|",
-			"(?:",
-				"([0-9][0-9][0-9][0-9]-[0-9]{1,2}-[0-9]{1,2})",
-				"(?:[Tt]|[ \t]+)",
-				"([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}(?:\\.\\d+)?)",
-				"(?:[ \t]*(?:(Z)|([-+][0-9]{1,2}(?::[0-9]{1,2}))))?",
-			")",
-		")$"
-	].join(""))
-
-
 const TimestampFactory = new FromScalarFactory(
 	new RegExp([
 		"^(?:",
@@ -132,13 +118,21 @@ const TimestampFactory = new FromScalarFactory(
 )
 
 class BoolFactory extends TypeFactory {
-	public createFromScalar(document: YamlDocument, value: Scalar): any {
-		let result = TrueFactory.resolveFromScalar(document, value)
+	public onScalar(value: string): any {
+		return this.createFromScalar(value)
+	}
+
+	public onQuotedString(value: string, quote: string): any {
+		return this.createFromScalar(value)
+	}
+
+	public createFromScalar(value: Scalar): any {
+		let result = TrueFactory.resolveFromScalar(this.document, value)
 		if (result !== undefined) {
 			return result
 		}
 
-		result = FalseFactory.resolveFromScalar(document, value)
+		result = FalseFactory.resolveFromScalar(this.document, value)
 
 		if (result !== undefined) {
 			return result
@@ -168,7 +162,7 @@ const FROM_SCALAR: FromScalarFactory[] = [
 
 export class CoreSchema extends JSONSchema implements ISchema {
 	public resolveTag(namespace: string, name: string): TypeFactory | null {
-		if (namespace === "tag:yaml.org,2002:") {
+		if (namespace === "tag:yaml.org,2002:" && FACTORIES[name]) {
 			return FACTORIES[name]
 		}
 		return super.resolveTag(namespace, name)

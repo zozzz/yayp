@@ -1,0 +1,35 @@
+# --- [title] Custom Type / API / Mapping
+
+%TAG ! API:
+
+- !inline-mapping {hello: world, coords: {x: 1, y: 2}}
+- !block-mapping
+  hello: world
+  coords:
+    x: 10
+    y: 20
+
+# --- [success] documents[0].content
+
+[
+  {
+    "$type": "!<API:inline-mapping>",
+    "$mapping": {
+      "hello": "world",
+      "coords": {
+        "x": 1,
+        "y": 2
+      }
+    }
+  },
+  {
+    "$type": "!<API:block-mapping>",
+    "$mapping": {
+      "hello": "world",
+      "coords": {
+        "x": 10,
+        "y": 20
+      }
+    }
+  }
+]

@@ -1,4 +1,4 @@
-import { YamlDocument, Directive, TagName } from "./document"
+import { YamlDocument } from "./document"
 import {Mapping, Sequence, Scalar} from "./node"
 import { TypeFactory } from "./schema"
 import { Loader } from "./loader"
@@ -8,6 +8,10 @@ import {
 	IS_NBS,
 	IS_EOL,
 	IS_WS,
+	IS_INDICATOR,
+	IS_SCALAR_FIRST_CHAR_DECISION,
+	IS_FLOW_INDICATOR,
+	IS_DIGIT,
 
 	EOL,
 	RX_MULTI_EOL,
@@ -51,19 +55,11 @@ export type Cursor = {
 };
 
 
-const enum ValueKind {
-	MAPPING,
-	SEQUENCE,
-	SCALAR,
-	STRING
-}
-
-
-const enum BlockCollection {
-	MAPPING,
-	SEQUENCE,
-	OTHER
-}
+// const enum BlockCollection {
+// 	MAPPING,
+// 	SEQUENCE,
+// 	OTHER
+// }
 
 
 const enum PlainStringType {
@@ -72,34 +68,41 @@ const enum PlainStringType {
 }
 
 
-type CollectionItem = {
-	kind: BlockCollection
-	item: any
-	column: number
+const enum Chomping {
+	CLIP,
+	STRIP,
+	KEEP
 }
 
 
-type PlainString = string & {type: PlainStringType}
+// type CollectionItem = {
+// 	kind: BlockCollection
+// 	item: any
+// 	column: number
+// }
 
 
-class CollectionStack extends Array<CollectionItem> {
-	public get current(): CollectionItem {
-		return this[this.length - 1]
-	}
+// type PlainString = string & {type: PlainStringType}
 
-	public add(kind: BlockCollection, item: any, column: number): any {
-		this.push({ kind, item, column })
-		return item
-	}
 
-	public removeUntil(column: number) {
-		let i = this.length
-		if (i) {
-			while (i-- && this[i].column > column);
-			this.splice(++i, this.length - i)
-		}
-	}
-}
+// class CollectionStack extends Array<CollectionItem> {
+// 	public get current(): CollectionItem {
+// 		return this[this.length - 1]
+// 	}
+
+// 	public add(kind: BlockCollection, item: any, column: number): any {
+// 		this.push({ kind, item, column })
+// 		return item
+// 	}
+
+// 	public removeUntil(column: number) {
+// 		let i = this.length
+// 		if (i) {
+// 			while (i-- && this[i].column > column);
+// 			this.splice(++i, this.length - i)
+// 		}
+// 	}
+// }
 
 
 export type Location = {
@@ -111,9 +114,65 @@ export type Location = {
 
 
 export class YamlError extends Error {
-	public constructor(message: string, public location: Location) {
-		super(`${message} @ ${location.file ? location.file + ":" : ""}${location.line},${location.column}`)
+	public constructor(message: string, public location: Location, content?: string) {
+		super(`${message} at ${location.file ? location.file + ":" : ""}${location.line},${location.column}`)
 	}
+}
+
+
+const enum DocumentState {
+	// még nem érte el a végét
+	PARSING = 0,
+	// új kezdődőtt, de arégi nem lett lezárva
+	NEW_STARTED = 1,
+	// a jelenlegi a ... -al le lett zárva
+	CLOSED = 2
+}
+
+// class DocumentStartHandler {
+// 	public constructor(public doc: ITypeFactory, public replace: () => void) {
+// 	}
+
+// 	public onMappingStart() {
+// 		this.replace()
+// 		return (this.doc as any).content = this.doc.onMappingStart()
+// 	}
+
+// 	public onSequenceStart() {
+// 		this.replace()
+// 		return (this.doc as any).content = this.doc.onSequenceStart()
+// 	}
+
+// 	public onScalar(value) {
+// 		this.replace()
+// 		return (this.doc as any).content = this.doc.onScalar(value)
+// 	}
+
+// 	public onQuotedString(value, quote) {
+// 		this.replace()
+// 		return (this.doc as any).content = this.doc.onQuotedString(value, quote)
+// 	}
+
+// 	public onBlockString(value, isFolded) {
+// 		this.replace()
+// 		return (this.doc as any).content = this.doc.onBlockString(value, isFolded)
+// 	}
+
+// 	public onTagStart(handle: string, name: string) {
+// 		return new DocumentStartHandler(this.doc.onTagStart(handle, name), this.replace)
+// 	}
+
+// 	// just proxy...
+// 	public onMappingEnd(mapping) { return this.doc.onMappingEnd(mapping) }
+// 	public onMappingKey(mapping, key, value) { return this.doc.onMappingKey(mapping, key, value) }
+// 	public onSequenceEnd(seq) { return this.doc.onSequenceEnd(seq) }
+// 	public onSequenceEntry(seq, value) { return this.doc.onSequenceEntry(seq, value) }
+// 	public onTagEnd(value) { return this.doc.onTagEnd(value) }
+// }
+
+
+class DocumentEnd extends Error {
+
 }
 
 
@@ -125,16 +184,15 @@ export class Parser {
 	protected documents: YamlDocument[]
 	protected doc: YamlDocument
 	protected handlerStack: ITypeFactory[]
-	protected handler: ITypeFactory
 	protected linePosition: number
 
-	protected _currentString: string // maybe collection?
+	// protected _currentString: string // maybe collection?
 	protected _inFlow: number = 0
-	protected _lastPlainStringType: PlainStringType
-	protected _blockCollectionStack: CollectionStack
+	protected _lastScalarIsMappingKey: boolean
 	protected _anchor: string
-	protected _implicitKey: number = 0
-	protected _lastValueKind: ValueKind
+	protected _explicitKey: number = 0
+	protected _documentState: DocumentState = DocumentState.NEW_STARTED
+	protected _lastKeyColumn: number | null = null
 
 	public constructor(protected loader: Loader) {
 	}
@@ -142,23 +200,13 @@ export class Parser {
 	public parse(data: string, fileName: string): YamlDocument[] {
 		this.linePosition = 0
 		this.offset = 0
-		this.data = data.replace(/\s+$/m, "")
+		this.data = (data.charCodeAt(0) === CharCode.BOM ? data.slice(1) : data).replace(/\s+$/m, "")
 		this.fileName = fileName
 		this.documents = []
 		this.handlerStack = []
 		this.parseFile()
-		this.documentEnd()
 		return this.documents
 	}
-
-	// public get cursor(): Cursor {
-	// 	let data = this.data.substr(0, this.offset)
-	// 	let lines = data.split(/\r?\n/)
-	// 	return {
-	// 		line: lines.length,
-	// 		col: lines.length ? lines[lines.length - 1].length + 1 : 0
-	// 	}
-	// }
 
 	public getLocation(offset: number = null): Location {
 		if (offset === null) {
@@ -175,40 +223,60 @@ export class Parser {
 	}
 
 	protected get column(): number {
-		return this.offset - this.linePosition
+		return this.offset - this.linePosition + 1
+	}
+
+	protected popHandler(): ITypeFactory {
+		if (this.handlerStack.length === 1) {
+			return this.handlerStack[0]
+		} else {
+			return this.handlerStack.pop()
+		}
 	}
 
 	protected parseFile(): any {
 		this.nextLine()
 
-		if (!this.doc) {
-			this.handler = this.doc = this.loader.onDocumentStart()
-			this.handlerStack.push(this.doc)
+		if (this.data.length <= this.offset + 1) {
+			return null
 		}
 
 		switch (this.data[this.offset]) {
 			case "%": return this.directive()
-			case "-": this.documentStart()
+			case "-":
+				if (this.data[this.offset + 1] === "-" && this.data[this.offset + 2] === "-") {
+					this.offset += 3
+					this.nextLine()
+					return this.parseDocument()
+				}
 		}
 
-		(<any> this.doc)._content = this.parseDocument()
+		if (this._documentState === DocumentState.NEW_STARTED) {
+			this.parseDocument()
+		} else {
+			this.error("New document start or a directive expected near")
+		}
 	}
 
 	protected parseDocument() {
-		// this._mappingStack = new Stack<Mapping>()
-		// this._seqStack = new Stack<Sequence>()
-		this._blockCollectionStack = new CollectionStack()
-		// this.parseStartOfLine()
-		return this.parseValue()
+		this.documents.push(this.doc = this.loader.onDocumentStart())
+		this.handlerStack = [this.doc]
+		this._documentState = DocumentState.PARSING;
+
+		(this.doc as any).content = this.parseValue()
+
+		this.parseFile()
 	}
 
-	protected parseValue(): any {
+	protected parseValue(minColumn?: number): any {
 
 		switch (this.data[this.offset]) {
 			case "'": return this.quotedString("'")
 			case "\"": return this.quotedString("\"")
 			case "[": return this.inlineSequence()
 			case "{": return this.inlineMapping()
+			case "|": return this.readBlockScalar(minColumn, false)
+			case ">": return this.readBlockScalar(minColumn, true)
 			case "!":
 				// if (this._tagFactory) {
 				// 	this.error("Tag constructors not supporting from tag values")
@@ -220,12 +288,48 @@ export class Parser {
 				// 	this.error("Tag constructors not supporting from alias")
 				// }
 				return this.alias()
-			case "?": return this.implicitKey()
-			case "-": return this.blockSequence()
-			case ".": return this.documentEnd()
+			case "?":
+				let column = this.column
+				let key = this.explicitKey()
+				return this.blockMapping(column, key)
+			case "-":
+				switch (this.data.charCodeAt(this.offset + 1)) {
+					case CharCode.DASH:
+						if (this.data.charCodeAt(this.offset + 2)) {
+							this.offset += 3
+							this._documentState = DocumentState.NEW_STARTED
+							return
+						}
+					case CharCode.SPACE:
+					case CharCode.TAB:
+					case CharCode.CR:
+					case CharCode.LF:
+						return this.blockSequence()
+				}
+				return this.scalar()
+			case ".":
+				if (this.data.charCodeAt(this.offset + 1) === CharCode.DOT && this.data.charCodeAt(this.offset + 2) === CharCode.DOT) {
+					this.offset += 3
+					this._documentState = DocumentState.CLOSED
+					return
+				}
+				return this.scalar()
 			case "@": return this.error("reserved character '@'")
 			case "`": return this.error("reserved character '`'")
+			case undefined: return // EOF
 			default: return this.scalar()
+		}
+	}
+
+	protected isDocumentSeparator(offset: number) {
+		let ch = this.data.charCodeAt(offset)
+		if ((ch === CharCode.DOT || ch === CharCode.DASH)
+			&& this.data.charCodeAt(offset + 1) === ch
+			&& this.data.charCodeAt(offset + 2) === ch
+			&& IS_WS[this.data.charCodeAt(offset + 3)]) {
+			this.offset = offset + 3
+			this._documentState = ch === CharCode.DOT ? DocumentState.CLOSED : DocumentState.NEW_STARTED
+			return true
 		}
 	}
 
@@ -241,93 +345,85 @@ export class Parser {
 
 		switch (name) {
 			case "YAML":
-				this.doc.onDirective(name, this._read(YAML_DIRECTIVE_VALUE))
+				this.loader.onDirective(name, this._read(YAML_DIRECTIVE_VALUE))
 				break
 
 			case "TAG":
-				this.doc.onDirective(name, {
-					prefix: this._read(TAG_DIRECTIVE_HANDLE),
+				this.loader.onDirective(name, {
+					handle: this._read(TAG_DIRECTIVE_HANDLE),
 					namespace: this.eatNBS() || this._read(TAG_DIRECTIVE_NS)
 				})
 				break
 
 			default:
-				this.doc.onDirective(name, this._read(RX_NB_CHARS))
+				this.loader.onDirective(name, this._read(RX_NB_CHARS))
 				break
 		}
 
 		this.parseFile()
 	}
 
-	protected documentStart(): void {
-		if (this.data[++this.offset] === "-") {
-			if (this.data[++this.offset] === "-") {
-				++this.offset
-				this.nextLine()
-			} else {
-				this.unexpected()
-			}
-		} else {
-			--this.offset
-		}
-	}
-
-	protected documentEnd() {
-		this.nextLine()
-
-		if (this.data.length <= this.offset + 1) {
-			if (this.documents.indexOf(this.doc) === -1) {
-				this.documents.push(this.doc)
-			}
-			return null
-		}
-
-		if (this.data[this.offset + 1] === ".") {
-			if (this.data[this.offset + 2] === ".") {
-				this.offset += 2
-				this.documents.push(this.doc)
-			} else {
-				return this.scalar()
-			}
-		} else {
-			return this.scalar()
-		}
-
-		return null
-	}
-
 	protected blockSequence(): any {
-		// nincs szóköz azaz scalar érték lesz
-		if (!IS_WS[this.data.charCodeAt(this.offset + 1)]) {
-			return this.scalar()
+		let col = this.column,
+			handler = this.popHandler(),
+			seq = this.storeAnchor(handler.onSequenceStart())
+
+		++this.offset
+
+		endless: while (true) {
+			// ha sikerült a következő sorba léptetni valami csoda folytán (elvuleg nem kéne)
+			// akkor ha kijjebb kezdődik a következő sor, mint az ahol elkezdődött a lista
+			// egyértelműen meg kell szakítani.
+
+			let currentCol = this.nextLine()
+			if (currentCol && currentCol < col) {
+				break endless;
+			}
+
+			let value = this.parseValue(col)
+			if (this._documentState !== DocumentState.PARSING) {
+				break endless
+			} else {
+				handler.onSequenceEntry(seq, value)
+			}
+
+			switch (this.nextLine(col)) {
+				case col:
+					if (this.data.charCodeAt(this.offset) === CharCode.DASH) {
+						if (this.isDocumentSeparator(this.offset)) {
+							break endless
+						}
+						this._lastKeyColumn = this.column
+						++this.offset
+					} else {
+						break endless
+					}
+				break
+
+				case 0:
+					break endless
+
+				default:
+					this.unexpected("SOMETHING WRONG IN BLOCK SEQUENCE")
+			}
 		}
 
-		let col = this.column - 1,
-			seq = this.storeAnchor(this.getBlockCollection(col, BlockCollection.SEQUENCE))
-
-		this.nextLine()
-		this.handler.onSequenceEntry(seq, this.parseValue())
-
-		if (this.nextLine(col)) {
-			this.parseValue()
-		}
-
-		this._lastValueKind = ValueKind.SEQUENCE
-		return this.handler.onSequenceEnd(seq)
+		return handler.onSequenceEnd(seq)
 	}
 
 	protected inlineSequence() {
-		let seq = this.storeAnchor(this.handler.onSequenceStart())
+		let handler = this.popHandler(),
+			seq = this.storeAnchor(handler.onSequenceStart())
 
 		if (this.data[++this.offset] === "]") { // empty array
-			return this.handler.onSequenceEnd(seq)
+			return handler.onSequenceEnd(seq)
 		}
 
 		++this._inFlow
 		this.nextLine()
 
-		while (true) {
-			this.handler.onSequenceEntry(seq, this.parseValue())
+		loop: while (true) {
+			handler.onSequenceEntry(seq, this.parseValue())
 			this.nextLine()
 
 			switch (this.data[this.offset]) {
@@ -336,16 +432,14 @@ export class Parser {
 					this.nextLine()
 
 					if (this.data[this.offset] === "]") {
-						--this._inFlow
 						++this.offset
-						return this.handler.onSequenceEnd(seq)
+						break loop
 					}
 				break
 
 				case "]":
-					--this._inFlow
 					++this.offset
-					return this.handler.onSequenceEnd(seq)
+					break loop
 
 				default:
 					--this._inFlow
@@ -353,78 +447,51 @@ export class Parser {
 					return null
 			}
 		}
+
+		--this._inFlow
+		return handler.onSequenceEnd(seq)
 	}
 
 	protected inlineMapping() {
-		let mapping = this.storeAnchor(this.handler.onMappingStart()),
+		let handler = this.popHandler(),
+			mapping = this.storeAnchor(handler.onMappingStart()),
 			key
 
 		if (this.data[++this.offset] === "}") { // empty mapping
-			return this.handler.onMappingEnd(mapping)
+			return handler.onMappingEnd(mapping)
 		}
 
 		++this._inFlow
 		this.nextLine()
 
 		while (true) {
-			switch (this.data[this.offset]) {
-				case "\"":
-					key = this.readQuotedString("\"")
-				break
-
-				case "'":
-					key = this.readQuotedString("'")
-				break
-
-				case "?":
-					++this._implicitKey
-					++this.offset
-					this.eatNBS()
-					key = this.parseValue()
-					--this._implicitKey
-				break
-
-				case "}": // if ends with comma
-					--this._inFlow
-					++this.offset
-					return this.handler.onMappingEnd(mapping)
-
-				case ":":
-					key = null
-					--this.offset
-				break
-
-				default:
-					key = this.readPlainString()
-
-					if (this._lastPlainStringType === PlainStringType.MAPPING_KEY) {
-						--this.offset
-					}
-				break
-			}
-
-			this.nextLine()
+			key = this.mappingKey()
 
 			if (this.data[this.offset] === ":") {
 				++this.offset
 				this.nextLine()
-				this.handler.onMappingKey(mapping, key, this.parseValue())
+				handler.onMappingKey(mapping, key, this.parseValue())
 				this.nextLine()
 			} else {
-				this.handler.onMappingKey(mapping, key, null)
+				handler.onMappingKey(mapping, key, null)
 			}
 
 			switch (this.data[this.offset]) {
 				case ",":
 					++this.offset
 					this.nextLine()
+
+					if (this.data[this.offset] === "}") {
+						--this._inFlow
+						++this.offset
+						return handler.onMappingEnd(mapping)
+					}
 				break
 
 				case "}":
 					--this._inFlow
 					++this.offset
-					this._lastValueKind = ValueKind.MAPPING
-					return this.handler.onMappingEnd(mapping)
+					return handler.onMappingEnd(mapping)
 
 				default:
 					--this._inFlow
@@ -436,71 +503,108 @@ export class Parser {
 
 	protected quotedString(quote: string) {
 		let column = this.column,
+			handler = this.popHandler(),
 			str = this.readQuotedString(quote)
 
 		this.eatNBS()
 
 		// mapping key
-		if (!this._implicitKey && this.data[this.offset] === ":") {
+		if (!this._explicitKey && this.data[this.offset] === ":") {
 			++this.offset
 			return this.blockMapping(column, str)
 		}
 
-		this._lastValueKind = ValueKind.STRING
-		return this.handler.onQuotedString(str, quote)
+		return handler.onQuotedString(str, quote)
 	}
 
 	protected scalar(): any {
 		let column = this.column,
-			str = this.readPlainString()
+			str = this.readScalar()
 
-		if (this._lastPlainStringType === PlainStringType.MAPPING_KEY) {
+		if (this._lastScalarIsMappingKey) {
 			return this.blockMapping(column, str)
 		} else {
-			this._lastValueKind = ValueKind.SCALAR
-			return this.handler.onScalar(str)
-		}
-	}
-
-	protected implicitKey(): any {
-		let column = this.column
-
-		++this.offset
-		this.eatNBS()
-
-		++this._implicitKey
-		let key = this.parseValue()
-		--this._implicitKey
-
-		this.eatNBS()
-
-		if (this.data[this.offset] === ":") {
-			++this.offset
-			return this.blockMapping(column, key)
-		} else {
-			if (this.nextLine(column)) {
-				if (this.data[this.offset] === ":") {
-					++this.offset
-					return this.blockMapping(column, key)
-				}
+			if (str === "") {
+				return null
+			} else {
+				return this.popHandler().onScalar(str)
 			}
 		}
-
-		this.unexpected(":")
 	}
 
 	protected blockMapping(column: number, mappingKey: any): any {
+		let handler = this.popHandler(),
+			mapping = this.storeAnchor(handler.onMappingStart())
 
-		let mapping = this.storeAnchor(this.getBlockCollection(column, BlockCollection.MAPPING))
-		this.nextLine()
-		this.handler.onMappingKey(mapping, mappingKey, this.parseValue())
+		while (true) {
+			if (this.data.charCodeAt(this.offset) === CharCode.COLON) {
+				++this.offset
+			} else if (mappingKey === "" || mappingKey === null) {
+				break
+			}
 
-		if (this.nextLine(column)) {
-			this.parseValue()
+			let currentCol = this.nextLine()
+
+			if (currentCol && currentCol < column) {
+				handler.onMappingKey(mapping, mappingKey, null)
+				return handler.onMappingEnd(mapping)
+			}
+
+			handler.onMappingKey(mapping, mappingKey, this.parseValue(column))
+			if (this.nextLine(column) === column) {
+				// http://yaml.org/type/merge.html
+				mappingKey = this.mappingKey()
+
+				if (this._documentState !== DocumentState.PARSING) {
+					break
+				}
+			} else {
+				break
+			}
 		}
 
-		this._lastValueKind = ValueKind.MAPPING
-		return this.handler.onMappingEnd(mapping)
+		return handler.onMappingEnd(mapping)
+	}
+
+	protected mappingKey(): string {
+		let key
+
+		switch (this.data.charCodeAt(this.offset)) {
+			case CharCode.QUOTE_DOUBLE:
+				key = this.readQuotedString("\"")
+				this.eatNBS()
+				return key
+
+			case CharCode.QUOTE_SINGLE:
+				key = this.readQuotedString("'")
+				this.eatNBS()
+				return key
+
+			case CharCode.QUESTION: return this.explicitKey()
+			case CharCode.COLON: return null
+			case CharCode.DASH:
+			case CharCode.DOT:
+				if (this.isDocumentSeparator(this.offset)) {
+					return
+				}
+				return this.readScalar()
+			default: return this.readScalar()
+		}
+	}
+
+	protected explicitKey(): any {
+		let column = this.column
+
+		++this.offset
+		this.nextLine()
+
+		++this._explicitKey
+		let key = this.parseValue()
+		--this._explicitKey
+
+		this.nextLine()
+
+		return key
 	}
 
 	protected tag() {
@@ -511,19 +615,18 @@ export class Parser {
 			this.error(`The ${handle} handle has no suffix.`)
 		}
 
-		let handler = this.handler
-		this.handler = handler.onTagStart(handle, name)
-		if (!this.handler) {
+		let handler = this.popHandler(),
+		 	tagHandler = handler.onTagStart(handle, name)
+		if (!tagHandler) {
 			this.error(`The ${handle}${name} tag is unknown.`)
 		}
 
-		(this.handler as any).document = this.doc // ugly, but working
-		this.handlerStack.push(this.handler)
+		(tagHandler as any).document = this.doc // ugly, but working
+		this.handlerStack.push(tagHandler)
 
 		this.nextLine()
-		let value = this.parseValue()
-		(this.handler as any).document = null // ugly, but working
-		this.handler = this.handlerStack.pop()
+		let value = this.parseValue();
+		(tagHandler as any).document = null // ugly, but working
 		return handler.onTagEnd(value)
 	}
 
@@ -584,10 +687,10 @@ export class Parser {
 	protected eatNBS() {
 		while (true) {
 			let c = this.data.charCodeAt(this.offset)
-			if (c !== CharCode.SPACE && c !== CharCode.TAB) {
-				break
-			} else {
+			if (c === CharCode.SPACE || c === CharCode.TAB) {
 				++this.offset
+			} else {
+				return
 			}
 		}
 	}
@@ -599,7 +702,8 @@ export class Parser {
 	 * karakter van akkor megy a következő sor elejére. Ha az aktuális sor
 	 * szóközökkel kezdődik akkor a pozíciót tovább löki a legelső nem szóköz karakterre.
 	 *
-	 * @returns Az összes következő feltétel teljesülése után tér vissza igazzal:
+	 * @returns Az összes következő feltétel teljesülése után vissza tér az aktuális sor
+	 * 			első nem szóköz karakterének a pozíciójával a soron belül:
 	 *
 	 *  - Sikerült új sorba mozgatni a pzíciót
 	 *  - Ha megvolt adva a __minColumn__ paraméter akkor
@@ -609,7 +713,7 @@ export class Parser {
 	 *  a pozíciót is visszaállítja az utolsó whitespace utáni karakter
 	 * 	pozíciójára a kiinduális pozíciótól nézve.
 	 */
-	protected nextLine(minColumn: number = null): boolean {
+	protected nextLine(minColumn: number = null): number {
 		let data = this.data,
 			start = this.offset,
 			pos = start,
@@ -618,11 +722,7 @@ export class Parser {
 		while (true) {
 			switch (data.charCodeAt(pos++)) {
 				case CharCode.SPACE:
-					// ebben az esetben legalább egy sortörés volt
-					// if (linePosition !== null) {
-					// 	++column
-					// }
-				break
+					continue
 
 				case CharCode.CR:
 					if (data.charCodeAt(pos) === CharCode.LF) {
@@ -652,82 +752,194 @@ export class Parser {
 				break
 
 				case undefined:
-					return
+					return 0
 
 				default:
-					let lp = this.linePosition
 					if (linePosition !== null) {
-						this.linePosition = linePosition
+						let column = pos - linePosition
+
+						if (minColumn !== null && minColumn > column) {
+							return 0
+						} else {
+							this.linePosition = linePosition
+							this.offset = pos - 1
+						}
+						return column
+					} else {
+						this.offset = pos - 1
+						return 0
 					}
-
-					this.offset = pos - 1
-
-					if (minColumn !== null && minColumn > this.column) {
-						this.linePosition = lp
-						this.offset = start
-						return false
-					}
-
-					return linePosition !== null
 			}
 		}
 	}
 
+	protected readScalar() {
+		let startAt = this.offset,
+			position = this.offset - 1,
+			data = this.data,
+			ch,
+			endAt = null,
+			lastNl = null,
+			firstCharRule = true
 
-	protected readPlainString(): string {
-		let ch,
-			start = this.offset,
-			inFlow = this._inFlow,
-			nlStartAt = NaN
+		endless: do {
+			switch (ch = data.charCodeAt(++position)) {
+				case CharCode.SPACE:
+				case CharCode.TAB:
+					continue endless
 
-		while(true) {
-			ch = this.data[this.offset]
+				case CharCode.CR:
+					if (data.charCodeAt(position + 1) === CharCode.LF) {
+						++position
+					}
+				case CharCode.LF:
+					firstCharRule = true
+					lastNl = position
+					continue endless
 
-			if (ch === "\r") {
-				nlStartAt = this.offset
-				if (this.data[this.offset + 1] === "\n") {
-					++this.offset
-				}
-			} else if (ch === "\n") {
-				nlStartAt = this.offset
-			} else if (ch === ":") {
-				ch = this.data[this.offset + 1]
-				if (ch === " " || ch === "\t" || ch === "\r" || ch === "\n" || ch === ",") {
-					// ha ez egy lehetséges mapping key és volt már sortörés akkor visszalép
-					// az előző sortörésre és visszaadja az addig értelmezett értéket
-					if (!isNaN(nlStartAt)) {
-						this._lastPlainStringType = PlainStringType.STRING
-						this.offset = nlStartAt
-						return this._plainString(this.data.slice(start, nlStartAt))
+				case CharCode.HASH:
+					if (IS_WS[data.charCodeAt(position - 1)]) {
+						endAt = position - 1
+						let commentStart = ++position
+
+						do {
+							ch = data.charCodeAt(++position)
+						} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
+						this.loader.onComment(data.slice(commentStart, position).trim())
+						break endless
+					} else {
+						continue endless
 					}
 
-					++this.offset
-					this._lastPlainStringType = PlainStringType.MAPPING_KEY
-					return this._plainString(this.data.slice(start, this.offset - 1))
-				} // else parse as normal string
-			} else if (ch === "-") {
-				ch = this.data[this.offset + 1]
-				if (ch === " " || ch === "\t" || ch === "\r" || ch === "\n" || ch === ",") {
-					if (!isNaN(nlStartAt)) {
-						this._lastPlainStringType = PlainStringType.STRING
-						this.offset = nlStartAt
-						return this._plainString(this.data.slice(start, nlStartAt))
+				case CharCode.COLON:
+					ch = data.charCodeAt(position + 1)
+					if (IS_WS[ch] || (this._inFlow && IS_FLOW_INDICATOR[ch])) {
+						if (lastNl === null) {
+							this._lastScalarIsMappingKey = true
+							this.offset = position
+							if (startAt) {
+								return data.slice(startAt, position).trim()
+							} else {
+								return null
+							}
+						} else {
+							break endless
+						}
+					} else {
+						continue endless
 					}
-				}
-			} else if (ch === undefined || (inFlow && FLOW_INDICATOR.indexOf(ch) !== -1)) {
-				this._lastPlainStringType = PlainStringType.STRING
-				return this._plainString(this.data.slice(start, this.offset))
-			} else if (ch === "#") {
-				ch = this.data[this.offset - 1]
-				if (ch === " " || ch === "\t" || ch === "\r" || ch === "\n") {
-					this._lastPlainStringType = PlainStringType.STRING
-					--this.offset
-					return this._plainString(this.data.slice(start, this.offset))
-				}
+
+				default:
+					if (firstCharRule) {
+						firstCharRule = false
+
+						if (IS_SCALAR_FIRST_CHAR_DECISION[ch]) {
+							ch = data.charCodeAt(position + 1)
+							if (IS_INDICATOR[ch] || IS_WS[ch]) {
+								break endless
+							}
+						} else if (this.isDocumentSeparator(position)) {
+							break endless
+						}
+					}
+
+					if (startAt === null) {
+						startAt = position
+					}
+
+					if (this._inFlow && IS_FLOW_INDICATOR[ch]) {
+						break endless
+					}
 			}
+		} while(ch)
 
+		this._lastScalarIsMappingKey = false
+
+		if (lastNl === null) {
+			this.offset = position
+		} else {
+			this.offset = position = lastNl
+		}
+
+		return data.slice(startAt, (endAt === null ? position : endAt)).trim()
+			.replace(/[ \t]*\r?\n[ \t]*/g, "\n") // a sortörések normalizálása
+			.replace(/([^\n])\n(?!\n)/g, "$1 ") // egy sortörés space-re cserélése
+			.replace(/\n(\n+)/g, "$1") // az egynél több sortörések cseréje n-1 sortörésre, ahol n a sortörés száma
+	}
+
+	protected readBlockScalar(minColumn: number, isFolded: boolean) {
+		if (this._inFlow) {
+			this.unexpected([",", "}"])
+		}
+
+		++this.offset
+		let indentStartAtColumn = null,
+			data = this.data,
+			ch = data.charCodeAt(this.offset),
+			chomping: Chomping = Chomping.CLIP
+
+		// TODO: more digit??? pls...
+		if (IS_DIGIT[ch]) {
+			indentStartAtColumn = parseInt(data[this.offset], 10)
+			if (indentStartAtColumn <= 0) {
+				this.error("Bad explicit indentation width of a block scalar; it cannot be less than 1")
+			}
+			indentStartAtColumn += minColumn
+			ch = data.charCodeAt(++this.offset)
+		}
+
+		if (ch === CharCode.PLUS) {
+			chomping = Chomping.KEEP
+			++this.offset
+		} else if (ch === CharCode.DASH) {
+			chomping = Chomping.STRIP
 			++this.offset
 		}
+
+		this.eatNBS()
+
+		ch = data.charCodeAt(this.offset)
+
+		if (ch === CharCode.HASH) {
+			let commentStart = this.offset
+			do {
+				ch = data.charCodeAt(++this.offset)
+			} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
+			this.loader.onComment(data.slice(commentStart + 1, this.offset).trim())
+			--this.offset
+		}
+
+		// Innen újra kell gondolni :)
+
+		let currentColumn = this.nextLine(minColumn),
+			position = this.offset,
+			startAt,
+			result = ""
+
+		if (currentColumn === 0) {
+			this.unexpected("LINEBREAK")
+		} else if (currentColumn <= minColumn) {
+			return ""
+		}
+
+		if (indentStartAtColumn === null) {
+			indentStartAtColumn = currentColumn
+		}
+
+		while (currentColumn >= indentStartAtColumn) {
+			startAt = position - (currentColumn - indentStartAtColumn)
+			do {
+				ch = data.charCodeAt(++position)
+			} while (ch && ch !== CharCode.CR && ch !== CharCode.LF);
+
+			console.log(data.slice(startAt, position))
+
+			this.offset = position
+			currentColumn = this.nextLine()
+			position = this.offset
+		}
+
+
 	}
 
 	protected readQuotedString(terminal: string) {
@@ -836,35 +1048,6 @@ export class Parser {
 			.replace(/[ \t]*\r?\n[ \t]*/g, "\n") // a sortörések normalizálása
 			.replace(/([^\n])\n(?!\n)/g, "$1 ") // egy sortörés space-re cserélése
 			.replace(/\n(\n+)/g, "$1") // az egynél több sortörések cseréje n-1 sortörésre, ahol n a sortörés száma
-		return s && s.length ? s : null
-	}
-
-	protected getBlockCollection(column: number, kind: BlockCollection.MAPPING): Mapping;
-	protected getBlockCollection(column: number, kind: BlockCollection.SEQUENCE): Sequence;
-
-	protected getBlockCollection(column: number, kind: BlockCollection): any {
-		let current = this._blockCollectionStack.current
-		if (current) {
-			if (current.column === column) {
-				if (current.kind === kind) {
-					return current.item
-				} else {
-					this.error("Unexpected collection at this level")
-				}
-			} else if (current.column < column) {
-				return this._blockCollectionStack.add(kind, this.newBlockCollection(kind), column)
-			} else {
-				this._blockCollectionStack.removeUntil(column)
-				return this.getBlockCollection(column, <any> kind)
-			}
-		}
-		return this._blockCollectionStack.add(kind, this.newBlockCollection(kind), column)
-	}
-
-	protected newBlockCollection(kind: BlockCollection) {
-		switch (kind) {
-			case BlockCollection.MAPPING: return this.doc.onMappingStart()
-			case BlockCollection.SEQUENCE: return this.doc.onSequenceStart()
-		}
+		return s
 	}
 }

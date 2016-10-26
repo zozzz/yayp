@@ -29,6 +29,17 @@ class StrFactory extends TypeFactory {
 	public onBlockString(value: string, isFolded: boolean): any {
 		return value
 	}
+
+	public onTagStart(handle: string, name: string): TypeFactory {
+		return this.document.onTagStart(handle, name)
+	}
+
+	public onTagEnd(value: any): any {
+		if (typeof value.toString === "function") {
+			return value.toString();
+		}
+		return `${value}`
+	}
 }
 
 

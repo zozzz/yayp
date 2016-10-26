@@ -102,10 +102,5 @@ export interface ITypeFactory extends
 export interface IDocumentHandler extends
 	ITypeFactory,
 	IReferenceHandler {
-	/**
-	 * Called when the directive found, not test if the directive is available
-	 * in the YAML spec.
-	 */
-	onDirective(name: string, value: any): void
 }
 
