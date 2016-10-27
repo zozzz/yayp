@@ -4,38 +4,38 @@ var gulp = require("gulp")
 var ts = require("gulp-typescript")
 var merge = require("merge2")
 var sourcemaps = require("gulp-sourcemaps")
-var copy = require("gulp-copy")
 var istanbul = require("gulp-istanbul")
 var mocha = require("gulp-mocha")
-var cover = require("gulp-coverage")
-var gulpDebug = require("gulp-debug")
 var remapIstanbul = require("remap-istanbul/lib/gulpRemapIstanbul")
 var coveralls = require("gulp-coveralls")
+var newer = require("gulp-newer")
 
 var tsProject = ts.createProject("tsconfig.json");
 
 gulp.task("compile", function() {
 	var result = tsProject.src()
+		.pipe(newer({
+			dest: "dist",
+			ext: ".js",
+			extra: ["gulpfile.js", "package.json", "tsconfig.json"]
+		}))
 		.pipe(sourcemaps.init())
 		.pipe(tsProject())
 
 	return merge([
-		// result.dts.pipe(gulp.dest("dist/definitions")),
         result.js
-			// .pipe(sourcemaps.write(".", {
-			// 	includeContent: false,
-			// 	sourceRoot: "src",
-			// 	// mapSources: function(sourcePath) {
-			// 	// 	return "AAA"
-			// 	// }
-			// 	}))
 			.pipe(sourcemaps.write())
 			.pipe(gulp.dest("dist"))
 	])
 })
 
 gulp.task("copy-test-files", function() {
+	// TODO: lehetne tovább is optimalizálni...
 	return gulp.src("test/fixtures/**/*.*", {base: "test"})
+		.pipe(newer({
+			dest: "dist/test",
+			extra: ["tools/yaml-examples.ts"]
+		}))
 		.pipe(gulp.dest("dist/test"))
 })
 
@@ -78,7 +78,6 @@ gulp.task("coverage", ["coverage-remap"], function() {
 
 gulp.task("coveralls", ["coverage"], function() {
 	return gulp.src(".coverage/lcov.info")
-		.pipe(gulpDebug())
 		.pipe(coveralls())
 })
 

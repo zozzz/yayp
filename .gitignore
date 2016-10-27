@@ -4,6 +4,7 @@ node_modules
 coverage
 html-report
 tools/node_modules
+npm-debug.log
 .vscode
 .coverage
 .coveralls.yml
