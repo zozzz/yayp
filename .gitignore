@@ -1,6 +1,8 @@
 dist
 build
 node_modules
+coverage
+html-report
 tools/node_modules
-typings
 .vscode
+.nyc_output

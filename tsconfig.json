@@ -15,11 +15,11 @@
 		"preserveConstEnums": false,
 		// "strictNullChecks": true,
 		"lib": [
-			"es2015"
+			"es2015",
+			"dom"
 		]
 	},
 	"include": [
-		"typings/index.d.ts",
 		"src/**/*.ts",
 		"test/**/*.ts",
 		"tools/*.ts"
