@@ -36,30 +36,10 @@ import {
 } from "./lexer"
 
 
-// const enum State {
-// 	FILE,
-// 	DOCUMENT,
-// 	BLOCK_MAPPING,
-// 	INLINE_MAPPING,
-// 	BLOCK_SEQUENCE,
-// 	INLINE_SEQUENCE,
-// 	SIMPLE_STRING,
-// 	BLOCK_STRING_LITERAL,
-// 	BLOCK_STRING_FOLDED
-// }
-
-
 export type Cursor = {
 	line: number
 	col: number
 };
-
-
-// const enum BlockCollection {
-// 	MAPPING,
-// 	SEQUENCE,
-// 	OTHER
-// }
 
 
 const enum PlainStringType {
@@ -73,36 +53,6 @@ const enum Chomping {
 	STRIP,
 	KEEP
 }
-
-
-// type CollectionItem = {
-// 	kind: BlockCollection
-// 	item: any
-// 	column: number
-// }
-
-
-// type PlainString = string & {type: PlainStringType}
-
-
-// class CollectionStack extends Array<CollectionItem> {
-// 	public get current(): CollectionItem {
-// 		return this[this.length - 1]
-// 	}
-
-// 	public add(kind: BlockCollection, item: any, column: number): any {
-// 		this.push({ kind, item, column })
-// 		return item
-// 	}
-
-// 	public removeUntil(column: number) {
-// 		let i = this.length
-// 		if (i) {
-// 			while (i-- && this[i].column > column);
-// 			this.splice(++i, this.length - i)
-// 		}
-// 	}
-// }
 
 
 export type Location = {
@@ -127,52 +77,6 @@ const enum DocumentState {
 	NEW_STARTED = 1,
 	// a jelenlegi a ... -al le lett zárva
 	CLOSED = 2
-}
-
-// class DocumentStartHandler {
-// 	public constructor(public doc: ITypeFactory, public replace: () => void) {
-// 	}
-
-// 	public onMappingStart() {
-// 		this.replace()
-// 		return (this.doc as any).content = this.doc.onMappingStart()
-// 	}
-
-// 	public onSequenceStart() {
-// 		this.replace()
-// 		return (this.doc as any).content = this.doc.onSequenceStart()
-// 	}
-
-// 	public onScalar(value) {
-// 		this.replace()
-// 		return (this.doc as any).content = this.doc.onScalar(value)
-// 	}
-
-// 	public onQuotedString(value, quote) {
-// 		this.replace()
-// 		return (this.doc as any).content = this.doc.onQuotedString(value, quote)
-// 	}
-
-// 	public onBlockString(value, isFolded) {
-// 		this.replace()
-// 		return (this.doc as any).content = this.doc.onBlockString(value, isFolded)
-// 	}
-
-// 	public onTagStart(handle: string, name: string) {
-// 		return new DocumentStartHandler(this.doc.onTagStart(handle, name), this.replace)
-// 	}
-
-// 	// just proxy...
-// 	public onMappingEnd(mapping) { return this.doc.onMappingEnd(mapping) }
-// 	public onMappingKey(mapping, key, value) { return this.doc.onMappingKey(mapping, key, value) }
-// 	public onSequenceEnd(seq) { return this.doc.onSequenceEnd(seq) }
-// 	public onSequenceEntry(seq, value) { return this.doc.onSequenceEntry(seq, value) }
-// 	public onTagEnd(value) { return this.doc.onTagEnd(value) }
-// }
-
-
-class DocumentEnd extends Error {
-
 }
 
 
@@ -200,7 +104,7 @@ export class Parser {
 	public parse(data: string, fileName: string): YamlDocument[] {
 		this.linePosition = 0
 		this.offset = 0
-		this.data = (data.charCodeAt(0) === CharCode.BOM ? data.slice(1) : data).replace(/\s+$/m, "")
+		this.data = (data.charCodeAt(0) === CharCode.BOM ? data.slice(1) : data)
 		this.fileName = fileName
 		this.documents = []
 		this.handlerStack = []
@@ -269,14 +173,17 @@ export class Parser {
 	}
 
 	protected parseValue(minColumn?: number): any {
+		if (this.isDocumentSeparator(this.offset)) {
+			return
+		}
 
 		switch (this.data[this.offset]) {
 			case "'": return this.quotedString("'")
 			case "\"": return this.quotedString("\"")
 			case "[": return this.inlineSequence()
 			case "{": return this.inlineMapping()
-			case "|": return this.readBlockScalar(minColumn, false)
-			case ">": return this.readBlockScalar(minColumn, true)
+			case "|": return this.blockScalar(minColumn, false)
+			case ">": return this.blockScalar(minColumn, true)
 			case "!":
 				// if (this._tagFactory) {
 				// 	this.error("Tag constructors not supporting from tag values")
@@ -293,27 +200,12 @@ export class Parser {
 				let key = this.explicitKey()
 				return this.blockMapping(column, key)
 			case "-":
-				switch (this.data.charCodeAt(this.offset + 1)) {
-					case CharCode.DASH:
-						if (this.data.charCodeAt(this.offset + 2)) {
-							this.offset += 3
-							this._documentState = DocumentState.NEW_STARTED
-							return
-						}
-					case CharCode.SPACE:
-					case CharCode.TAB:
-					case CharCode.CR:
-					case CharCode.LF:
-						return this.blockSequence()
+				if (IS_WS[this.data.charCodeAt(this.offset + 1)]) {
+					return this.blockSequence()
+				} else {
+					return this.scalar()
 				}
-				return this.scalar()
-			case ".":
-				if (this.data.charCodeAt(this.offset + 1) === CharCode.DOT && this.data.charCodeAt(this.offset + 2) === CharCode.DOT) {
-					this.offset += 3
-					this._documentState = DocumentState.CLOSED
-					return
-				}
-				return this.scalar()
+			case ".": return this.scalar()
 			case "@": return this.error("reserved character '@'")
 			case "`": return this.error("reserved character '`'")
 			case undefined: return // EOF
@@ -685,6 +577,7 @@ export class Parser {
 	 * Skip all non breaking space like tab or space
 	 */
 	protected eatNBS() {
+		// while (IS_NBS[data.charCodeAt(this.offset++)]); --this.offset;
 		while (true) {
 			let c = this.data.charCodeAt(this.offset)
 			if (c === CharCode.SPACE || c === CharCode.TAB) {
@@ -867,13 +760,13 @@ export class Parser {
 			.replace(/\n(\n+)/g, "$1") // az egynél több sortörések cseréje n-1 sortörésre, ahol n a sortörés száma
 	}
 
-	protected readBlockScalar(minColumn: number, isFolded: boolean) {
+	protected blockScalar(minColumn: number, isFolded: boolean) {
 		if (this._inFlow) {
 			this.unexpected([",", "}"])
 		}
 
 		++this.offset
-		let indentStartAtColumn = null,
+		let indentStartAtColumn = Infinity,
 			data = this.data,
 			ch = data.charCodeAt(this.offset),
 			chomping: Chomping = Chomping.CLIP
@@ -896,61 +789,140 @@ export class Parser {
 			++this.offset
 		}
 
-		this.eatNBS()
+		while (IS_NBS[data.charCodeAt(this.offset++)]); --this.offset;
 
-		ch = data.charCodeAt(this.offset)
-
-		if (ch === CharCode.HASH) {
+		if (data.charCodeAt(this.offset) === CharCode.HASH) {
 			let commentStart = this.offset
 			do {
 				ch = data.charCodeAt(++this.offset)
 			} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
 			this.loader.onComment(data.slice(commentStart + 1, this.offset).trim())
 			--this.offset
+		} else {
+			// Eat non linebreaks
+			while (IS_NBS[data.charCodeAt(this.offset++)]); --this.offset;
 		}
 
-		// Innen újra kell gondolni :)
+		let position = this.offset,
+			startAt = position,
+			currentColumn = 0,
+			lastEolPosition,
+			eolSymbols = "",
+			result = "",
+			lineData,
+			inFoldedMoreIndentedBlock
 
-		let currentColumn = this.nextLine(minColumn),
-			position = this.offset,
-			startAt,
-			result = ""
+		reader: while (true) {
+			peek: while(true) {
+				switch (data.charCodeAt(position++)) {
+					case CharCode.SPACE:
+						if (++currentColumn >= indentStartAtColumn) {
+							startAt = position
+							break peek
+						} else {
+							continue peek
+						}
 
-		if (currentColumn === 0) {
-			this.unexpected("LINEBREAK")
-		} else if (currentColumn <= minColumn) {
-			return ""
+					case CharCode.CR:
+						lastEolPosition = position - 1
+						eolSymbols += "\n"
+						currentColumn = 0
+						if (data.charCodeAt(position) === CharCode.LF) {
+							++position
+						}
+					break
+
+					case CharCode.LF:
+						lastEolPosition = position - 1
+						eolSymbols += "\n"
+						currentColumn = 0
+					break
+
+					case CharCode.TAB:
+						this.error("NO TABS") // todo
+
+					default:
+						// console.log(currentColumn, require("util").inspect(data.slice(position)))
+
+						// first line, before content line
+						if (currentColumn === 0 && result === "") {
+							this.unexpected("LINEBREAK")
+						}
+
+						if (indentStartAtColumn === Infinity) {
+							indentStartAtColumn = currentColumn
+							startAt = position - 1
+							break peek
+						} else if (currentColumn <= indentStartAtColumn) {
+							break reader
+						}
+				}
+			}
+
+			do { ch = data.charCodeAt(position++) } while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
+			--position
+
+			lastEolPosition = position
+			lineData = data.slice(startAt, position)
+
+			if (result === "") {
+				if (eolSymbols.length > 1) {
+					result += eolSymbols.slice(1)
+				}
+			} else if (isFolded) {
+				if (inFoldedMoreIndentedBlock) {
+					if (!IS_NBS[lineData.charCodeAt(0)]) {
+						inFoldedMoreIndentedBlock = false
+					}
+					result += eolSymbols
+				} else if (IS_NBS[lineData.charCodeAt(0)]) {
+					inFoldedMoreIndentedBlock = true
+					result += eolSymbols
+				} else if (eolSymbols.length > 1) {
+					result += eolSymbols.slice(1)
+				} else {
+					result += " "
+				}
+			} else {
+				result += eolSymbols
+			}
+
+			result += lineData
+
+			if (isNaN(ch)) {
+				break
+			}
+
+			// console.log("XXX", require("util").inspect(data[position]))
+
+			currentColumn = 1
+			eolSymbols = ""
 		}
 
-		if (indentStartAtColumn === null) {
-			indentStartAtColumn = currentColumn
+		if (lastEolPosition !== null) {
+			this.offset = lastEolPosition
+		} else {
+			this.error("Something unexpected")
 		}
 
-		while (currentColumn >= indentStartAtColumn) {
-			startAt = position - (currentColumn - indentStartAtColumn)
-			do {
-				ch = data.charCodeAt(++position)
-			} while (ch && ch !== CharCode.CR && ch !== CharCode.LF);
-
-			console.log(data.slice(startAt, position))
-
-			this.offset = position
-			currentColumn = this.nextLine()
-			position = this.offset
-		}
-
-
+		return eolSymbols !== "" ? `${result}\n` : result
 	}
 
 	protected readQuotedString(terminal: string) {
-		let ch = this.data[++this.offset], result = "";
+		let ch = this.data[++this.offset],
+			result = "",
+			isDouble = terminal === "\""
 
 		while (ch) {
 			if (ch === "\\") {
-				ch = this.readEscapedChar()
+				if (isDouble) {
+					ch = this.readEscapedChar()
+				}
 			} else if (ch === terminal) {
 				++this.offset
-				break
+				if (isDouble || this.data[this.offset] !== terminal) {
+					break
+				}
 			} else if (ch === "\r" || ch === "\n") { // a következő üres sorokat "megeszi"
 				if (ch === "\r" && this.data[this.offset + 1] === "\n") {
 					++this.offset
@@ -1029,18 +1001,22 @@ export class Parser {
 			// TODO:
 			// Escaped 8-bit Unicode character.
 			case "x":
-				break
+				return String.fromCodePoint(parseInt(this.data.slice(++this.offset, (this.offset += 1) + 1), 16))
 
 			// Escaped 16-bit Unicode character.
 			case "u":
-				break
+				return String.fromCodePoint(parseInt(this.data.slice(++this.offset, (this.offset += 3) + 1), 16))
 
 			// Escaped 32-bit Unicode character.
 			case "U":
-				break
+				return String.fromCodePoint(parseInt(this.data.slice(++this.offset, (this.offset += 7) + 1), 16))
 		}
 
 		this.error("Unexpected escape sequence")
+	}
+
+	private _charFromCharCode(code: number) {
+
 	}
 
 	private _plainString(s: string) {

@@ -1,8 +1,25 @@
 # --- [title] Scalar / Block / Basic 1
 
 scalar: |
+
+ expanded
  1
   2
    3
 
+   4
+
+scalar2: >
+ folded
+ 1
+  2
+   3
+
+   4
+
 # --- [success] documents[0].content
+
+{
+  "scalar": "\nexpanded\n1\n 2\n  3\n\n  4\n",
+  "scalar2": "folded 1\n 2\n  3\n\n  4\n"
+}

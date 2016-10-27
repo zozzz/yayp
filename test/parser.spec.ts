@@ -47,7 +47,7 @@ describe("Parser basics", () => {
 	})
 
 
-	describe.only("String parsing", () => {
+	describe("String parsing", () => {
 
 		it("Single Quote 1", () => {
 			let x = "'Hello World'"

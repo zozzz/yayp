@@ -198,7 +198,7 @@ function createTestCase(file: FixtureFile): () => void {
 			documents: p.load(file.yaml, file.path)
 		}
 
-		// console.log(require("util").inspect(l, {depth: null}))
+		// console.log(require("util").inspect(file, {depth: null}))
 
 		for (let prop of file.properties) {
 			let c = getObjPath(l, prop.property)

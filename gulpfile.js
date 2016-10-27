@@ -60,7 +60,12 @@ gulp.task("pre-test", ["prepare-test"], function() {
 
 gulp.task("test", ["prepare-test"], function () {
 	return gulp.src("dist/test/**/*.spec.js", {read: false})
-		.pipe(mocha())
+		.pipe(mocha({
+			bail: true
+		}))
+		.once("error", function () {
+			process.exit(1)
+		})
 })
 
 

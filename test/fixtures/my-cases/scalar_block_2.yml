@@ -1,0 +1,12 @@
+# --- [title] Scalar / Block / Basic 2
+
+python: >
+  def do_something(self):
+      pass
+
+
+# --- [success] documents[0].content
+
+{
+  "python": "def do_something(self):\n    pass\n"
+}
