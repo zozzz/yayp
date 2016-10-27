@@ -4,9 +4,9 @@
   "description": "Yet Another YAML Parser",
   "main": "lib/index.js",
   "scripts": {
-    "---test": "nyc mocha test/**/*.spec.ts",
-    "test": "nyc gulp test",
+    "test": "gulp test",
     "compile": "gulp compile",
+    "travis": "gulp coveralls",
     "make-yaml-examples": "ts-node test/fixtures/yaml-examples/generate.ts"
   },
   "repository": {
@@ -21,10 +21,12 @@
     "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.46",
     "chai": "^3.5.0",
+    "coveralls": "^2.11.14",
     "get-object-path": "0.0.3",
     "gulp": "^3.9.1",
     "gulp-copy": "0.0.2",
     "gulp-coverage": "^0.3.38",
+    "gulp-debug": "^2.1.2",
     "gulp-istanbul": "^1.1.1",
     "gulp-mocha": "^3.0.1",
     "gulp-sourcemaps": "^2.2.0",

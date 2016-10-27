@@ -4,7 +4,7 @@ import {Loader, YamlDocument} from "../src"
 
 describe("Parser basics", () => {
 	describe("Directive", () => {
-		it("YAML", () => {
+		it.only("YAML", () => {
 			let x = "%YAML 1.2\n---\n"
 			let d = new Loader(YamlDocument).load(x)
 			expect(d[0].version).to.eql(1.2)
