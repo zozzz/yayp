@@ -48,17 +48,17 @@ gulp.task("pre-test", ["prepare-test"], function() {
 })
 
 gulp.task("test", ["prepare-test"], function () {
-	return
+	return gulp.src("dist/test/**/*.spec.js", {read: false})
+		.pipe(mocha())
 })
 
 gulp.task("coverage-collect", ["pre-test"], function() {
-	return gulp.src("dist/test/**/*.spec.js")
+	return gulp.src("dist/test/**/*.spec.js", {read: false})
 		.pipe(mocha())
 		.pipe(istanbul.writeReports({
 			dir: ".coverage",
 			reporters: ["json", "text"]
 		}))
-		// .pipe(istanbul.enforceThresholds({thresholds: {global: 90}}))
 })
 
 gulp.task("coverage-remap", ["coverage-collect"], function() {
