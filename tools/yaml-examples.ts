@@ -2,7 +2,7 @@ import * as path from "path"
 import * as fs from "fs"
 
 import * as jsdom from "jsdom"
-import * as yaml from "js-yaml"
+var yaml = require("js-yaml")
 
 
 const OUT_PATH = path.join(__dirname, "..", "test", "fixtures", "yaml-examples")
@@ -36,7 +36,7 @@ function leadingZero(num: number): string {
 jsdom.env(
 	"http://www.yaml.org/spec/1.2/spec.html",
 	["http://code.jquery.com/jquery.js"],
-	(error, window) => {
+	(error, window: any) => {
 		let idx = 0
 		window.$("div.example").each(function () {
 			let el = window.$(this)
