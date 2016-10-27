@@ -9,6 +9,7 @@ var mocha = require("gulp-mocha")
 var remapIstanbul = require("remap-istanbul/lib/gulpRemapIstanbul")
 var coveralls = require("gulp-coveralls")
 var newer = require("gulp-newer")
+var replace = require("gulp-replace")
 
 
 var tsProject = ts.createProject("tsconfig.json");
@@ -35,6 +36,7 @@ gulp.task("compile", function() {
 	])
 })
 
+
 gulp.task("copy-test-files", function() {
 	// TODO: lehetne tovább is optimalizálni...
 	return gulp.src("test/fixtures/**/*.*", {base: "test"})
@@ -45,7 +47,9 @@ gulp.task("copy-test-files", function() {
 		.pipe(gulp.dest("dist/test"))
 })
 
+
 gulp.task("prepare-test", ["compile", "copy-test-files"])
+
 
 gulp.task("pre-test", ["prepare-test"], function() {
 	return gulp.src("dist/src/**/*.js")
@@ -53,10 +57,12 @@ gulp.task("pre-test", ["prepare-test"], function() {
 		.pipe(istanbul.hookRequire())
 })
 
+
 gulp.task("test", ["prepare-test"], function () {
 	return gulp.src("dist/test/**/*.spec.js", {read: false})
 		.pipe(mocha())
 })
+
 
 gulp.task("coverage-collect", ["pre-test"], function() {
 	return gulp.src("dist/test/**/*.spec.js", {read: false})
@@ -67,6 +73,7 @@ gulp.task("coverage-collect", ["pre-test"], function() {
 		}))
 })
 
+
 gulp.task("coverage-remap", ["coverage-collect"], function() {
 	return gulp.src(".coverage/coverage-final.json")
 		.pipe(remapIstanbul({
@@ -74,18 +81,22 @@ gulp.task("coverage-remap", ["coverage-collect"], function() {
 				"json": ".coverage/coverage.json",
 				"lcovonly": ".coverage/coverage.lcov",
 				"html": ".coverage/html"
-			},
-			basePath: __dirname,
-			fail: true
+			}
 		}))
 		.pipe(gulp.dest(".coverage/remapped"))
 })
 
+
 gulp.task("coverage", ["coverage-remap"], function() {
+	return gulp.src(".coverage/coverage.lcov")
+		// just dont see this line... :)
+		// remove dist part from path, i cannot do with remap-istanbul
+		.pipe(replace("SF:" + __dirname + path.sep + "dist" + path.sep, "SF:" + __dirname + path.sep))
+		.pipe(gulp.dest(".coverage"))
 })
+
 
 gulp.task("coveralls", ["coverage"], function() {
 	return gulp.src(".coverage/coverage.lcov")
-		.pipe(require("gulp-debug")())
 		.pipe(coveralls())
 })
