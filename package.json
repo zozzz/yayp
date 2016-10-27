@@ -19,6 +19,7 @@
     "@types/chai": "^3.4.34",
     "@types/jsdom": "^2.0.29",
     "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.46",
     "chai": "^3.5.0",
     "get-object-path": "0.0.3",
     "gulp": "^3.9.1",
@@ -33,9 +34,6 @@
     "nyc": "^8.3.2",
     "remap-istanbul": "^0.7.0",
     "typescript": "^2.0.6"
-  },
-  "dependencies": {
-    "@types/node": "^6.0.46"
   },
   "nyc": {
     "sourceMap": false
