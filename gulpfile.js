@@ -13,7 +13,7 @@ var newer = require("gulp-newer")
 var tsProject = ts.createProject("tsconfig.json");
 
 gulp.task("compile", function() {
-	var result = tsProject.src()
+	var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], {base: "."})
 		.pipe(newer({
 			dest: "dist",
 			ext: ".js",
@@ -24,7 +24,11 @@ gulp.task("compile", function() {
 
 	return merge([
         result.js
-			.pipe(sourcemaps.write())
+			.pipe(sourcemaps.write(".", {
+				mapSources: function(sourcePath) {
+					return __dirname + sourcePath.substr(2)
+				}
+			}))
 			.pipe(gulp.dest("dist"))
 	])
 })
@@ -66,37 +70,20 @@ gulp.task("coverage-remap", ["coverage-collect"], function() {
 		.pipe(remapIstanbul({
 			reports: {
 				"json": ".coverage/coverage.json",
-				"lcovonly": ".coverage/lcov.info",
+				"lcovonly": ".coverage/coverage.lcov",
 				"html": ".coverage/html"
-			}
+			},
+			basePath: __dirname,
+			fail: true
 		}))
-		.pipe(gulp.dest(".coverage"))
+		.pipe(gulp.dest(".coverage/xxx"))
 })
 
 gulp.task("coverage", ["coverage-remap"], function() {
 })
 
 gulp.task("coveralls", ["coverage"], function() {
-	return gulp.src(".coverage/lcov.info")
+	return gulp.src(".coverage/coverage.lcov")
+		.pipe(require("gulp-debug")())
 		.pipe(coveralls())
 })
-
-// gulp.task("pre-test", ["compile", "copy-test-files"], function() {
-// 	// return gulp.src("dist/src/**/*.js")
-// 	// 	// .pipe(sourcemaps.init())
-// 	// 	.pipe(istanbul())
-// 	// 	// .pipe(sourcemaps.write('.'))
-// 	// 	.pipe(istanbul.hookRequire())
-// })
-
-// // gulp.task("test", ["pre-test"], function() {
-// // 	return gulp.src("dist/test/*.spec.js", {read: false})
-// // 		.pipe(mocha())
-// // 		.pipe(istanbul.writeReports())
-// // 		.pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } }))
-// // })
-
-// gulp.task("test", ["pre-test"], function() {
-// 	return gulp.src("dist/test/*.spec.js", {read: false})
-// 		.pipe(mocha())
-// })
