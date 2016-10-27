@@ -33,7 +33,7 @@
     "gulp-typescript": "^3.0.2",
     "merge2": "^1.0.2",
     "mocha": "^3.1.0",
-    "remap-istanbul": "^0.7.0",
+    "remap-istanbul": "https://github.com/zozzz/remap-istanbul.git",
     "typescript": "^2.0.6"
   }
 }

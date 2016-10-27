@@ -10,7 +10,9 @@ var remapIstanbul = require("remap-istanbul/lib/gulpRemapIstanbul")
 var coveralls = require("gulp-coveralls")
 var newer = require("gulp-newer")
 
+
 var tsProject = ts.createProject("tsconfig.json");
+
 
 gulp.task("compile", function() {
 	var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], {base: "."})
@@ -76,7 +78,7 @@ gulp.task("coverage-remap", ["coverage-collect"], function() {
 			basePath: __dirname,
 			fail: true
 		}))
-		.pipe(gulp.dest(".coverage/xxx"))
+		.pipe(gulp.dest(".coverage/remapped"))
 })
 
 gulp.task("coverage", ["coverage-remap"], function() {
