@@ -256,6 +256,45 @@ export const IS_DIGIT: {[key: number]: boolean} = {
 }
 
 
+export const enum EscapeSequenceSpecial {
+	EOL = -1,
+	EMPTY = -2,
+	HEX_2 = -3,
+	HEX_4 = -4,
+	HEX_8 = -5
+}
+
+
+export const ESCAPE_SEQUENCE: {[key: number]: number} = {
+	[0] 	: 0,
+	[0x61]	: 0x07,  /* \a */
+	[0x62]	: 0x08,  /* \b */
+	[0x74]	: 0x09,  /* \t */
+	[0x6E]	: 0x0A,  /* \n */
+	[0x4E]	: 0x85,  /* \N */
+	[0x76]	: 0x0B,  /* \v */
+	[0x66]	: 0x0C,  /* \f */
+	[0x72]	: 0x0D,  /* \r */
+	[0x65]	: 0x1B,  /* \e */
+	[0x5F]	: 0xA0,  /* \_ */
+	[0x4C]	: 0x2028,  /* \L */
+	[0x50]	: 0x2029,  /* \P */
+	[0x78]	: EscapeSequenceSpecial.HEX_2,  /* \x */
+	[0x75]	: EscapeSequenceSpecial.HEX_4,  /* \u */
+	[0x55]	: EscapeSequenceSpecial.HEX_8,  /* \U */
+
+	[CharCode.CR]			: EscapeSequenceSpecial.EOL,
+	[CharCode.LF]			: EscapeSequenceSpecial.EMPTY,
+	[CharCode.TAB]			: EscapeSequenceSpecial.EMPTY,
+	[CharCode.SPACE]		: EscapeSequenceSpecial.EMPTY,
+	[CharCode.QUOTE_DOUBLE]	: CharCode.QUOTE_DOUBLE,
+	[CharCode.QUOTE_SINGLE]	: CharCode.QUOTE_SINGLE,
+	[CharCode.SLASH]		: CharCode.SLASH,
+	[CharCode.BACKSLASH]	: CharCode.BACKSLASH,
+	[CharCode.QUOTE_DOUBLE]	: CharCode.QUOTE_DOUBLE
+}
+
+
 export function isPrintable(charcode: number): boolean {
 	return charcode === CharCode.TAB
 		|| charcode === CharCode.LF

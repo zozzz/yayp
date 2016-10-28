@@ -5,6 +5,7 @@ import { Loader } from "./loader"
 import {ITypeFactory} from "./handler"
 import {
 	CharCode,
+	EscapeSequenceSpecial,
 	IS_NBS,
 	IS_EOL,
 	IS_WS,
@@ -12,6 +13,7 @@ import {
 	IS_SCALAR_FIRST_CHAR_DECISION,
 	IS_FLOW_INDICATOR,
 	IS_DIGIT,
+	ESCAPE_SEQUENCE,
 
 	EOL,
 	RX_MULTI_EOL,
@@ -909,114 +911,110 @@ export class Parser {
 	}
 
 	protected readQuotedString(terminal: string) {
-		let ch = this.data[++this.offset],
+		let data = this.data,
+			offset = this.offset,
 			result = "",
-			isDouble = terminal === "\""
+			eolCount = "",
+			ch,
+			escaped = {}
 
-		while (ch) {
-			if (ch === "\\") {
-				if (isDouble) {
-					ch = this.readEscapedChar()
-				}
-			} else if (ch === terminal) {
-				++this.offset
-				if (isDouble || this.data[this.offset] !== terminal) {
-					break
-				}
-			} else if (ch === "\r" || ch === "\n") { // a következő üres sorokat "megeszi"
-				if (ch === "\r" && this.data[this.offset + 1] === "\n") {
-					++this.offset
-				}
-
-				// let hasSpace = false, hasDoubleNl = false
-
-				while (true) {
-					ch = this.data[++this.offset]
-
-					if (ch === "\r") {
-						if (this.data[this.offset + 1] === "\n") {
-							++this.offset
-						}
-						result += "\n"
-						// hasDoubleNl = true
-					} else if (ch === "\n") {
-						result += "\n"
-						// hasDoubleNl = true
-					} else if (ch !== " " && ch !== "\t") {
-						break
+		endless: while (true) {
+			switch (ch = data[++offset]) {
+				case "\r":
+					if (data[offset + 1] === "\n") {
+						++offset
 					}
-				}
+				case "\n":
+					eolCount += "\n"
+				break
 
-				continue
-			} else if (ch === " " || ch === "\t") { // ha egynél több space van akkor azt mind "megeszi"
-				do {
-					ch = this.data[++this.offset]
-				} while(ch === " " || ch === "\t")
+				case " ":
+				case "\t":
+					while (IS_NBS[data.charCodeAt(++offset)]); --offset;
 
-				if (result[result.length - 1] !== " ") {
-					result += " "
-				}
+					if (!IS_WS[result.charCodeAt(result.length - 1)] || escaped[result.length - 1]) {
+						result += " "
+					}
+				break
 
-				continue
+				case "\\":
+					if (eolCount !== "") {
+						result += eolCount.length === 1
+							? (IS_WS[result.charCodeAt(result.length - 1)] ? "" : "  ")
+							: eolCount.slice(1)
+						eolCount = ""
+					}
+
+					if (terminal === "\"") {
+						let esc = ESCAPE_SEQUENCE[data.charCodeAt(++offset)]
+						escaped[result.length] = true
+						switch (esc) {
+							case EscapeSequenceSpecial.HEX_2:
+								result += String.fromCodePoint(
+									parseInt(this.data.slice(++offset, (offset += 1) + 1), 16)
+								)
+							break
+
+							case EscapeSequenceSpecial.HEX_4:
+								result += String.fromCodePoint(
+									parseInt(this.data.slice(++offset, (offset += 3) + 1), 16)
+								)
+							break
+
+							case EscapeSequenceSpecial.HEX_8:
+								result += String.fromCodePoint(
+									parseInt(this.data.slice(++offset, (offset += 7) + 1), 16)
+								)
+							break
+
+							case EscapeSequenceSpecial.EMPTY:
+								result += ""
+							break
+
+							case EscapeSequenceSpecial.EOL:
+								if (data.charCodeAt(offset + 1) === CharCode.LF) {
+									++offset
+								}
+								result += ""
+							break
+
+							default:
+								result += String.fromCharCode(esc)
+						}
+					} else {
+						result += "\\"
+					}
+				break
+
+				case terminal:
+					if (terminal === "'") {
+						if (data[offset + 1] === "'") {
+							++offset
+							result += "'"
+							continue endless
+						}
+					}
+					++offset
+					break endless
+
+				case undefined:
+					this.error("Unexpected end of file")
+					return null
+
+				default:
+					if (eolCount !== "") {
+						result += eolCount.length === 1
+							? (IS_WS[result.charCodeAt(result.length - 1)] ? "" : "  ")
+							: eolCount.slice(1)
+						eolCount = ""
+					}
+
+					result += ch
 			}
-
-			result += ch
-			ch = this.data[++this.offset]
 		}
 
+		this.offset = offset
 		return result
-	}
-
-	protected readEscapedChar(): string {
-		let ch = this.data[++this.offset]
-
-		switch (ch) {
-			case "\r":
-			case "\n":
-			case "\t":
-			case " ":
-				this._read(RX_WS)
-				return this.data[this.offset]
-
-			case "0": return "\x00"
-			case "a": return "\x07"
-			case "b": return "\x08"
-			case "t": return "\x09"
-			case "n": return "\x0A"
-			case "N": return "\x85"
-			case "v": return "\x0B"
-			case "f": return "\x0C"
-			case "r": return "\x0D"
-			case "e": return "\x1B"
-			case "_": return "\xA0"
-			case "L": return "\u2028"
-			case "P": return "\u2029"
-
-			case "\"":
-			case "'":
-			case "/":
-			case "\\":
-				return ch
-
-			// TODO:
-			// Escaped 8-bit Unicode character.
-			case "x":
-				return String.fromCodePoint(parseInt(this.data.slice(++this.offset, (this.offset += 1) + 1), 16))
-
-			// Escaped 16-bit Unicode character.
-			case "u":
-				return String.fromCodePoint(parseInt(this.data.slice(++this.offset, (this.offset += 3) + 1), 16))
-
-			// Escaped 32-bit Unicode character.
-			case "U":
-				return String.fromCodePoint(parseInt(this.data.slice(++this.offset, (this.offset += 7) + 1), 16))
-		}
-
-		this.error("Unexpected escape sequence")
-	}
-
-	private _charFromCharCode(code: number) {
-
 	}
 
 	private _plainString(s: string) {
