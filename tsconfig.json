@@ -5,6 +5,7 @@
 		"module": "commonjs",
 		"noEmitOnError": true,
 		"noUnusedLocals": false,
+		"declaration": true,
 		"outDir": "./dist",
 		"pretty": true,
 		"rootDir": "./",

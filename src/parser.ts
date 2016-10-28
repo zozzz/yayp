@@ -91,12 +91,12 @@ export class Parser {
 	protected linePosition: number
 
 	// protected _currentString: string // maybe collection?
-	protected _inFlow: number = 0
-	protected _lastScalarIsMappingKey: boolean
-	protected _anchor: string
-	protected _explicitKey: number = 0
-	protected _documentState: DocumentState = DocumentState.NEW_STARTED
-	protected _lastKeyColumn: number | null = null
+	private _inFlow: number = 0
+	private _lastScalarIsMappingKey: boolean
+	private _anchor: string
+	private _explicitKey: number = 0
+	private _documentState: DocumentState = DocumentState.NEW_STARTED
+	private _lastKeyColumn: number | null = null
 
 	public constructor(protected loader: Loader) {
 	}

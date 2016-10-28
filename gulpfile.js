@@ -10,6 +10,7 @@ var remapIstanbul = require("remap-istanbul/lib/gulpRemapIstanbul")
 var coveralls = require("gulp-coveralls")
 var newer = require("gulp-newer")
 var replace = require("gulp-replace")
+var dts = require("dts-bundle")
 
 
 var tsProject = ts.createProject("tsconfig.json");
@@ -32,7 +33,10 @@ gulp.task("compile", function() {
 					return __dirname + sourcePath.substr(2)
 				}
 			}))
-			.pipe(gulp.dest("dist"))
+			.pipe(gulp.dest("dist")),
+
+		result.dts
+			.pipe(gulp.dest("dist/dts"))
 	])
 })
 
@@ -104,4 +108,18 @@ gulp.task("coverage", ["coverage-remap"], function() {
 gulp.task("coveralls", ["coverage"], function() {
 	return gulp.src(".coverage/coverage.lcov")
 		.pipe(coveralls())
+})
+
+
+gulp.task("bundle-dts", ["compile"], function() {
+	dts.bundle({
+		name: "yayp",
+		main: "dist/dts/src/index.d.ts",
+		baseDir: "dist/dts/src/",
+		out: "yayp.d.ts",
+		referenceExternals: true
+	});
+
+	return gulp.src("dist/dts/src/yayp.d.ts")
+		.pipe(gulp.dest("lib"))
 })
