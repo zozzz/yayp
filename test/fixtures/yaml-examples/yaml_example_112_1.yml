@@ -1,4 +1,4 @@
-# --- [title] Example 8.17. / Explicit Block Mapping Entries (1)
+# --- [title] YAML Example / 8.17. Explicit Block Mapping Entries (1)
 
 ? explicit key # Empty value↓
 ? |

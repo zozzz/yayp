@@ -1,4 +1,4 @@
-# --- [title] Example 2.23. / Various Explicit Tags (1)
+# --- [title] YAML Example / 2.23. Various Explicit Tags (1)
 
 ---
 not-date: !!str 2002-04-28

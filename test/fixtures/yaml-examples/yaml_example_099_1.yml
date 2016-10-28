@@ -1,4 +1,4 @@
-# --- [title] Example 8.4. / Chomping Final Line Break (1)
+# --- [title] YAML Example / 8.4. Chomping Final Line Break (1)
 
 strip: |-
   text↓

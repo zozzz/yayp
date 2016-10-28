@@ -1,4 +1,4 @@
-# --- [title] Example 7.15. / Flow Mappings (1)
+# --- [title] YAML Example / 7.15. Flow Mappings (1)
 
 - { one : two , three: four , }
 - {five: six,seven : eight}

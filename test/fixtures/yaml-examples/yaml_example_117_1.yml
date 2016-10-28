@@ -1,4 +1,4 @@
-# --- [title] Example 8.22. / Block Collection Nodes (1)
+# --- [title] YAML Example / 8.22. Block Collection Nodes (1)
 
 sequence: !!seq
 - entry

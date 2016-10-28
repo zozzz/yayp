@@ -1,4 +1,4 @@
-# --- [title] Example 10.4. / !!null Examples (1)
+# --- [title] YAML Example / 10.4. !!null Examples (1)
 
 !!null null: value for null key
 key with null value: !!null null

@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "dependencies": {
     "js-yaml": "^3.6.1",
-    "jsdom": "^9.8.0"
+    "jsdom": "^9.8.0",
+    "ts-node": "^1.6.1",
+    "typescript": "^2.0.6"
+  },
+  "scripts": {
+    "examples": "ts-node yaml-examples.ts"
   }
 }

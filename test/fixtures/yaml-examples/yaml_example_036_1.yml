@@ -1,4 +1,4 @@
-# --- [title] Example 5.8. / Quoted Scalar Indicators (1)
+# --- [title] YAML Example / 5.8. Quoted Scalar Indicators (1)
 
 single: 'text'
 double: "text"

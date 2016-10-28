@@ -1,4 +1,4 @@
-# --- [title] Example 2.3. / Mapping Scalars to Sequences (ball clubs in each league) (1)
+# --- [title] YAML Example / 2.3. Mapping Scalars to Sequences (ball clubs in each league) (1)
 
 american:
   - Boston Red Sox

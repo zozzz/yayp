@@ -1,4 +1,4 @@
-# --- [title] Example 6.14. / “YAML” directive (1)
+# --- [title] YAML Example / 6.14. “YAML” directive (1)
 
 %YAML 1.3 # Attempt parsing
            # with a warning

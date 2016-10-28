@@ -1,4 +1,4 @@
-# --- [title] Example 10.3. / !!str Examples (1)
+# --- [title] YAML Example / 10.3. !!str Examples (1)
 
 Block style: !!str |-
   String: just a theory.

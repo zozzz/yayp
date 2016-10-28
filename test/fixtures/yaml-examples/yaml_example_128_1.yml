@@ -1,4 +1,4 @@
-# --- [title] Example 10.5. / !!bool Examples (1)
+# --- [title] YAML Example / 10.5. !!bool Examples (1)
 
 YAML is a superset of JSON: !!bool true
 Pluto is a planet: !!bool false

@@ -1,4 +1,4 @@
-# --- [title] Example 7.1. / Alias Nodes (1)
+# --- [title] YAML Example / 7.1. Alias Nodes (1)
 
 First occurrence: &anchor Foo
 Second occurrence: *anchor

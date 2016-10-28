@@ -1,4 +1,4 @@
-# --- [title] Example 2.17. / Quoted Scalars (1)
+# --- [title] YAML Example / 2.17. Quoted Scalars (1)
 
 unicode: "Sosa did fine.\u263A"
 control: "\b1998\t1999\t2000\n"

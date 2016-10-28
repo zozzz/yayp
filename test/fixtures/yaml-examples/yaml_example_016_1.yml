@@ -1,4 +1,4 @@
-# --- [title] Example 2.16. / Indentation determines scope (1)
+# --- [title] YAML Example / 2.16. Indentation determines scope (1)
 
 name: Mark McGwire
 accomplishment: >

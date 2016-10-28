@@ -1,4 +1,4 @@
-# --- [title] Example 7.8. / Single Quoted Implicit Keys (1)
+# --- [title] YAML Example / 7.8. Single Quoted Implicit Keys (1)
 
 'implicit block key' : [
   'implicit flow key' : value,

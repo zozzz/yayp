@@ -1,4 +1,4 @@
-# --- [title] Example 8.6. / Empty Scalar Chomping (1)
+# --- [title] YAML Example / 8.6. Empty Scalar Chomping (1)
 
 strip: >-
 ↓

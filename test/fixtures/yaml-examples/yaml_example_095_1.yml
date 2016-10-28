@@ -1,4 +1,4 @@
-# --- [title] Example 7.24. / Flow Nodes (1)
+# --- [title] YAML Example / 7.24. Flow Nodes (1)
 
 - !!str "a"
 - 'b'

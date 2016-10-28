@@ -33,6 +33,8 @@ function leadingZero(num: number): string {
 	return `${num < 10 ? "00" : (num < 100 ? "0" : "")}${num}`
 }
 
+// TODO 1.1 and 1.2 examples
+
 jsdom.env(
 	"http://www.yaml.org/spec/1.2/spec.html",
 	["http://code.jquery.com/jquery.js"],
@@ -47,7 +49,7 @@ jsdom.env(
 				let sidx = 0
 
 				if (m) {
-					title = `${m[0].trim()} / ${title.slice(m[0].length).trim()}`
+					title = `YAML Example / ${m[1].trim()} ${title.slice(m[0].length).trim()}`
 				}
 
 				el.find("pre.programlisting").each(function() {

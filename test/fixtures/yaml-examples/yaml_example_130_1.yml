@@ -1,4 +1,4 @@
-# --- [title] Example 10.7. / !!float Examples (1)
+# --- [title] YAML Example / 10.7. !!float Examples (1)
 
 negative: !!float -1
 zero: !!float 0

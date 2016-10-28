@@ -1,4 +1,4 @@
-# --- [title] Example 5.4. / Flow Collection Indicators (1)
+# --- [title] YAML Example / 5.4. Flow Collection Indicators (1)
 
 sequence: [ one, two, ]
 mapping: { sky: blue, sea: green }

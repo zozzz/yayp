@@ -1,4 +1,4 @@
-# --- [title] Example 6.24. / Verbatim Tags (1)
+# --- [title] YAML Example / 6.24. Verbatim Tags (1)
 
 !<tag:yaml.org,2002:str> foo :
   !<!bar> baz

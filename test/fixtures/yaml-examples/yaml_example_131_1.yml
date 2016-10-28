@@ -1,4 +1,4 @@
-# --- [title] Example 10.8. / JSON Tag Resolution (1)
+# --- [title] YAML Example / 10.8. JSON Tag Resolution (1)
 
 A null: null
 Booleans: [ true, false ]

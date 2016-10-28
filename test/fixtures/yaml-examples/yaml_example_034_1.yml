@@ -1,4 +1,4 @@
-# --- [title] Example 5.6. / Node Property Indicators (1)
+# --- [title] YAML Example / 5.6. Node Property Indicators (1)
 
 anchored: !local &anchor value
 alias: *anchor

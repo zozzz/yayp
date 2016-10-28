@@ -1,4 +1,4 @@
-# --- [title] Example 8.18. / Implicit Block Mapping Entries (1)
+# --- [title] YAML Example / 8.18. Implicit Block Mapping Entries (1)
 
 plain key: in-line value
 : # Both empty
