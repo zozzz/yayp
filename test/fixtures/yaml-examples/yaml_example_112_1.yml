@@ -1,7 +1,11 @@
 # --- [title] YAML Example / 8.17. Explicit Block Mapping Entries (1)
 
-? explicit key # Empty value↓
+? explicit key # Empty value
 ? |
-  block key↓
-:·- one # Explicit compact
-··- two # block value↓
+  block key
+: - one # Explicit compact
+  - two # block value
+
+# --- [success] documents[0].content
+
+{"explicit key":null,"block key\n":["one","two"]}

@@ -1,6 +1,9 @@
 # --- [title] YAML Example / 8.9. Folded Scalar (1)
 
->↓
-·folded↓
-·text↓
-↓
+>
+ folded
+ text
+
+# --- [success] documents[0].content
+
+"folded text\n"

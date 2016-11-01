@@ -1,8 +1,11 @@
 # --- [title] YAML Example / 8.6. Empty Scalar Chomping (1)
 
 strip: >-
-↓
+
 clip: >
-↓
+
 keep: |+
-↓
+
+# --- [success] documents[0].content
+
+{"strip":"","clip":"","keep":""}

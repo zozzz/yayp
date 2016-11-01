@@ -8,3 +8,7 @@
 # --- [success] documents[0].content
 
 "line break (no glyph)\nline break (glyphed)\n"
+
+# --- [success] documents[0].version
+
+1.2

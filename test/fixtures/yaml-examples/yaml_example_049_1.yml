@@ -1,12 +1,8 @@
 # --- [title] YAML Example / 6.7. Block Folding (1)
 
 >
-··foo·↓
-·↓
-··→·bar↓
+  foo ↓
+ ↓
+  	 bar↓
 ↓
-··baz↓
-
-# --- [success] documents[0].content
-
-"··foo·↓ ·↓ ··→·bar↓ ↓ ··baz↓ "
+  baz↓

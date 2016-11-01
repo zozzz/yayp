@@ -12,6 +12,10 @@
    * line
 
  last
- line↓
-↓
+ line
+
 # Comment
+
+# --- [success] documents[0].content
+
+"folded line\nnext line\n  * bullet\n\n  * list\n  * line\n\nlast line\n"

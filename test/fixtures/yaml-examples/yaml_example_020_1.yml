@@ -3,9 +3,9 @@
 canonical: 1.23015e+3
 exponential: 12.3015e+02
 fixed: 1230.15
-negative infinity: -.inf
-not a number: .NaN
+# negative infinity: -.inf # json not supported
+# not a number: .NaN # json not supported
 
 # --- [success] documents[0].content
 
-{"canonical":1230.15,"exponential":1230.15,"fixed":1230.15,"negative infinity":null,"not a number":null}
+{"canonical":1230.15,"exponential":1230.15,"fixed":1230.15}

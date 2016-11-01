@@ -1,17 +1,17 @@
 # --- [title] YAML Example / 8.12. Empty Separation Lines (1)
 
 >
-↓
+
  folded
- line↓
-↓
+ line
+
  next
- line↓
+ line
    * bullet
 
    * list
-   * line↓
-↓
+   * line
+
  last
  line
 
@@ -19,4 +19,4 @@
 
 # --- [success] documents[0].content
 
-"↓\n folded\n line↓\n↓\n next\n line↓\n   * bullet\n\n   * list\n   * line↓\n↓\n last\n line\n\n# Comment "
+"\nfolded line\nnext line\n  * bullet\n\n  * list\n  * line\n\nlast line\n"

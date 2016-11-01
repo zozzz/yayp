@@ -1,9 +1,15 @@
 # --- [title] YAML Example / 6.6. Line Folding (1)
 
 >-
-  trimmed↓
-··↓
-·↓
-↓
-  as↓
+  trimmed
+  
+ 
+
+
+  as
+
   space
+
+# --- [success] documents[0].content
+
+"trimmed\n\n\n\nas\nspace"

@@ -1,6 +1,9 @@
 # --- [title] YAML Example / 8.7. Literal Scalar (1)
 
-|↓
-·literal↓
-·→text↓
-↓
+|
+ literal
+ 	text
+
+# --- [success] documents[0].content
+
+"literal\n\ttext\n"

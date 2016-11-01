@@ -5,10 +5,10 @@
 !!seq [
   !!str "detected\n",
   !!str "\n\n# detected\n",
-  !!str "·explicit\n",
-  !!str "\t·detected\n",
+  !!str " explicit\n",
+  !!str "\t detected\n",
 ]
 
 # --- [success] documents[0].content
 
-["detected\n","\n\n# detected\n","·explicit\n","\t·detected\n"]
+["detected\n","\n\n# detected\n"," explicit\n","\t detected\n"]

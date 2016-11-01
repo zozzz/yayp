@@ -4,11 +4,11 @@
 ---
 !!seq [
   !!str "literal\n",
-  !!str "·folded\n",
+  !!str " folded\n",
   !!str "keep\n\n",
-  !!str "·strip",
+  !!str " strip",
 ]
 
 # --- [success] documents[0].content
 
-["literal\n","·folded\n","keep\n\n","·strip"]
+["literal\n"," folded\n","keep\n\n"," strip"]

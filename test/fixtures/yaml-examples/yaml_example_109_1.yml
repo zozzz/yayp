@@ -1,5 +1,9 @@
 # --- [title] YAML Example / 8.14. Block Sequence (1)
 
 block sequence:
-··- one↓
-  - two : three↓
+  - one
+  - two : three
+
+# --- [success] documents[0].content
+
+{"block sequence":["one",{"two":"three"}]}

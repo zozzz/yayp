@@ -1,9 +1,7 @@
 # --- [title] YAML Example / 6.10. Comment Lines (1)
 
-··# Comment↓
-···↓
-↓
+# Comment
 
 # --- [success] documents[0].content
 
-"··# Comment↓ ···↓ ↓"
+null

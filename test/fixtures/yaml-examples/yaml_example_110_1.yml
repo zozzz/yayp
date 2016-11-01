@@ -3,6 +3,10 @@
 - # Empty
 - |
  block node
--·- one # Compact
-··- two # sequence
+- - one # Compact
+  - two # sequence
 - one: two # Compact mapping
+
+# --- [success] documents[0].content
+
+[null,"block node\n",["one","two"],{"one":"two"}]

@@ -1,10 +1,10 @@
 # --- [title] YAML Example / 6.2. Indentation Indicators (1)
 
-?·a
-:·-→b
-··-··-→c
-·····-·d
+? a
+: -	b
+  -  -	c
+     - d
 
 # --- [success] documents[0].content
 
-"?·a :·-→b ··-··-→c ·····-·d"
+{"a": ["b", ["c", "d"]]}

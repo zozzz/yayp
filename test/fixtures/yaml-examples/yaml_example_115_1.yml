@@ -1,8 +1,12 @@
 # --- [title] YAML Example / 8.20. Block Node Types (1)
 
--↓
-··"flow in block"↓
--·>
- Block scalar↓
--·!!map # Block collection
-  foo : bar↓
+-
+  "flow in block"
+- >
+ Block scalar
+- !!map # Block collection
+  foo : bar
+
+# --- [success] documents[0].content
+
+["flow in block","Block scalar\n",{"foo":"bar"}]

@@ -1,13 +1,13 @@
 # --- [title] YAML Example / 6.8. Flow Folding (1)
 
-"↓
-··foo·↓
-·↓
-··→·bar↓
-↓
-··baz↓
+"
+  foo 
+ 
+  	 bar
+
+  baz
 "
 
 # --- [success] documents[0].content
 
-"↓ ··foo·↓ ·↓ ··→·bar↓ ↓ ··baz↓ "
+" foo \nbar\nbaz "

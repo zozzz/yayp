@@ -10,4 +10,4 @@ A A A"
 
 # --- [success] documents[0].content
 
-"Fun with \\ \" \u0007 \b \u001b \f \n \r \t \u000b \u0000          A A A"
+"Fun with \u005C \u0022 \u0007 \u0008 \u001B \u000C \u000A \u000D \u0009 \u000B \u0000 \u0020 \u00A0 \u0085 \u2028 \u2029 A A A"

@@ -7,4 +7,4 @@ hexadecimal: 0xC
 
 # --- [success] documents[0].content
 
-{"canonical":12345,"decimal":12345,"octal":"0o14","hexadecimal":12}
+{"canonical":12345,"decimal":12345,"octal":12,"hexadecimal":12}

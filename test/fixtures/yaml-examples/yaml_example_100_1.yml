@@ -3,19 +3,23 @@
 # Strip
   # Comments:
 strip: |-
-  # text↓
-··⇓
-·# Clip
-··# comments:
-↓
+  # text
+  ⇓
+ # Clip
+  # comments:
+
 clip: |
-  # text↓
-·↓
-·# Keep
-··# comments:
-↓
+  # text
+ 
+ # Keep
+  # comments:
+
 keep: |+
-  # text↓
-↓
-·# Trail
-··# comments.
+  # text
+
+ # Trail
+  # comments.
+
+# --- [success] documents[0].content
+
+{"strip":"# text\n⇓","clip":"# text\n","keep":"# text\n\n"}

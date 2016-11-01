@@ -2,10 +2,10 @@
 
 {
 "adjacent":value,
-"readable":·value,
+"readable": value,
 "empty":
 }
 
 # --- [success] documents[0].content
 
-{"adjacent":"value","readable":"·value","empty":null}
+{"adjacent":"value","readable":"value","empty":null}

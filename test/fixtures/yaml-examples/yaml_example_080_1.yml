@@ -1,10 +1,10 @@
 # --- [title] YAML Example / 7.9. Single Quoted Lines (1)
 
-'·1st non-empty↓
-↓
-·2nd non-empty·
-→3rd non-empty·'
+' 1st non-empty
+
+ 2nd non-empty 
+	3rd non-empty '
 
 # --- [success] documents[0].content
 
-"·1st non-empty↓ ↓ ·2nd non-empty· →3rd non-empty·"
+" 1st non-empty\n2nd non-empty  3rd non-empty "

@@ -7,12 +7,16 @@
 
  next
  line
-···* bullet↓
-↓
-···* list↓
-···* lines↓
+   * bullet
+
+   * list
+   * lines
 
  last
  line
 
 # Comment
+
+# --- [success] documents[0].content
+
+"\nfolded line\nnext line\n  * bullet\n\n  * list\n  * lines\n\nlast line\n"

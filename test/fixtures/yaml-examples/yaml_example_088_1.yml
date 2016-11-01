@@ -1,12 +1,12 @@
 # --- [title] YAML Example / 7.17. Flow Mapping Separate Values (1)
 
 {
-unquoted·:·"separate",
+unquoted : "separate",
 http://foo.com,
 omitted value:,
-:·omitted key,
+: omitted key,
 }
 
 # --- [success] documents[0].content
 
-{"unquoted·:·\"separate\"":null,"http://foo.com":null,"omitted value":null,":·omitted key":null}
+{"unquoted":"separate","http://foo.com":null,"omitted value":null,"null":"omitted key"}

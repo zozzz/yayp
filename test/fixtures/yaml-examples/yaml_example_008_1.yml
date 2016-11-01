@@ -13,8 +13,8 @@ action: grand slam
 
 # --- [success] documents[0].content
 
-{"time":72200,"player":"Sammy Sosa","action":"strike (miss)"}
+{"time":"20:03:20","player":"Sammy Sosa","action":"strike (miss)"}
 
 # --- [success] documents[1].content
 
-{"time":72227,"player":"Sammy Sosa","action":"grand slam"}
+{"time":"20:03:47","player":"Sammy Sosa","action":"grand slam"}

@@ -1,15 +1,15 @@
 # --- [title] YAML Example / 8.8. Literal Content (1)
 
 |
-·
-··
-··literal↓
-···↓
-··
-··text↓
-↓
-·# Comment
+ 
+  
+  literal
+   
+  
+  text
+
+ # Comment
 
 # --- [success] documents[0].content
 
-"·\n··\n··literal↓\n···↓\n··\n··text↓\n↓\n·# Comment\n"
+"\n\nliteral\n \n\ntext\n"

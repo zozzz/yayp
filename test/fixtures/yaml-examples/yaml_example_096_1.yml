@@ -1,15 +1,15 @@
 # --- [title] YAML Example / 8.1. Block Scalar Header (1)
 
-- | # Empty header↓
+- | # Empty header
  literal
-- >1 # Indentation indicator↓
- ·folded
-- |+ # Chomping indicator↓
+- >1 # Indentation indicator
+  folded
+- |+ # Chomping indicator
  keep
 
-- >1- # Both indicators↓
- ·strip
+- >1- # Both indicators
+  strip
 
 # --- [success] documents[0].content
 
-["literal\n","·folded\n","keep\n\n","·strip"]
+["literal\n"," folded\n","keep\n\n"," strip"]
