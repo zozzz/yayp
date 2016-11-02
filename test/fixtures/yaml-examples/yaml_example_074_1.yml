@@ -7,4 +7,4 @@
 
 # --- [success] documents[0].content
 
-{"foo":null,"null":"bar"}
+{"foo":null,"<null>":"bar"}
