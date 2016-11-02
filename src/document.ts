@@ -1,60 +1,41 @@
-import {Parser, Location} from "./parser"
-import {Loader} from "./loader"
-import {SCHEMA_CORE, ISchema, TypeFactory} from "./schema"
-import {Mapping, Sequence, Scalar} from "./node"
-import {IDocumentHandler} from "./handler"
-
-
-// export class TagName {
-// 	public constructor(public localName: string, public namespace: string) {
-// 	}
-
-// 	public toString() {
-// 		return `!<${this.namespace}${this.localName}>`
-// 	}
-// }
-
-
-// export type Directive = {
-// 	/**
-// 	 * Any key-value pair that starts with %
-// 	 * like %YAML 1.2
-// 	 * BUT CURRENTLY ONLY SUPPORTS YAML AND TAG DIRECTIVES
-// 	 */
-// 	[key: string]: any
-// 	/**
-// 	 * YAML version number
-// 	 */
-// 	YAML?: string
-// 	/**
-// 	 * TAG ns definitions
-// 	 */
-// 	TAG?: TagDirective
-// }
+import { Loader } from "./loader"
+import { ISchema, TypeFactory } from "./schema"
+import { Mapping, Sequence } from "./node"
+import { IDocumentHandler } from "./handler"
 
 
 export type YamlDocumentClass = {
-	new(loader: Loader, schema?: ISchema): YamlDocument
+	new (loader: Loader, schema?: ISchema): YamlDocument
 }
 
 
 export class YamlDocument implements IDocumentHandler {
-	public readonly schema: ISchema
-	public readonly version: number
-	public readonly content: any
-	public readonly namespaces: {[key: string]: string} = {
+	public readonly version: number = 1.2
+	public readonly content: any = null
+
+	public readonly namespaces: { [key: string]: string } = {
 		"!!": "tag:yaml.org,2002:"
 	}
 
 	protected references = {}
 
 
-	public constructor(public readonly loader: Loader, schema: ISchema = SCHEMA_CORE) {
-		this.schema = schema
+	public constructor(public readonly loader: Loader, public readonly schema: ISchema) {
 	}
 
 	public addNamespace(handle: string, namespace: string) {
 		this.namespaces[handle] = namespace
+	}
+
+	public getNamespace(handle: string) {
+		if (!this.namespaces[handle]) {
+			if (handle === "!") {
+				return "!"
+			} else {
+				this.error(`Undeclared tag handle '${handle}'`)
+			}
+		}
+		return this.namespaces[handle]
 	}
 
 	/**
@@ -107,8 +88,8 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when a tag start, and must return a factory function
 	 * or NULL when not found a factory function
 	 */
-	public onTagStart(handle: string, name: string): TypeFactory {
-		return this.schema.resolveTag(this.namespaces[handle] || handle, name)
+	public onTagStart(qname: string): TypeFactory {
+		return this.schema.resolveTag(qname)
 	}
 
 	/**
@@ -156,10 +137,8 @@ export class YamlDocument implements IDocumentHandler {
 
 	/**
 	 * Called when a block string found
-	 *
-	 * @param isFolded True when string constructed with ">" char
 	 */
-	public onBlockString(value: string, isFolded: boolean): any {
+	public onBlockString(value: string): any {
 		return value
 	}
 

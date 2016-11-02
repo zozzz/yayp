@@ -1,8 +1,6 @@
 import { YamlDocument } from "./document"
-import {Mapping, Sequence, Scalar} from "./node"
-import { TypeFactory } from "./schema"
 import { Loader } from "./loader"
-import {ITypeFactory} from "./handler"
+import { ITypeFactory } from "./handler"
 import {
 	CharCode,
 	EscapeSequenceSpecial,
@@ -15,38 +13,19 @@ import {
 	IS_DIGIT,
 	ESCAPE_SEQUENCE,
 
-	EOL,
-	RX_MULTI_EOL,
 	RX_NS_CHARS,
 	RX_NB_CHARS,
-	RX_PLAIN_STRING,
-	RX_INT_DEC,
-	RX_INT_HEX,
-	RX_INT_OCT,
-	RX_FLOAT_SECOND_PART,
 	YAML_DIRECTIVE_VALUE,
 	TAG_DIRECTIVE_HANDLE,
 	TAG_DIRECTIVE_NS,
 	TAG_NAME,
-	PLAIN_MAPPING_KEY,
-	FLOW_INDICATOR,
-	RX_ANCHOR,
-	RX_TIMESTAMP_PART,
-	RX_TIMESTAMP_MS,
-	RX_TIMESTAMP_TZ,
-	RX_WS
+	RX_ANCHOR
 } from "./lexer"
 
 
 export type Cursor = {
 	line: number
 	col: number
-};
-
-
-const enum PlainStringType {
-	STRING,
-	MAPPING_KEY
 }
 
 
@@ -54,6 +33,14 @@ const enum Chomping {
 	CLIP,
 	STRIP,
 	KEEP
+}
+
+
+const enum PeekResult {
+	SAME_LINE,
+	SAME_INDENT,
+	DECREASE_INDENT,
+	INCREASE_INDENT
 }
 
 
@@ -92,13 +79,10 @@ export class Parser {
 	protected handlerStack: ITypeFactory[]
 	protected linePosition: number
 
-	// protected _currentString: string // maybe collection?
 	private _inFlow: number = 0
-	private _lastScalarIsMappingKey: boolean
 	private _anchor: string
 	private _explicitKey: number = 0
 	private _documentState: DocumentState = DocumentState.NEW_STARTED
-	private _lastKeyColumn: number | null = null
 
 	public constructor(protected loader: Loader) {
 	}
@@ -111,6 +95,11 @@ export class Parser {
 		this.documents = []
 		this.handlerStack = []
 		this.parseFile()
+
+		if (this.documents.length === 0) {
+			this.documents.push(this.loader.onDocumentEnd(this.loader.onDocumentStart()))
+		}
+
 		return this.documents
 	}
 
@@ -141,7 +130,7 @@ export class Parser {
 	}
 
 	protected parseFile(): any {
-		this.nextLine()
+		this.peek(1)
 
 		if (this.data.length <= this.offset + 1) {
 			return null
@@ -152,7 +141,7 @@ export class Parser {
 			case "-":
 				if (this.data[this.offset + 1] === "-" && this.data[this.offset + 2] === "-") {
 					this.offset += 3
-					this.nextLine()
+					this.peek(1)
 					return this.parseDocument()
 				}
 		}
@@ -165,11 +154,13 @@ export class Parser {
 	}
 
 	protected parseDocument() {
-		this.documents.push(this.doc = this.loader.onDocumentStart())
+		this.doc = this.loader.onDocumentStart()
 		this.handlerStack = [this.doc]
 		this._documentState = DocumentState.PARSING;
 
 		(this.doc as any).content = this.parseValue()
+
+		this.documents.push(this.loader.onDocumentEnd(this.doc))
 
 		this.parseFile()
 	}
@@ -197,21 +188,18 @@ export class Parser {
 				// 	this.error("Tag constructors not supporting from alias")
 				// }
 				return this.alias()
-			case "?":
-				let column = this.column
-				let key = this.explicitKey()
-				return this.blockMapping(column, key)
+			case "?": return this.explicitKey(false)
 			case "-":
 				if (IS_WS[this.data.charCodeAt(this.offset + 1)]) {
 					return this.blockSequence()
 				} else {
-					return this.scalar()
+					return this.readScalar(false, this.column)
 				}
-			case ".": return this.scalar()
+			case ".": return this.readScalar(false, this.column)
 			case "@": return this.error("reserved character '@'")
 			case "`": return this.error("reserved character '`'")
 			case undefined: return // EOF
-			default: return this.scalar()
+			default: return this.readScalar(false, this.column)
 		}
 	}
 
@@ -269,9 +257,8 @@ export class Parser {
 			// akkor ha kijjebb kezdődik a következő sor, mint az ahol elkezdődött a lista
 			// egyértelműen meg kell szakítani.
 
-			let currentCol = this.nextLine()
-			if (currentCol && currentCol < col) {
-				break endless;
+			if (this.peek(col) === PeekResult.DECREASE_INDENT) {
+				break endless
 			}
 
 			let value = this.parseValue(col)
@@ -281,31 +268,27 @@ export class Parser {
 				handler.onSequenceEntry(seq, value)
 			}
 
-			switch (this.nextLine(col)) {
-				case col:
+			switch (this.peek(col)) {
+				case PeekResult.SAME_INDENT:
 					if (this.data.charCodeAt(this.offset) === CharCode.DASH) {
 						if (this.isDocumentSeparator(this.offset)) {
 							break endless
 						}
-						this._lastKeyColumn = this.column
 						++this.offset
 					} else {
 						break endless
 					}
-				break
-
-				case 0:
-					break endless
+					break
 
 				default:
-					this.unexpected("SOMETHING WRONG IN BLOCK SEQUENCE")
+					break endless
 			}
 		}
 
 		return handler.onSequenceEnd(seq)
 	}
 
-	protected inlineSequence() {
+	protected inlineSequence(): any {
 		let handler = this.popHandler(),
 			seq = this.storeAnchor(handler.onSequenceStart())
 
@@ -314,22 +297,22 @@ export class Parser {
 		}
 
 		++this._inFlow
-		this.nextLine()
+		this.peek(1)
 
 		loop: while (true) {
 			handler.onSequenceEntry(seq, this.parseValue())
-			this.nextLine()
+			this.peek(1)
 
 			switch (this.data[this.offset]) {
 				case ",":
 					++this.offset
-					this.nextLine()
+					this.peek(1)
 
 					if (this.data[this.offset] === "]") {
 						++this.offset
 						break loop
 					}
-				break
+					break
 
 				case "]":
 					++this.offset
@@ -347,7 +330,8 @@ export class Parser {
 	}
 
 	protected inlineMapping() {
-		let handler = this.popHandler(),
+		let column = this.column,
+			handler = this.popHandler(),
 			mapping = this.storeAnchor(handler.onMappingStart()),
 			key
 
@@ -356,16 +340,16 @@ export class Parser {
 		}
 
 		++this._inFlow
-		this.nextLine()
+		this.peek(1)
 
 		while (true) {
 			key = this.mappingKey()
 
 			if (this.data[this.offset] === ":") {
 				++this.offset
-				this.nextLine()
+				this.peek(1)
 				handler.onMappingKey(mapping, key, this.parseValue())
-				this.nextLine()
+				this.peek(1)
 			} else {
 				handler.onMappingKey(mapping, key, null)
 			}
@@ -373,19 +357,23 @@ export class Parser {
 			switch (this.data[this.offset]) {
 				case ",":
 					++this.offset
-					this.nextLine()
+					this.peek(1)
 
 					if (this.data[this.offset] === "}") {
 						--this._inFlow
 						++this.offset
-						return handler.onMappingEnd(mapping)
+						return this.isBlockMappingKey()
+							? this.blockMapping(column, handler.onMappingEnd(mapping))
+							: handler.onMappingEnd(mapping)
 					}
-				break
+					break
 
 				case "}":
 					--this._inFlow
 					++this.offset
-					return handler.onMappingEnd(mapping)
+					return this.isBlockMappingKey()
+						? this.blockMapping(column, handler.onMappingEnd(mapping))
+						: handler.onMappingEnd(mapping)
 
 				default:
 					--this._inFlow
@@ -400,67 +388,75 @@ export class Parser {
 			handler = this.popHandler(),
 			str = this.readQuotedString(quote)
 
-		this.eatNBS()
-
-		// mapping key
-		if (!this._explicitKey && this.data[this.offset] === ":") {
-			++this.offset
-			return this.blockMapping(column, str)
-		}
-
-		return handler.onQuotedString(str, quote)
+		return this.isBlockMappingKey()
+			? this.blockMapping(column, str)
+			: handler.onQuotedString(str, quote)
 	}
 
-	protected scalar(): any {
-		let column = this.column,
-			str = this.readScalar()
+	protected isBlockMappingKey() {
+		while (IS_NBS[this.data.charCodeAt(this.offset++)]); --this.offset;
 
-		if (this._lastScalarIsMappingKey) {
-			return this.blockMapping(column, str)
+		if (!this._explicitKey && this.data.charCodeAt(this.offset) === CharCode.COLON) {
+			++this.offset
+			return true
 		} else {
-			if (str === "") {
-				return null
-			} else {
-				return this.popHandler().onScalar(str)
-			}
+			return false
 		}
 	}
 
 	protected blockMapping(column: number, mappingKey: any): any {
 		let handler = this.popHandler(),
-			mapping = this.storeAnchor(handler.onMappingStart())
+			mapping = this.storeAnchor(handler.onMappingStart()),
+			hasColon
 
-		while (true) {
-			if (this.data.charCodeAt(this.offset) === CharCode.COLON) {
+		endless: while (true) {
+			if (hasColon = (this.data.charCodeAt(this.offset) === CharCode.COLON)) {
 				++this.offset
 			} else if (mappingKey === "" || mappingKey === null) {
 				break
 			}
 
-			let currentCol = this.nextLine()
+			switch (this.peek(column)) {
+				case PeekResult.SAME_INDENT:
+					if (hasColon &&
+						this.data.charCodeAt(this.offset) === CharCode.DASH &&
+						IS_WS[this.data.charCodeAt(this.offset + 1)]) {
+						handler.onMappingKey(mapping, mappingKey, this.parseValue(column))
+					} else {
+						handler.onMappingKey(mapping, mappingKey, null)
+					}
 
-			if (currentCol && currentCol < column) {
-				handler.onMappingKey(mapping, mappingKey, null)
-				return handler.onMappingEnd(mapping)
-			}
+					mappingKey = this.mappingKey()
+					if (this._documentState !== DocumentState.PARSING) {
+						break endless
+					}
+					continue endless
 
-			handler.onMappingKey(mapping, mappingKey, this.parseValue(column))
-			if (this.nextLine(column) === column) {
-				// http://yaml.org/type/merge.html
-				mappingKey = this.mappingKey()
-
-				if (this._documentState !== DocumentState.PARSING) {
+				case PeekResult.DECREASE_INDENT:
+					handler.onMappingKey(mapping, mappingKey, null)
 					break
-				}
-			} else {
-				break
+
+				case PeekResult.INCREASE_INDENT:
+				case PeekResult.SAME_LINE:
+					handler.onMappingKey(mapping, mappingKey, this.parseValue(column))
+
+					if (this.peek(column) === PeekResult.SAME_INDENT) {
+						// http://yaml.org/type/merge.html
+						mappingKey = this.mappingKey()
+						if (this._documentState !== DocumentState.PARSING) {
+							break endless
+						}
+					} else {
+						break endless
+					}
+					break
 			}
 		}
 
 		return handler.onMappingEnd(mapping)
 	}
 
-	protected mappingKey(): string {
+	protected mappingKey(): any {
 		let key
 
 		switch (this.data.charCodeAt(this.offset)) {
@@ -474,53 +470,105 @@ export class Parser {
 				this.eatNBS()
 				return key
 
-			case CharCode.QUESTION: return this.explicitKey()
+			case CharCode.QUESTION: return this.explicitKey(true)
 			case CharCode.COLON: return null
 			case CharCode.DASH:
 			case CharCode.DOT:
 				if (this.isDocumentSeparator(this.offset)) {
 					return
 				}
-				return this.readScalar()
-			default: return this.readScalar()
+				return this.readScalar(true)
+			case CharCode.LBRACE: return this.inlineMapping()
+			case CharCode.LBRACKET: return this.inlineSequence()
+			default: return this.readScalar(true)
 		}
 	}
 
-	protected explicitKey(): any {
-		let column = this.column
+	protected explicitKey(inMapping: boolean): any {
+		let column = this.column,
+			backupHandler
+
+		if (this.handlerStack.length > 1) {
+			backupHandler = this.handlerStack
+			this.handlerStack = [this.doc]
+		}
 
 		++this.offset
-		this.nextLine()
+		this.peek(1)
+
+		// console.log("BBB", inMapping, require("util").inspect(this.data.slice(this.offset)))
 
 		++this._explicitKey
 		let key = this.parseValue()
 		--this._explicitKey
 
-		this.nextLine()
+		// console.log("XXX", require("util").inspect(key))
+		// console.log("BBB", inMapping, require("util").inspect(this.data.slice(this.offset)))
 
-		return key
+		if (backupHandler) {
+			this.handlerStack = backupHandler
+		}
+
+		let offset = this.offset
+
+		this.peek(1)
+
+		if (this.data.charCodeAt(this.offset) !== CharCode.COLON) {
+			this.offset = offset
+		}
+
+		if (inMapping) {
+			return key
+		} else {
+			return this.blockMapping(column, key)
+		}
 	}
 
 	protected tag() {
 		let handle = this._read(TAG_DIRECTIVE_HANDLE),
-		    name = this._read(TAG_NAME)
+			handler, tagHandler, qname
 
-		if (!name) {
-			this.error(`The ${handle} handle has no suffix.`)
+		if (this.data.charCodeAt(this.offset) === CharCode.LANGLE) {
+			if (handle !== "!") {
+				this.unexpected("URI")
+			}
+			++this.offset
+			qname = this._read(TAG_DIRECTIVE_NS)
+			if (this.data.charCodeAt(this.offset) === CharCode.RANGLE) {
+				++this.offset
+			} else {
+				this.unexpected(">")
+			}
+
+			handler = this.popHandler()
+		} else {
+			let name = this._read(TAG_NAME)
+
+			if (!name) {
+				// http://www.yaml.org/spec/1.2/spec.html#id2785512
+				if (handle === "!") {
+					handle = "!!"
+					name = "str"
+				} else {
+					this.error(`Missing tag name`)
+				}
+			}
+
+			qname = `${this.doc.getNamespace(handle)}${name}`
 		}
 
-		let handler = this.popHandler(),
-		 	tagHandler = handler.onTagStart(handle, name)
+		handler = this.popHandler()
+		tagHandler = handler.onTagStart(qname)
 		if (!tagHandler) {
 			this.error(`The ${handle}${name} tag is unknown.`)
 		}
 
-		(tagHandler as any).document = this.doc // ugly, but working
+		tagHandler.document = this.doc
 		this.handlerStack.push(tagHandler)
 
-		this.nextLine()
-		let value = this.parseValue();
-		(tagHandler as any).document = null // ugly, but working
+		this.peek(1)
+		let value = this.parseValue()
+		tagHandler.document = null
 		return handler.onTagEnd(value)
 	}
 
@@ -530,7 +578,7 @@ export class Parser {
 		if (!this._anchor) {
 			this.unexpected("Any char expect : ',', '[' ']', '{' '}', ' ', '\\r', '\\n', '\\t'")
 		}
-		this.nextLine()
+		this.peek(1)
 		let result = this.parseValue()
 		return this.storeAnchor(result)
 	}
@@ -608,7 +656,11 @@ export class Parser {
 	 *  a pozíciót is visszaállítja az utolsó whitespace utáni karakter
 	 * 	pozíciójára a kiinduális pozíciótól nézve.
 	 */
-	protected nextLine(minColumn: number = null): number {
+
+
+
+	// át kell alakítani, hogy a PeekResult értékekkel térjen vissza
+	private peek(minColumn: number): PeekResult {
 		let data = this.data,
 			start = this.offset,
 			pos = start,
@@ -623,10 +675,10 @@ export class Parser {
 					if (data.charCodeAt(pos) === CharCode.LF) {
 						++pos
 					}
-					// szándékosan nincs break
+				// szándékosan nincs break
 				case CharCode.LF:
 					linePosition = pos
-				break
+					break
 
 				case CharCode.HASH:
 					// TODO: maybe merge comments
@@ -638,37 +690,41 @@ export class Parser {
 					} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
 					--pos // backtrack to CR or LF char
 					this.loader.onComment(data.slice(commentStart, pos))
-				break
+					break
 
 				case CharCode.TAB:
 					if (linePosition !== null) {
 						this.error("Document cannot contains tab character as indention character")
 					}
-				break
+					break
 
 				case undefined:
-					return 0
+					return PeekResult.DECREASE_INDENT
 
 				default:
 					if (linePosition !== null) {
 						let column = pos - linePosition
 
-						if (minColumn !== null && minColumn > column) {
-							return 0
-						} else {
+						if (minColumn === column) {
 							this.linePosition = linePosition
 							this.offset = pos - 1
+							return PeekResult.SAME_INDENT
+						} else if (minColumn < column) {
+							this.linePosition = linePosition
+							this.offset = pos - 1
+							return PeekResult.INCREASE_INDENT
+						} else {
+							return PeekResult.DECREASE_INDENT
 						}
-						return column
 					} else {
 						this.offset = pos - 1
-						return 0
+						return PeekResult.SAME_LINE
 					}
 			}
 		}
 	}
 
-	protected readScalar() {
+	protected readScalar(isMappingKey: boolean, column?: number) {
 		let startAt = this.offset,
 			position = this.offset - 1,
 			data = this.data,
@@ -688,6 +744,10 @@ export class Parser {
 						++position
 					}
 				case CharCode.LF:
+					if (this._explicitKey) {
+						this.offset = position
+						return (startAt ? data.slice(startAt, position).trim() : null)
+					}
 					firstCharRule = true
 					lastNl = position
 					continue endless
@@ -710,14 +770,23 @@ export class Parser {
 					ch = data.charCodeAt(position + 1)
 					if (IS_WS[ch] || (this._inFlow && IS_FLOW_INDICATOR[ch])) {
 						if (lastNl === null) {
-							this._lastScalarIsMappingKey = true
-							this.offset = position
-							if (startAt) {
-								return data.slice(startAt, position).trim()
+							let key = (startAt ? data.slice(startAt, position).trim() : null)
+							if (isMappingKey) {
+								this.offset = position
+								return key
 							} else {
-								return null
+								this.offset = position
+								if (key === null) {
+									return key
+								} else {
+									return this.blockMapping(column, key)
+								}
 							}
 						} else {
+							if (isMappingKey) {
+								this.error("Mapping key cannot contains new line character")
+								return null
+							}
 							break endless
 						}
 					} else {
@@ -746,9 +815,7 @@ export class Parser {
 						break endless
 					}
 			}
-		} while(ch)
-
-		this._lastScalarIsMappingKey = false
+		} while (ch)
 
 		if (lastNl === null) {
 			this.offset = position
@@ -756,10 +823,12 @@ export class Parser {
 			this.offset = position = lastNl
 		}
 
-		return data.slice(startAt, (endAt === null ? position : endAt)).trim()
+		data = data.slice(startAt, (endAt === null ? position : endAt)).trim()
 			.replace(/[ \t]*\r?\n[ \t]*/g, "\n") // a sortörések normalizálása
 			.replace(/([^\n])\n(?!\n)/g, "$1 ") // egy sortörés space-re cserélése
 			.replace(/\n(\n+)/g, "$1") // az egynél több sortörések cseréje n-1 sortörésre, ahol n a sortörés száma
+
+		return this.popHandler().onScalar(data)
 	}
 
 	protected blockScalar(minColumn: number, isFolded: boolean) {
@@ -805,8 +874,8 @@ export class Parser {
 			while (IS_NBS[data.charCodeAt(this.offset++)]); --this.offset;
 		}
 
-		let position = this.offset,
-			startAt = position,
+		let position = this.offset - 1,
+			startAt = position + 1,
 			currentColumn = 0,
 			lastEolPosition,
 			eolSymbols = "",
@@ -815,57 +884,82 @@ export class Parser {
 			inFoldedMoreIndentedBlock
 
 		reader: while (true) {
-			peek: while(true) {
-				switch (data.charCodeAt(position++)) {
+			peek: while (true) {
+				switch (data.charCodeAt(++position)) {
 					case CharCode.SPACE:
+						// console.log("SPACE")
 						if (++currentColumn >= indentStartAtColumn) {
-							startAt = position
-							break peek
+							// console.log("GGG", currentColumn, require("util").inspect(data.slice(position)))
+							if (currentColumn === indentStartAtColumn) {
+								// console.log("LINE START AT", position - 1)
+								startAt = position + 1
+							}
+
+							console.log("AFTER SPACE", IS_WS[data.charCodeAt(position + 1)])
+
+							if (IS_WS[data.charCodeAt(position + 1)]) {
+								// console.log("NEXT IS WS SO CONTINUE, MAYBE EMPTY LINE")
+								continue peek
+							} else {
+								break peek
+							}
 						} else {
 							continue peek
 						}
 
 					case CharCode.CR:
-						lastEolPosition = position - 1
+						// console.log("CR")
+						lastEolPosition = position
 						eolSymbols += "\n"
 						currentColumn = 0
-						if (data.charCodeAt(position) === CharCode.LF) {
+						if (data.charCodeAt(position + 1) === CharCode.LF) {
 							++position
 						}
-					break
+						break
 
 					case CharCode.LF:
-						lastEolPosition = position - 1
+						// console.log("LF")
+						lastEolPosition = position
 						eolSymbols += "\n"
 						currentColumn = 0
-					break
+						break
 
 					case CharCode.TAB:
-						this.error("NO TABS") // todo
+						// console.log("TAB")
+						if (currentColumn < indentStartAtColumn) {
+							// tab indent character is not allowed.
+							// TODO: proper error msg
+							this.error("NO TABS")
+						}
+						break
 
 					default:
-						// console.log(currentColumn, require("util").inspect(data.slice(position)))
-
 						// first line, before content line
 						if (currentColumn === 0 && result === "") {
 							this.unexpected("LINEBREAK")
 						}
 
+						// console.log("INDENTATION", {indentStartAtColumn, currentColumn})
+
 						if (indentStartAtColumn === Infinity) {
 							indentStartAtColumn = currentColumn
-							startAt = position - 1
-							break peek
-						} else if (currentColumn <= indentStartAtColumn) {
+							startAt = position
+						} else if (currentColumn < indentStartAtColumn) {
 							break reader
 						}
+
+						break peek
 				}
 			}
 
-			do { ch = data.charCodeAt(position++) } while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
-			--position
+			do { ch = data.charCodeAt(++position) } while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
+			// --position
 
 			lastEolPosition = position
 			lineData = data.slice(startAt, position)
+
+			// console.log("XXX", require("util").inspect(lineData))
+			// console.log("EOL", eolSymbols.length)
 
 			if (result === "") {
 				if (eolSymbols.length > 1) {
@@ -895,10 +989,8 @@ export class Parser {
 				break
 			}
 
-			// console.log("XXX", require("util").inspect(data[position]))
-
-			currentColumn = 1
-			eolSymbols = ""
+			eolSymbols = ""		// reset eol
+			--position 			// current position is linebreak or EOF, so decrease it
 		}
 
 		if (lastEolPosition !== null) {
@@ -907,14 +999,23 @@ export class Parser {
 			this.error("Something unexpected")
 		}
 
-		return eolSymbols !== "" ? `${result}\n` : result
+		switch (chomping) {
+			case Chomping.CLIP:
+				return this.popHandler().onBlockString(eolSymbols !== "" ? `${result}\n` : result)
+
+			case Chomping.STRIP:
+				return this.popHandler().onBlockString(result)
+
+			case Chomping.KEEP:
+				return this.popHandler().onBlockString(`${result}${eolSymbols}`)
+		}
 	}
 
 	protected readQuotedString(terminal: string) {
 		let data = this.data,
 			offset = this.offset,
 			result = "",
-			eolCount = "",
+			eolCount = 0,
 			ch,
 			escaped = {}
 
@@ -925,25 +1026,43 @@ export class Parser {
 						++offset
 					}
 				case "\n":
-					eolCount += "\n"
-				break
+					if (++eolCount > 1) {
+						result += "\n"
+					}
+					break
 
 				case " ":
 				case "\t":
-					while (IS_NBS[data.charCodeAt(++offset)]); --offset;
+					let spaceStart = offset
+					while (IS_NBS[data.charCodeAt(++offset)]);
 
-					if (!IS_WS[result.charCodeAt(result.length - 1)] || escaped[result.length - 1]) {
-						result += " "
+					if (IS_EOL[data.charCodeAt(spaceStart - 1)]) {	// beginning of a line
+						if (IS_EOL[data.charCodeAt(offset)]) {		// empty line
+							--offset
+							continue endless
+						}
+
+						if (!IS_WS[result.charCodeAt(result.length - 1)] || escaped[result.length - 1]) {
+							result += " "
+						}
+						--offset
+						continue endless
+					} else { 									// spaces in line
+						if (IS_EOL[data.charCodeAt(offset)]) {	// spaces at end of line
+							--offset
+							continue endless
+						} else {
+							offset = spaceStart
+							result += ch
+						}
 					}
-				break
+					break
 
 				case "\\":
-					if (eolCount !== "") {
-						result += eolCount.length === 1
-							? (IS_WS[result.charCodeAt(result.length - 1)] ? "" : "  ")
-							: eolCount.slice(1)
-						eolCount = ""
+					if (eolCount === 1 && !IS_WS[result.charCodeAt(result.length - 1)]) {
+						result += " "
 					}
+					eolCount = 0
 
 					if (terminal === "\"") {
 						let esc = ESCAPE_SEQUENCE[data.charCodeAt(++offset)]
@@ -953,30 +1072,35 @@ export class Parser {
 								result += String.fromCodePoint(
 									parseInt(this.data.slice(++offset, (offset += 1) + 1), 16)
 								)
-							break
+								break
 
 							case EscapeSequenceSpecial.HEX_4:
 								result += String.fromCodePoint(
 									parseInt(this.data.slice(++offset, (offset += 3) + 1), 16)
 								)
-							break
+								break
 
 							case EscapeSequenceSpecial.HEX_8:
 								result += String.fromCodePoint(
 									parseInt(this.data.slice(++offset, (offset += 7) + 1), 16)
 								)
-							break
+								break
 
 							case EscapeSequenceSpecial.EMPTY:
 								result += ""
-							break
+								while (IS_NBS[data.charCodeAt(++offset)]); --offset;
+								break
 
 							case EscapeSequenceSpecial.EOL:
 								if (data.charCodeAt(offset + 1) === CharCode.LF) {
 									++offset
 								}
 								result += ""
-							break
+								while (IS_NBS[data.charCodeAt(++offset)]); --offset;
+								break
+
+							case undefined:
+								this.error("Unknown escape sequence")
 
 							default:
 								result += String.fromCharCode(esc)
@@ -984,7 +1108,7 @@ export class Parser {
 					} else {
 						result += "\\"
 					}
-				break
+					break
 
 				case terminal:
 					if (terminal === "'") {
@@ -994,6 +1118,11 @@ export class Parser {
 							continue endless
 						}
 					}
+
+					if (eolCount === 1 && !IS_WS[result.charCodeAt(result.length - 1)]) {
+						result += " "
+					}
+
 					++offset
 					break endless
 
@@ -1002,26 +1131,15 @@ export class Parser {
 					return null
 
 				default:
-					if (eolCount !== "") {
-						result += eolCount.length === 1
-							? (IS_WS[result.charCodeAt(result.length - 1)] ? "" : "  ")
-							: eolCount.slice(1)
-						eolCount = ""
+					if (eolCount === 1 && !IS_WS[result.charCodeAt(result.length - 1)]) {
+						result += " "
 					}
-
+					eolCount = 0
 					result += ch
 			}
 		}
 
 		this.offset = offset
 		return result
-	}
-
-	private _plainString(s: string) {
-		s = s.trim()
-			.replace(/[ \t]*\r?\n[ \t]*/g, "\n") // a sortörések normalizálása
-			.replace(/([^\n])\n(?!\n)/g, "$1 ") // egy sortörés space-re cserélése
-			.replace(/\n(\n+)/g, "$1") // az egynél több sortörések cseréje n-1 sortörésre, ahol n a sortörés száma
-		return s
 	}
 }

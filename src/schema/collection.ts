@@ -1,14 +1,14 @@
-import {YamlDocument} from "../document"
-import {ISchema, TypeFactory} from "./schema"
+import { YamlDocument } from "../document"
+import { ISchema, TypeFactory } from "./schema"
 
 
 export class SchemaCollection implements ISchema {
 	public constructor(protected schemas: ISchema[]) {
 	}
 
-	public resolveTag(namespace: string, name: string): TypeFactory | null {
+	public resolveTag(qname: string): TypeFactory | null {
 		for (let s of this.schemas) {
-			let factory = s.resolveTag(namespace, name)
+			let factory = s.resolveTag(qname)
 			if (factory) {
 				return factory
 			}

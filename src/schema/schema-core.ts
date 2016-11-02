@@ -1,7 +1,7 @@
-import {YamlDocument} from "../document"
-import {Mapping, Sequence, Scalar} from "../node"
-import {ISchema, TypeFactory} from "./schema"
-import {FromScalarFactory, JSONSchema} from "./schema-json"
+import { YamlDocument } from "../document"
+import { Mapping, Sequence, Scalar } from "../node"
+import { ISchema, TypeFactory } from "./schema"
+import { FromScalarFactory, JSONSchema } from "./schema-json"
 
 
 const NullFactory = new FromScalarFactory(/^(?:null|Null|NULL|~|)$/, () => null)
@@ -14,11 +14,11 @@ const IntFactory = new FromScalarFactory(
 		"^(?:",
 		"([+-]?)",				// group 1: sign
 		"(?:",
-			"([1-9][0-9]*)",	// group 2: int / base 10
-			"|",
-			"(0o[0-7]+)",		// group 3: int / base 8
-			"|",
-			"(0x[0-9a-fA-F]+)", // group 4: int / base 16
+		"([1-9][0-9]*)",	// group 2: int / base 10
+		"|",
+		"(0o[0-7]+)",		// group 3: int / base 8
+		"|",
+		"(0x[0-9a-fA-F]+)", // group 4: int / base 16
 		")",
 		")$"
 	].join("")),
@@ -39,12 +39,12 @@ const FloatFactory = new FromScalarFactory(
 	new RegExp([
 		"^(?:",
 		"(?:",
-			"([+-]?)", // group 1: sign
-			"(",
-				"(?:\\.[0-9]+|[0-9]+(?:\\.[0-9]*)?)(?:[eE][+-]?[0-9]+)?",
-			")", // group 2: number
-			"|",
-			"(\\.(?:inf|Inf|INF))", // group 3: Infinity
+		"([+-]?)", // group 1: sign
+		"(",
+		"(?:\\.[0-9]+|[0-9]+(?:\\.[0-9]*)?)(?:[eE][+-]?[0-9]+)?",
+		")", // group 2: number
+		"|",
+		"(\\.(?:inf|Inf|INF))", // group 3: Infinity
 		")",
 		"|",
 		"(\\.(?:nan|NaN|NAN))", // group 4: NaN
@@ -75,14 +75,14 @@ const enum TimestampPart {
 const TimestampFactory = new FromScalarFactory(
 	new RegExp([
 		"^(?:",
-			"([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])", // group 1: YYYY-MM-DD
-			"|",
-			"(?:",
-				"([0-9][0-9][0-9][0-9]-[0-9]{1,2}-[0-9]{1,2})",
-				"(?:[Tt]|[ \t]+)",
-				"([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}(?:\\.\\d+)?)",
-				"(?:[ \t]*(?:(Z)|([-+][0-9]{1,2}(?::?[0-9]{1,2})?)))?",
-			")",
+		"([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])", // group 1: YYYY-MM-DD
+		"|",
+		"(?:",
+		"([0-9][0-9][0-9][0-9]-[0-9]{1,2}-[0-9]{1,2})",
+		"(?:[Tt]|[ \t]+)",
+		"([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}(?:\\.\\d+)?)",
+		"(?:[ \t]*(?:(Z)|([-+][0-9]{1,2}(?::?[0-9]{1,2})?)))?",
+		")",
 		")$"
 	].join("")),
 	(document, match) => {
@@ -141,12 +141,12 @@ class BoolFactory extends TypeFactory {
 }
 
 
-const FACTORIES: {[key: string]: TypeFactory} = {
-	"null": NullFactory,
-	"bool": new BoolFactory,
-	"int": IntFactory,
-	"float": FloatFactory,
-	"timestamp": TimestampFactory
+const FACTORIES: { [key: string]: TypeFactory } = {
+	"tag:yaml.org,2002:null": NullFactory,
+	"tag:yaml.org,2002:bool": new BoolFactory,
+	"tag:yaml.org,2002:int": IntFactory,
+	"tag:yaml.org,2002:float": FloatFactory,
+	"tag:yaml.org,2002:timestamp": TimestampFactory
 }
 
 
@@ -161,11 +161,11 @@ const FROM_SCALAR: FromScalarFactory[] = [
 
 
 export class CoreSchema extends JSONSchema implements ISchema {
-	public resolveTag(namespace: string, name: string): TypeFactory | null {
-		if (namespace === "tag:yaml.org,2002:" && FACTORIES[name]) {
-			return FACTORIES[name]
+	public resolveTag(qname: string): TypeFactory | null {
+		if (FACTORIES[qname]) {
+			return FACTORIES[qname]
 		}
-		return super.resolveTag(namespace, name)
+		return super.resolveTag(qname)
 	}
 
 	public resolveScalar(document: YamlDocument, value: Scalar): any | undefined {

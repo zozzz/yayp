@@ -1,10 +1,10 @@
 import * as fs from "fs"
 import * as path from "path"
 
-import {expect} from "chai"
+import { expect } from "chai"
 let getObjPath = require("get-object-path")
 
-import {Loader, YamlDocument, TypeFactory, SCHEMA_CORE, SchemaCollection, ISchema, Mapping, Sequence, Scalar} from "../src"
+import { Loader, YamlDocument, TypeFactory, SCHEMA_CORE, SchemaCollection, ISchema, Mapping, Sequence, Scalar } from "../src"
 
 
 type FixtureFile = {
@@ -35,12 +35,12 @@ type FixtureFile = {
 
 
 class FakeTF extends TypeFactory {
-	public constructor(public namespace: string, public name: string) {
+	public constructor(public qname: string) {
 		super()
 	}
 
 	public onMappingStart(): Mapping {
-		return {"$type": `!<${this.namespace}${this.name}>`, "$mapping": {}}
+		return { "$type": `!<${this.qname}>`, "$mapping": {} }
 	}
 
 	public onMappingKey(mapping: Mapping, key: any, value: any): void {
@@ -48,7 +48,7 @@ class FakeTF extends TypeFactory {
 	}
 
 	public onSequenceStart(): any {
-		return {"$type": `!<${this.namespace}${this.name}>`, "$sequence": []}
+		return { "$type": `!<${this.qname}>`, "$sequence": [] }
 	}
 
 	public onSequenceEntry(sequence: any, entry: any): void {
@@ -56,26 +56,26 @@ class FakeTF extends TypeFactory {
 	}
 
 	public onScalar(value: string): any {
-		return `!<${this.namespace}${this.name}>(${value})`
+		return `!<${this.qname}>[SCALAR](${value})`
 	}
 
 	public onQuotedString(value: string, quote: string): any {
-		return `!<${this.namespace}${this.name}>${quote}${value}${quote}`
+		return `!<${this.qname}>[QUOTED]${quote}${value}${quote}`
 	}
 
-	public onBlockString(value: string, isFolded: boolean): any {
-		return `!<${this.namespace}${this.name}>(folded=${isFolded})(${value})`
+	public onBlockString(value: string): any {
+		return `!<${this.qname}>[BLOCK](${value})`
 	}
 
-	public onTagStart(handle: string, name: string): TypeFactory {
-		return this.document.onTagStart(handle, name)
+	public onTagStart(qname: string): TypeFactory {
+		return this.document.onTagStart(qname)
 	}
 }
 
 
 class TestSchema implements ISchema {
-	public resolveTag(namespace: string, name: string): TypeFactory {
-		return new FakeTF(namespace, name)
+	public resolveTag(qname: string): TypeFactory {
+		return new FakeTF(qname)
 	}
 
 	public resolveScalar() {
@@ -112,7 +112,7 @@ type FixtureGroup = {
 let fixtures: FixtureGroup = {}
 
 
-function parseFile(fileName: string): {title: string [], file: FixtureFile} {
+function parseFile(fileName: string): { title: string[], file: FixtureFile } {
 	let content = fs.readFileSync(fileName, "UTF-8")
 	let rx = /#\s+---\s+\[(.*?)\](?:\s*([^\r\n]+))*?(?:\r?\n)/g
 	let m: RegExpExecArray
@@ -134,11 +134,11 @@ function parseFile(fileName: string): {title: string [], file: FixtureFile} {
 			case "title":
 				result.title = m[2].split(/\s*\/\s*/)
 				yamlStart = m.index + m[0].length
-			break
+				break
 
 			case "only":
 				result.file.only = true
-			break
+				break
 
 			case "success":
 			case "error":
@@ -176,14 +176,14 @@ function addToFixtures(fileName: string) {
 
 	// console.log(require("util").inspect(parsed, {depth:null}))
 
-	for (let i=0, k ; i < l ; ++i) {
+	for (let i = 0, k; i < l; ++i) {
 		k = parsed.title[i]
 
 		if (i !== l - 1) {
 			if (!obj[k]) {
 				obj[k] = {}
 			}
-			obj = <any> obj[k]
+			obj = <any>obj[k]
 		} else {
 			obj[k] = parsed.file
 		}
@@ -204,8 +204,8 @@ function createTestCase(file: FixtureFile): () => void {
 			let c = getObjPath(l, prop.property)
 			c = JSON.parse(JSON.stringify(c))
 
-			console.log(require("util").inspect(c, {depth: null}))
-			console.log(require("util").inspect(JSON.parse(prop.json), {depth: null}))
+			console.log(require("util").inspect(c, { depth: null }))
+			console.log(require("util").inspect(JSON.parse(prop.json), { depth: null }))
 
 			expect(c).to.be.eql(JSON.parse(prop.json))
 		}
@@ -223,9 +223,9 @@ function constructTestCases(group: Object) {
 	for (let k in group) {
 		if (group[k].path) {
 			if (group[k].only) {
-				it.only(`${k} - (${path.basename(group[k].path)})`, createTestCase(<FixtureFile> group[k]))
+				it.only(`${k} - (${path.basename(group[k].path)})`, createTestCase(<FixtureFile>group[k]))
 			} else {
-				it(`${k} - (${path.basename(group[k].path)})`, createTestCase(<FixtureFile> group[k]))
+				it(`${k} - (${path.basename(group[k].path)})`, createTestCase(<FixtureFile>group[k]))
 			}
 		} else {
 			describe(k, maked(group[k]))

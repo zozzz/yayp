@@ -1,7 +1,7 @@
-import {readFileSync, realpathSync} from "fs"
+import { readFileSync, realpathSync } from "fs"
 
-import {YamlDocument, YamlDocumentClass} from "./document"
-import {Parser, Location} from "./parser"
+import { YamlDocument, YamlDocumentClass } from "./document"
+import { Parser, Location } from "./parser"
 
 
 export interface TagDirective {
@@ -12,7 +12,7 @@ export interface TagDirective {
 
 export class Loader {
 	public readonly parser = new Parser(this)
-	protected namespaces: {[key: string]: string} = {}
+	protected namespaces: { [key: string]: string } = {}
 	protected version: number
 
 	public constructor(public readonly documentClass: YamlDocumentClass) {
@@ -33,7 +33,7 @@ export class Loader {
 	 */
 	public onDirective(name: string, value: any): void {
 		if (name === "TAG") {
-			this.namespaces[(<TagDirective> value).handle] = (<TagDirective> value).namespace
+			this.namespaces[(<TagDirective>value).handle] = (<TagDirective>value).namespace
 		} else if (name === "YAML") {
 			this.version = parseFloat(value)
 		}

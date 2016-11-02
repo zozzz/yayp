@@ -1,6 +1,6 @@
-import {YamlDocument} from "../document"
-import {Mapping, Sequence, Scalar} from "../node"
-import {ITypeFactory} from "../handler"
+import { YamlDocument } from "../document"
+import { Mapping, Sequence, Scalar } from "../node"
+import { ITypeFactory } from "../handler"
 
 
 export abstract class TypeFactory implements ITypeFactory {
@@ -40,11 +40,11 @@ export abstract class TypeFactory implements ITypeFactory {
 		this.document.error("Unsupported value")
 	}
 
-	public onBlockString(value: string, isFolded: boolean): any {
+	public onBlockString(value: string): any {
 		this.document.error("Unsupported value")
 	}
 
-	public onTagStart(handle: string, name: string): TypeFactory {
+	public onTagStart(qname: string): TypeFactory {
 		this.document.error("Unsupported value")
 		return null
 	}
@@ -56,6 +56,6 @@ export abstract class TypeFactory implements ITypeFactory {
 
 
 export interface ISchema {
-	resolveTag(namespace: string, name: string): TypeFactory | null
+	resolveTag(qname: string): TypeFactory | null
 	resolveScalar(document: YamlDocument, value: Scalar): any | undefined
 }

@@ -1,5 +1,5 @@
-import {Mapping, Sequence, Scalar} from "./node"
-import {TypeFactory} from "./schema"
+import { Mapping, Sequence, Scalar } from "./node"
+import { TypeFactory } from "./schema"
 
 
 export interface IMappingHandler {
@@ -55,10 +55,8 @@ export interface IScalarHandler {
 
 	/**
 	 * Called when a block string found
-	 *
-	 * @param isFolded True when string constructed with ">" char
 	 */
-	onBlockString(value: string, isFolded: boolean): any
+	onBlockString(value: string): any
 }
 
 
@@ -67,7 +65,7 @@ export interface ITagHandler {
 	 * Called when a tag start, and must return a factory function
 	 * or NULL when not found a factory function
 	 */
-	onTagStart(handle: string, name: string): TypeFactory
+	onTagStart(qname: string): TypeFactory
 
 	/**
 	 * Called when a tag is parsed and return value uased as final

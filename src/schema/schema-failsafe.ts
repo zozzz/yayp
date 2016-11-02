@@ -1,6 +1,6 @@
-import {YamlDocument} from "../document"
-import {Mapping, Sequence, Scalar} from "../node"
-import {ISchema, TypeFactory} from "./schema"
+import { YamlDocument } from "../document"
+import { Mapping, Sequence, Scalar } from "../node"
+import { ISchema, TypeFactory } from "./schema"
 
 
 class MapFactory extends TypeFactory {
@@ -26,12 +26,12 @@ class StrFactory extends TypeFactory {
 		return value
 	}
 
-	public onBlockString(value: string, isFolded: boolean): any {
+	public onBlockString(value: string): any {
 		return value
 	}
 
-	public onTagStart(handle: string, name: string): TypeFactory {
-		return this.document.onTagStart(handle, name)
+	public onTagStart(qname: string): TypeFactory {
+		return this.document.onTagStart(qname)
 	}
 
 	public onTagEnd(value: any): any {
@@ -43,19 +43,18 @@ class StrFactory extends TypeFactory {
 }
 
 
-const FACTORIES: {[key: string]: TypeFactory} = {
-	"map": new MapFactory,
-	"seq": new SeqFactory,
-	"str": new StrFactory
+const FACTORIES: { [key: string]: TypeFactory } = {
+	"tag:yaml.org,2002:map": new MapFactory,
+	"tag:yaml.org,2002:set": new MapFactory,
+	"tag:yaml.org,2002:seq": new SeqFactory,
+	"tag:yaml.org,2002:omap": new SeqFactory,
+	"tag:yaml.org,2002:str": new StrFactory
 }
 
 
 export class FailsafeSchema implements ISchema {
-	public resolveTag(namespace: string, name: string): TypeFactory | null {
-		if (namespace === "tag:yaml.org,2002:") {
-			return FACTORIES[name]
-		}
-		return null
+	public resolveTag(qname: string): TypeFactory | null {
+		return FACTORIES[qname] || null
 	}
 
 	public resolveScalar(document: YamlDocument, value: Scalar) {

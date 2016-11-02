@@ -57,7 +57,9 @@ jsdom.env(
 					let ymlNode = window.$(this)
 					let content = ymlNode.html().replace(/<br(?:\s*\/)?>/ig, "\n")
 					content = content.replace(/°/g, "")
-					content = content.replace(/°/g, "")
+					content = content.replace(/→/g, "\t")
+					content = content.replace(/·/g, " ")
+					content = content.replace(/↓[^\r\n]*(\r?\n)?/g, "\n")
 					content = window.$("<div />").html(content).text().trim()
 
 					try {

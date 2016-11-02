@@ -1,7 +1,7 @@
-import {YamlDocument} from "../document"
-import {Mapping, Sequence, Scalar} from "../node"
-import {ISchema, TypeFactory} from "./schema"
-import {FailsafeSchema} from "./schema-failsafe"
+import { YamlDocument } from "../document"
+import { Mapping, Sequence, Scalar } from "../node"
+import { ISchema, TypeFactory } from "./schema"
+import { FailsafeSchema } from "./schema-failsafe"
 
 
 export class FromScalarFactory extends TypeFactory {
@@ -17,7 +17,7 @@ export class FromScalarFactory extends TypeFactory {
 		return this.createFromScalar(value)
 	}
 
-	public onBlockString(value: string, isFolded: boolean): any {
+	public onBlockString(value: string): any {
 		return this.createFromScalar(value)
 	}
 
@@ -70,7 +70,7 @@ class BoolFactory extends TypeFactory {
 }
 
 
-const FACTORIES: {[key: string]: TypeFactory} = {
+const FACTORIES: { [key: string]: TypeFactory } = {
 	"null": NullFactory,
 	"bool": new BoolFactory,
 	"int": IntFactory,
@@ -89,11 +89,11 @@ const FROM_SCALAR: FromScalarFactory[] = [
 
 export class JSONSchema extends FailsafeSchema implements ISchema {
 
-	public resolveTag(namespace: string, name: string): TypeFactory | null {
-		if (namespace === "tag:yaml.org,2002:" && FACTORIES[name]) {
-			return FACTORIES[name]
+	public resolveTag(qname: string): TypeFactory | null {
+		if (FACTORIES[qname]) {
+			return FACTORIES[qname]
 		}
-		return super.resolveTag(namespace, name)
+		return super.resolveTag(qname)
 	}
 
 	public resolveScalar(document: YamlDocument, value: Scalar): any | undefined {

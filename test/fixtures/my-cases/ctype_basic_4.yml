@@ -5,5 +5,5 @@
 # --- [success] documents[0].content
 
 [
-  "!<!hello-world>(yes)"
+  "!<!hello-world>[SCALAR](yes)"
 ]
