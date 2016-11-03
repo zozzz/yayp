@@ -73,6 +73,9 @@ gulp.task("test", ["prepare-test"], function () {
 gulp.task("coverage-collect", ["pre-test"], function () {
 	return gulp.src("dist/test/**/*.spec.js", { read: false })
 		.pipe(mocha())
+		.on("error", function () {
+			process.exit(1)
+		})
 		.pipe(istanbul.writeReports({
 			dir: ".coverage",
 			reporters: ["json", "text"]
