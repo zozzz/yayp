@@ -162,10 +162,7 @@ const FROM_SCALAR: FromScalarFactory[] = [
 
 export class CoreSchema extends JSONSchema implements ISchema {
 	public resolveTag(qname: string): TypeFactory | null {
-		if (FACTORIES[qname]) {
-			return FACTORIES[qname]
-		}
-		return super.resolveTag(qname)
+		return FACTORIES[qname] || super.resolveTag(qname)
 	}
 
 	public resolveScalar(document: YamlDocument, value: Scalar): any | undefined {

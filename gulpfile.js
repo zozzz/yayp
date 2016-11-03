@@ -16,8 +16,8 @@ var dts = require("dts-bundle")
 var tsProject = ts.createProject("tsconfig.json");
 
 
-gulp.task("compile", function() {
-	var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], {base: "."})
+gulp.task("compile", function () {
+	var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], { base: "." })
 		.pipe(newer({
 			dest: "dist",
 			ext: ".js",
@@ -27,9 +27,9 @@ gulp.task("compile", function() {
 		.pipe(tsProject())
 
 	return merge([
-        result.js
+		result.js
 			.pipe(sourcemaps.write(".", {
-				mapSources: function(sourcePath) {
+				mapSources: function (sourcePath) {
 					return __dirname + sourcePath.substr(2)
 				}
 			}))
@@ -41,9 +41,9 @@ gulp.task("compile", function() {
 })
 
 
-gulp.task("copy-test-files", function() {
+gulp.task("copy-test-files", function () {
 	// TODO: lehetne tovább is optimalizálni...
-	return gulp.src("test/fixtures/**/*.*", {base: "test"})
+	return gulp.src("test/fixtures/**/*.*", { base: "test" })
 		.pipe(newer({
 			dest: "dist/test",
 			extra: ["tools/yaml-examples.ts"]
@@ -55,7 +55,7 @@ gulp.task("copy-test-files", function() {
 gulp.task("prepare-test", ["compile", "copy-test-files"])
 
 
-gulp.task("pre-test", ["prepare-test"], function() {
+gulp.task("pre-test", ["prepare-test"], function () {
 	return gulp.src("dist/src/**/*.js")
 		.pipe(istanbul())
 		.pipe(istanbul.hookRequire())
@@ -63,9 +63,9 @@ gulp.task("pre-test", ["prepare-test"], function() {
 
 
 gulp.task("test", ["prepare-test"], function () {
-	return gulp.src("dist/test/**/*.spec.js", {read: false})
+	return gulp.src("dist/test/**/*.spec.js", { read: false })
 		.pipe(mocha({
-			bail: true
+			bail: false
 		}))
 		.once("error", function () {
 			process.exit(1)
@@ -73,8 +73,8 @@ gulp.task("test", ["prepare-test"], function () {
 })
 
 
-gulp.task("coverage-collect", ["pre-test"], function() {
-	return gulp.src("dist/test/**/*.spec.js", {read: false})
+gulp.task("coverage-collect", ["pre-test"], function () {
+	return gulp.src("dist/test/**/*.spec.js", { read: false })
 		.pipe(mocha())
 		.pipe(istanbul.writeReports({
 			dir: ".coverage",
@@ -83,7 +83,7 @@ gulp.task("coverage-collect", ["pre-test"], function() {
 })
 
 
-gulp.task("coverage-remap", ["coverage-collect"], function() {
+gulp.task("coverage-remap", ["coverage-collect"], function () {
 	return gulp.src(".coverage/coverage-final.json")
 		.pipe(remapIstanbul({
 			reports: {
@@ -96,7 +96,7 @@ gulp.task("coverage-remap", ["coverage-collect"], function() {
 })
 
 
-gulp.task("coverage", ["coverage-remap"], function() {
+gulp.task("coverage", ["coverage-remap"], function () {
 	return gulp.src(".coverage/coverage.lcov")
 		// just dont see this line... :)
 		// remove dist part from path, i cannot do with remap-istanbul
@@ -105,13 +105,13 @@ gulp.task("coverage", ["coverage-remap"], function() {
 })
 
 
-gulp.task("coveralls", ["coverage"], function() {
+gulp.task("coveralls", ["coverage"], function () {
 	return gulp.src(".coverage/coverage.lcov")
 		.pipe(coveralls())
 })
 
 
-gulp.task("bundle-dts", ["compile"], function() {
+gulp.task("bundle-dts", ["compile"], function () {
 	dts.bundle({
 		name: "yayp",
 		main: "dist/dts/src/index.d.ts",

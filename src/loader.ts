@@ -2,6 +2,7 @@ import { readFileSync, realpathSync } from "fs"
 
 import { YamlDocument, YamlDocumentClass } from "./document"
 import { Parser, Location } from "./parser"
+import { SCHEMA_CORE } from "./schema"
 
 
 export interface TagDirective {
@@ -43,7 +44,7 @@ export class Loader {
 	 * Called when starts a new document
 	 */
 	public onDocumentStart(): YamlDocument {
-		let doc = new this.documentClass(this);
+		let doc = new this.documentClass(this, SCHEMA_CORE);
 		(doc as any).version = this.version
 		for (let k in this.namespaces) {
 			doc.addNamespace(k, this.namespaces[k])

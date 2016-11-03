@@ -868,7 +868,6 @@ export class Parser {
 				ch = data.charCodeAt(++this.offset)
 			} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
 			this.loader.onComment(data.slice(commentStart + 1, this.offset).trim())
-			--this.offset
 		} else {
 			// Eat non linebreaks
 			while (IS_NBS[data.charCodeAt(this.offset++)]); --this.offset;

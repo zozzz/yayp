@@ -19,15 +19,15 @@ class SeqFactory extends TypeFactory {
 
 class StrFactory extends TypeFactory {
 	public onScalar(value: string): any {
-		return value
+		return value ? value : ""
 	}
 
-	public onQuotedString(value: string, quote: string): any {
-		return value
+	public onQuotedString(value: string): any {
+		return value ? value : ""
 	}
 
 	public onBlockString(value: string): any {
-		return value
+		return value ? value : ""
 	}
 
 	public onTagStart(qname: string): TypeFactory {

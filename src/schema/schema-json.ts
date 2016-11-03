@@ -71,10 +71,10 @@ class BoolFactory extends TypeFactory {
 
 
 const FACTORIES: { [key: string]: TypeFactory } = {
-	"null": NullFactory,
-	"bool": new BoolFactory,
-	"int": IntFactory,
-	"float": FloatFactory
+	"tag:yaml.org,2002:null": NullFactory,
+	"tag:yaml.org,2002:bool": new BoolFactory,
+	"tag:yaml.org,2002:int": IntFactory,
+	"tag:yaml.org,2002:float": FloatFactory
 }
 
 
@@ -90,10 +90,7 @@ const FROM_SCALAR: FromScalarFactory[] = [
 export class JSONSchema extends FailsafeSchema implements ISchema {
 
 	public resolveTag(qname: string): TypeFactory | null {
-		if (FACTORIES[qname]) {
-			return FACTORIES[qname]
-		}
-		return super.resolveTag(qname)
+		return FACTORIES[qname] || super.resolveTag(qname)
 	}
 
 	public resolveScalar(document: YamlDocument, value: Scalar): any | undefined {
