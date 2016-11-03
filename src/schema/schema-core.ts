@@ -141,12 +141,32 @@ class BoolFactory extends TypeFactory {
 }
 
 
+class BinaryFactory extends TypeFactory {
+	public onScalar(value: string): any {
+		return this.createFromBase64(value)
+	}
+
+	public onQuotedString(value: string): any {
+		return this.createFromBase64(value)
+	}
+
+	public onBlockString(value: string): any {
+		return this.createFromBase64(value)
+	}
+
+	protected createFromBase64(data: string) {
+		return Buffer.from(data.replace(/\s+/, ""), "base64")
+	}
+}
+
+
 const FACTORIES: { [key: string]: TypeFactory } = {
 	"tag:yaml.org,2002:null": NullFactory,
 	"tag:yaml.org,2002:bool": new BoolFactory,
 	"tag:yaml.org,2002:int": IntFactory,
 	"tag:yaml.org,2002:float": FloatFactory,
-	"tag:yaml.org,2002:timestamp": TimestampFactory
+	"tag:yaml.org,2002:timestamp": TimestampFactory,
+	"tag:yaml.org,2002:binary": new BinaryFactory
 }
 
 

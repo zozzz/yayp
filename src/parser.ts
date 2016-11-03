@@ -79,10 +79,12 @@ export class Parser {
 	protected handlerStack: ITypeFactory[]
 	protected linePosition: number
 
-	private _inFlow: number = 0
+	private _inFlowSequence: number = 0
+	private _inFlowMapping: number = 0
 	private _anchor: string
 	private _explicitKey: number = 0
 	private _documentState: DocumentState = DocumentState.NEW_STARTED
+	private _disallowBlocks: boolean = false
 
 	public constructor(protected loader: Loader) {
 	}
@@ -173,8 +175,8 @@ export class Parser {
 		switch (this.data[this.offset]) {
 			case "'": return this.quotedString("'")
 			case "\"": return this.quotedString("\"")
-			case "[": return this.inlineSequence()
-			case "{": return this.inlineMapping()
+			case "[": return this.flowSequence()
+			case "{": return this.flowMapping()
 			case "|": return this.blockScalar(minColumn, false)
 			case ">": return this.blockScalar(minColumn, true)
 			case "!":
@@ -246,6 +248,10 @@ export class Parser {
 	}
 
 	protected blockSequence(): any {
+		if (this._inFlowMapping || this._inFlowSequence) {
+			this.error("Block sequence is not allowed")
+		}
+
 		let col = this.column,
 			handler = this.popHandler(),
 			seq = this.storeAnchor(handler.onSequenceStart())
@@ -288,7 +294,7 @@ export class Parser {
 		return handler.onSequenceEnd(seq)
 	}
 
-	protected inlineSequence(): any {
+	protected flowSequence(): any {
 		let handler = this.popHandler(),
 			seq = this.storeAnchor(handler.onSequenceStart())
 
@@ -296,7 +302,7 @@ export class Parser {
 			return handler.onSequenceEnd(seq)
 		}
 
-		++this._inFlow
+		++this._inFlowSequence
 		this.peek(1)
 
 		loop: while (true) {
@@ -319,17 +325,17 @@ export class Parser {
 					break loop
 
 				default:
-					--this._inFlow
+					--this._inFlowSequence
 					this.unexpected([",", "]"])
 					return null
 			}
 		}
 
-		--this._inFlow
+		--this._inFlowSequence
 		return handler.onSequenceEnd(seq)
 	}
 
-	protected inlineMapping() {
+	protected flowMapping() {
 		let column = this.column,
 			handler = this.popHandler(),
 			mapping = this.storeAnchor(handler.onMappingStart()),
@@ -339,7 +345,7 @@ export class Parser {
 			return handler.onMappingEnd(mapping)
 		}
 
-		++this._inFlow
+		++this._inFlowMapping
 		this.peek(1)
 
 		while (true) {
@@ -360,7 +366,7 @@ export class Parser {
 					this.peek(1)
 
 					if (this.data[this.offset] === "}") {
-						--this._inFlow
+						--this._inFlowMapping
 						++this.offset
 						return this.isBlockMappingKey()
 							? this.blockMapping(column, handler.onMappingEnd(mapping))
@@ -369,14 +375,14 @@ export class Parser {
 					break
 
 				case "}":
-					--this._inFlow
+					--this._inFlowMapping
 					++this.offset
 					return this.isBlockMappingKey()
 						? this.blockMapping(column, handler.onMappingEnd(mapping))
 						: handler.onMappingEnd(mapping)
 
 				default:
-					--this._inFlow
+					--this._inFlowMapping
 					this.unexpected([",", "}"])
 					return null
 			}
@@ -405,6 +411,10 @@ export class Parser {
 	}
 
 	protected blockMapping(column: number, mappingKey: any): any {
+		if (this._inFlowMapping) {
+			this.error("Block mapping not allowed")
+		}
+
 		let handler = this.popHandler(),
 			mapping = this.storeAnchor(handler.onMappingStart()),
 			hasColon
@@ -426,6 +436,10 @@ export class Parser {
 						handler.onMappingKey(mapping, mappingKey, null)
 					}
 
+					if (this._inFlowSequence && !IS_FLOW_INDICATOR[this.data.charCodeAt(this.offset)]) {
+						this.error("Missed comma between flow collection entries")
+					}
+
 					mappingKey = this.mappingKey()
 					if (this._documentState !== DocumentState.PARSING) {
 						break endless
@@ -441,6 +455,10 @@ export class Parser {
 					handler.onMappingKey(mapping, mappingKey, this.parseValue(column))
 
 					if (this.peek(column) === PeekResult.SAME_INDENT) {
+						if (this._inFlowSequence && !IS_FLOW_INDICATOR[this.data.charCodeAt(this.offset)]) {
+							this.error("Missed comma between flow collection entries")
+						}
+
 						// http://yaml.org/type/merge.html
 						mappingKey = this.mappingKey()
 						if (this._documentState !== DocumentState.PARSING) {
@@ -478,8 +496,8 @@ export class Parser {
 					return
 				}
 				return this.readScalar(true)
-			case CharCode.LBRACE: return this.inlineMapping()
-			case CharCode.LBRACKET: return this.inlineSequence()
+			case CharCode.LBRACE: return this.flowMapping()
+			case CharCode.LBRACKET: return this.flowSequence()
 			default: return this.readScalar(true)
 		}
 	}
@@ -496,14 +514,9 @@ export class Parser {
 		++this.offset
 		this.peek(1)
 
-		// console.log("BBB", inMapping, require("util").inspect(this.data.slice(this.offset)))
-
 		++this._explicitKey
 		let key = this.parseValue()
 		--this._explicitKey
-
-		// console.log("XXX", require("util").inspect(key))
-		// console.log("BBB", inMapping, require("util").inspect(this.data.slice(this.offset)))
 
 		if (backupHandler) {
 			this.handlerStack = backupHandler
@@ -693,7 +706,7 @@ export class Parser {
 					break
 
 				case CharCode.TAB:
-					if (linePosition !== null) {
+					if (linePosition !== null && !this._inFlowSequence && !this._inFlowMapping) {
 						this.error("Document cannot contains tab character as indention character")
 					}
 					break
@@ -768,7 +781,7 @@ export class Parser {
 
 				case CharCode.COLON:
 					ch = data.charCodeAt(position + 1)
-					if (IS_WS[ch] || (this._inFlow && IS_FLOW_INDICATOR[ch])) {
+					if (IS_WS[ch] || ((this._inFlowMapping || this._inFlowSequence) && IS_FLOW_INDICATOR[ch])) {
 						if (lastNl === null) {
 							let key = (startAt ? data.slice(startAt, position).trim() : null)
 							if (isMappingKey) {
@@ -776,7 +789,7 @@ export class Parser {
 								return key
 							} else {
 								this.offset = position
-								if (key === null) {
+								if (key === null || this._inFlowMapping) {
 									return key
 								} else {
 									return this.blockMapping(column, key)
@@ -811,7 +824,7 @@ export class Parser {
 						startAt = position
 					}
 
-					if (this._inFlow && IS_FLOW_INDICATOR[ch]) {
+					if ((this._inFlowMapping || this._inFlowSequence) && IS_FLOW_INDICATOR[ch]) {
 						break endless
 					}
 			}
@@ -832,8 +845,8 @@ export class Parser {
 	}
 
 	protected blockScalar(minColumn: number, isFolded: boolean) {
-		if (this._inFlow) {
-			this.unexpected([",", "}"])
+		if (this._inFlowMapping || this._inFlowSequence) {
+			this.error("Block scalar not allowed")
 		}
 
 		++this.offset
@@ -886,18 +899,12 @@ export class Parser {
 			peek: while (true) {
 				switch (data.charCodeAt(++position)) {
 					case CharCode.SPACE:
-						// console.log("SPACE")
 						if (++currentColumn >= indentStartAtColumn) {
-							// console.log("GGG", currentColumn, require("util").inspect(data.slice(position)))
 							if (currentColumn === indentStartAtColumn) {
-								// console.log("LINE START AT", position - 1)
 								startAt = position + 1
 							}
 
-							console.log("AFTER SPACE", IS_WS[data.charCodeAt(position + 1)])
-
 							if (IS_WS[data.charCodeAt(position + 1)]) {
-								// console.log("NEXT IS WS SO CONTINUE, MAYBE EMPTY LINE")
 								continue peek
 							} else {
 								break peek
@@ -907,7 +914,6 @@ export class Parser {
 						}
 
 					case CharCode.CR:
-						// console.log("CR")
 						lastEolPosition = position
 						eolSymbols += "\n"
 						currentColumn = 0
@@ -917,14 +923,12 @@ export class Parser {
 						break
 
 					case CharCode.LF:
-						// console.log("LF")
 						lastEolPosition = position
 						eolSymbols += "\n"
 						currentColumn = 0
 						break
 
 					case CharCode.TAB:
-						// console.log("TAB")
 						if (currentColumn < indentStartAtColumn) {
 							// tab indent character is not allowed.
 							// TODO: proper error msg
@@ -938,8 +942,6 @@ export class Parser {
 							this.unexpected("LINEBREAK")
 						}
 
-						// console.log("INDENTATION", {indentStartAtColumn, currentColumn})
-
 						if (indentStartAtColumn === Infinity) {
 							indentStartAtColumn = currentColumn
 							startAt = position
@@ -951,14 +953,10 @@ export class Parser {
 				}
 			}
 
-			do { ch = data.charCodeAt(++position) } while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
-			// --position
+			do { ch = data.charCodeAt(++position) } while (ch && ch !== CharCode.CR && ch !== CharCode.LF);
 
 			lastEolPosition = position
 			lineData = data.slice(startAt, position)
-
-			// console.log("XXX", require("util").inspect(lineData))
-			// console.log("EOL", eolSymbols.length)
 
 			if (result === "") {
 				if (eolSymbols.length > 1) {
