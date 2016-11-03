@@ -14,3 +14,7 @@
     : !!str "two",
   },
 ]
+
+# --- [success] documents[0].content
+
+[null,"block node\n",["one","two"],{"one":"two"}]

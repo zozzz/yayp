@@ -9,4 +9,4 @@ folded:
 
 # --- [success] documents[0].content
 
-{"literal":"value\n","folded":"value\n"}
+{"literal": "value","folded": "!<!foo>[SCALAR](value)"}

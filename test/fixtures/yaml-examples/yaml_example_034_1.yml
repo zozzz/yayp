@@ -2,3 +2,10 @@
 
 anchored: !local &anchor value
 alias: *anchor
+
+# --- [success] documents[0].content
+
+{
+  "anchored": "!<!local>[SCALAR](value)",
+  "alias": "!<!local>[SCALAR](value)"
+}

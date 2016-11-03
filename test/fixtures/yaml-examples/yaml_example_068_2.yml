@@ -7,3 +7,11 @@
   !<tag:yaml.org,2002:str> "bar",
   !<tag:example.com,2000:app/tag!> "baz"
 ]
+
+# --- [success] documents[0].content
+
+[
+  "!<!local>[QUOTED]\"foo\"",
+  "!<tag:yaml.org,2002:str>[QUOTED]\"bar\"",
+  "!<tag:example.com,2000:app/tag!>[QUOTED]\"baz\""
+]

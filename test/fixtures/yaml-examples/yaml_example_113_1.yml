@@ -4,3 +4,11 @@ plain key: in-line value
 : # Both empty
 "quoted key":
 - entry
+
+# --- [success] documents[0].content
+
+{
+  "plain key": "in-line value",
+  "<null>": null,
+  "quoted key": ["entry"]
+}

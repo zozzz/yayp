@@ -1,5 +1,9 @@
 # --- [title] YAML Example / 9.1. Document Prefix (1)
 
-⇔# Comment
+# Comment
 # lines
 Document
+
+# --- [success] documents[0].content
+
+"Document"

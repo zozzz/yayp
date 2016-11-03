@@ -13,3 +13,14 @@ application specific tag: !something |
  The semantics of the tag
  above may be different for
  different documents.
+
+# --- [success] documents[0].content
+
+{
+  "not-date": "2002-04-28",
+  "picture": {
+    "type": "Buffer",
+    "data": [ 71, 73, 70, 56, 57, 97, 12, 0, 12, 0, 132, 0, 0, 255, 255, 247, 245, 245, 238, 233, 233, 229, 102, 102, 102, 0, 0, 0, 231, 231, 231, 94, 94, 94, 243, 243, 237, 142, 142, 142, 224, 224, 224, 159, 159, 159, 147, 147, 147, 167, 167, 167, 158, 158, 158, 105, 94, 16, 39, 32, 130, 10, 1, 0, 59 ]
+  },
+  "application specific tag": "!<!something>[BLOCK](The semantics of the tag\nabove may be different for\ndifferent documents.\n)"
+}

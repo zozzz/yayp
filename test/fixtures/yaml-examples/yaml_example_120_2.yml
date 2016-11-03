@@ -6,3 +6,11 @@
 %YAML 1.2
 ---
 !!str "%!PS-Adobe-2.0\n"
+
+# --- [success] documents[0].content
+
+"Bare document"
+
+# --- [success] documents[1].content
+
+"%!PS-Adobe-2.0\n"

@@ -3,3 +3,7 @@
 %YAML 1.2
 ---
 !<tag:example.com,2000:app/foo> "bar"
+
+# --- [success] documents[0].content
+
+"!<tag:example.com,2000:app/foo>[QUOTE]\"bar\""

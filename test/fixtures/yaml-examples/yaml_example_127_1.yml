@@ -2,3 +2,10 @@
 
 !!null null: value for null key
 key with null value: !!null null
+
+# --- [success] documents[0].content
+
+{
+  "<null>": "value for null key",
+  "key with null value": null
+}

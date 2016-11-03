@@ -8,3 +8,7 @@
   ? !!str "omitted value" : !!null "",
   ? !!null "" : !!str "omitted key",
 }
+
+# --- [success] documents[0].content
+
+{"unquoted":"separate","http://foo.com":null,"omitted value":null,"<null>":"omitted key"}

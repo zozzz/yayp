@@ -7,3 +7,11 @@
 %TAG ! tag:example.com,2000:app/
 ---
 !foo "bar"
+
+# --- [success] documents[0].content
+
+"!<!foo>[QUOTED]\"bar\""
+
+# --- [success] documents[1].content
+
+"!<tag:example.com,2000:app/foo>[QUOTED]\"bar\""

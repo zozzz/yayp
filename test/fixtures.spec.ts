@@ -198,6 +198,8 @@ function createTestCase(file: FixtureFile): () => void {
 			documents: p.load(file.yaml, file.path)
 		}
 
+		expect(file.properties, "Missing expected result").to.have.property("length").and.gt(0)
+
 		// console.log(require("util").inspect(file, {depth: null}))
 
 		for (let prop of file.properties) {

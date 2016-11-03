@@ -8,3 +8,7 @@
   ? !!str "folded"
   : !<!foo> "value",
 }
+
+# --- [success] documents[0].content
+
+{"literal": "value","folded": "!<!foo>[SCALAR](value)"}

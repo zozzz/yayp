@@ -9,3 +9,11 @@
 %YAML 1.2
 ---
 !!null ""
+
+# --- [success] documents[0].content
+
+{"matches %": 20}
+
+# --- [success] documents[1].content
+
+null

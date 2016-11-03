@@ -52,7 +52,7 @@ jsdom.env(
 					title = `YAML Example / ${m[1].trim()} ${title.slice(m[0].length).trim()}`
 				}
 
-				el.find("pre.programlisting").each(function() {
+				el.find("pre.programlisting").each(function () {
 					++sidx
 					let ymlNode = window.$(this)
 					let content = ymlNode.html().replace(/<br(?:\s*\/)?>/ig, "\n")
@@ -60,6 +60,7 @@ jsdom.env(
 					content = content.replace(/→/g, "\t")
 					content = content.replace(/·/g, " ")
 					content = content.replace(/↓[^\r\n]*(\r?\n)?/g, "\n")
+					content = content.replace(/⇔/, String.fromCharCode(0xFEFF))
 					content = window.$("<div />").html(content).text().trim()
 
 					try {
@@ -67,8 +68,8 @@ jsdom.env(
 						yaml.loadAll(content, (doc) => {
 							documents.push(doc)
 						}, {
-							schema: yaml.DEFAULT_FULL_SCHEMA
-						})
+								schema: yaml.DEFAULT_FULL_SCHEMA
+							})
 						createTest(`${leadingZero(idx)}_${sidx}`, `${title} (${sidx})`, content, documents)
 					} catch (e) {
 						createTest(`${leadingZero(idx)}_${sidx}`, `${title} (${sidx})`, content, [])

@@ -14,3 +14,45 @@
   start: *ORIGIN
   color: 0xFFEEBB
   text: Pretty vector drawing.
+
+# --- [success] documents[0].content
+
+{
+  "$type": "!<tag:clarkevans.com,2002:shape>",
+  "$sequence": [
+    {
+      "$type": "!<tag:clarkevans.com,2002:circle>",
+      "$mapping": {
+        "center": {
+          "x": 73,
+          "y": 129
+        },
+        "radius": 7
+      }
+    },
+    {
+      "$type": "!<tag:clarkevans.com,2002:line>",
+      "$mapping": {
+        "start": {
+          "x": 73,
+          "y": 129
+        },
+        "finish": {
+          "x": 89,
+          "y": 102
+        }
+      }
+    },
+    {
+      "$type": "!<tag:clarkevans.com,2002:label>",
+      "$mapping": {
+        "start": {
+          "x": 73,
+          "y": 129
+        },
+        "color": 16772795,
+        "text": "Pretty vector drawing."
+      }
+    }
+  ]
+}

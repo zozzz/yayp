@@ -5,3 +5,13 @@ zero: !!float 0
 positive: !!float 2.3e4
 infinity: !!float .inf
 not a number: !!float .nan
+
+# --- [success] documents[0].content
+
+{
+  "negative": -1,
+  "zero": 0,
+  "positive": 23000,
+  "infinity": null,
+  "not a number": null
+}

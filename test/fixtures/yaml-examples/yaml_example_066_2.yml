@@ -6,3 +6,7 @@
   ? !<tag:yaml.org,2002:str> "foo"
   : !<!bar> "baz",
 }
+
+# --- [success] documents[0].content
+
+{"!<tag:yaml.org,2002:str>[QUOTE]\"foo\"": "!<!bar>[QUOTE]\"baz\""}

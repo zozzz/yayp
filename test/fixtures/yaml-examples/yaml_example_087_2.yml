@@ -7,3 +7,7 @@
   ? !!str "implicit" : !!str "entry",
   ? !!null "" : !!null "",
 }
+
+# --- [success] documents[0].content
+
+{"explicit":"entry","implicit":"entry","<null>":null}

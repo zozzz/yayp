@@ -7,3 +7,7 @@
   ? !!str "readable" : !!str "value",
   ? !!str "empty"    : !!null "",
 }
+
+# --- [success] documents[0].content
+
+{"adjacent": "value","readable": "value","empty": null}

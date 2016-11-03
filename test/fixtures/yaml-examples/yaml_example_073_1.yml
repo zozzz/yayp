@@ -4,3 +4,7 @@
   foo : !!str,
   !!str : bar,
 }
+
+# --- [success] documents[0].content
+
+{"foo":"","":"bar"}

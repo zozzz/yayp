@@ -13,3 +13,17 @@
 !!map {
   !!str "matches %": !!int "20"
 }
+
+# --- [success] documents[0].content
+
+"Document"
+
+# --- [success] documents[1].content
+
+null
+
+# --- [success] documents[2].content
+
+{
+  "matches %": 20
+}

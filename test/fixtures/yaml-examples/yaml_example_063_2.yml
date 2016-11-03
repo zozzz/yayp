@@ -7,3 +7,11 @@
 %YAML 1.2
 ---
 !<!my-light> "green"
+
+# --- [success] documents[0].content
+
+"!<!my-light>[QUOTE]\"fluorescent\""
+
+# --- [success] documents[1].content
+
+"!<!my-light>[QUOTE]\"green\""

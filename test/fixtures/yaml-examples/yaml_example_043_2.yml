@@ -1,7 +1,7 @@
 # --- [title] YAML Example / 6.1. Indentation Spaces (2)
 
 %YAML 1.2
-- - -
+---
 !!map {
   ? !!str "Not indented"
   : !!map {
@@ -15,3 +15,7 @@
         ]
     }
 }
+
+# --- [success] documents[0].content
+
+{"Not indented":{"By one space":"By four\n  spaces\n","Flow style":["By two","Also by two","Still by two"]}}

@@ -21,3 +21,7 @@
   ],
 }
 ...
+
+# --- [success] documents[0].content
+
+{"A null":null,"Booleans":[true,false],"Integers":[0,0,3,-19],"Floats":[0,0,12000,-200000],"Invalid":[true,null,7,58,12.3]}

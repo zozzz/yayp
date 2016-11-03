@@ -5,3 +5,11 @@
 - !local foo
 - !!str bar
 - !e!tag%21 baz
+
+# --- [success] documents[0].content
+
+[
+  "!<!local>[SCALAR](foo)",
+  "!<tag:yaml.org,2002:str>[SCALAR](bar)",
+  "!<tag:example.com,2000:app/tag!>[SCALAR](baz)"
+]

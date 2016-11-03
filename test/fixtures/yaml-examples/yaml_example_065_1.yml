@@ -3,3 +3,7 @@
 !!str &a1 "foo":
   !!str bar
 &a2 baz : *a1
+
+# --- [success] documents[0].content
+
+{"foo":"bar","baz":"foo"}

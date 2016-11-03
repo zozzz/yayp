@@ -7,3 +7,11 @@
 ---
 # Empty
 ...
+
+# --- [success] documents[0].content
+
+{"matches %": 20}
+
+# --- [success] documents[1].content
+
+null

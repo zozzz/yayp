@@ -8,3 +8,10 @@
   ? !!str "alias"
   : *A1,
 }
+
+# --- [success] documents[0].content
+
+{
+  "anchored": "!<!local>[QUOTED]\"value\"",
+  "alias": "!<!local>[QUOTED]\"value\""
+}
