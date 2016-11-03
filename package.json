@@ -6,8 +6,7 @@
   "scripts": {
     "test": "gulp test",
     "compile": "gulp compile",
-    "travis": "gulp coveralls",
-    "make-yaml-examples": "ts-node test/fixtures/yaml-examples/generate.ts"
+    "travis": "gulp coveralls"
   },
   "repository": {
     "type": "git",
