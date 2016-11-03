@@ -67,9 +67,6 @@ gulp.task("test", ["prepare-test"], function () {
 		.pipe(mocha({
 			bail: false
 		}))
-		.once("error", function () {
-			process.exit(1)
-		})
 })
 
 
