@@ -42,8 +42,8 @@ export class FromScalarFactory extends TypeFactory {
 const NullFactory = new FromScalarFactory(/^null$/, () => null)
 const TrueFactory = new FromScalarFactory(/^true$/, () => true)
 const FalseFactory = new FromScalarFactory(/^false$/, () => false)
-const IntFactory = new FromScalarFactory(/^-?(0|[1-9][0-9]*)$/, (d, v) => parseInt(v[0], 10))
-const FloatFactory = new FromScalarFactory(/^-?(0|[1-9][0-9]*)(\.[0-9]*)?([eE][-+]?[0-9]+)?$/, (d, v) => parseFloat(v[0]))
+const IntFactory = new FromScalarFactory(/^[-+]?(0|[1-9][0-9]*)$/, (d, v) => parseInt(v[0], 10))
+const FloatFactory = new FromScalarFactory(/^[-+]?(0|[1-9][0-9]*)(\.[0-9]*)?([eE][-+]?[0-9]+)?$/, (d, v) => parseFloat(v[0]))
 
 
 class BoolFactory extends TypeFactory {

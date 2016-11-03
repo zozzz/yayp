@@ -132,7 +132,7 @@ export class Parser {
 	protected parseFile(): any {
 		this.peek(1)
 
-		if (this.data.length <= this.offset + 1) {
+		if (this.data.length <= this.offset) {
 			return null
 		}
 

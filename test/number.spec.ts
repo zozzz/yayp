@@ -1,5 +1,5 @@
-import {expect} from "chai"
-import {Loader, YamlDocument} from "../src"
+import { expect } from "chai"
+import { Loader, YamlDocument } from "../src"
 
 
 describe("Number parsing", () => {
@@ -67,8 +67,7 @@ describe("Number parsing", () => {
 		let d = new Loader(YamlDocument).load(`
   x: 1
   y: -42
-  z: 0x34
-		`)
-		expect(d[0]).to.have.property("content").and.eql({x:1, y:-42, z:0x34})
+  z: 0x34`)
+		expect(d[0]).to.have.property("content").and.eql({ x: 1, y: -42, z: 0x34 })
 	})
 })
