@@ -10,8 +10,8 @@
 
 # --- [success] documents[0].content
 
-"!<!my-light>[QUOTE]\"fluorescent\""
+"!<!my-light>[SCALAR](fluorescent)"
 
 # --- [success] documents[1].content
 
-"!<!my-light>[QUOTE]\"green\""
+"!<!my-light>[SCALAR](green)"

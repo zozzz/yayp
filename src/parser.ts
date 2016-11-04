@@ -83,6 +83,7 @@ export class Parser {
 	private _inFlowMapping: number = 0
 	private _anchor: string
 	private _explicitKey: number = 0
+	private _implicitKey: number = 0
 	private _documentState: DocumentState = DocumentState.NEW_STARTED
 	private _disallowBlocks: boolean = false
 
@@ -148,6 +149,8 @@ export class Parser {
 				}
 		}
 
+		console.log("xxx", this._documentState, this.data.slice(this.offset))
+
 		if (this._documentState === DocumentState.NEW_STARTED) {
 			this.parseDocument()
 		} else {
@@ -164,14 +167,18 @@ export class Parser {
 
 		this.documents.push(this.loader.onDocumentEnd(this.doc))
 
+		this.peek(1)
+
+		if (this.isDocumentSeparator(this.offset)) {
+			if (this._documentState as any === DocumentState.CLOSED) {
+				this._documentState = DocumentState.NEW_STARTED
+			}
+		}
+
 		this.parseFile()
 	}
 
 	protected parseValue(minColumn?: number): any {
-		if (this.isDocumentSeparator(this.offset)) {
-			return
-		}
-
 		switch (this.data[this.offset]) {
 			case "'": return this.quotedString("'")
 			case "\"": return this.quotedString("\"")
@@ -195,18 +202,26 @@ export class Parser {
 				if (IS_WS[this.data.charCodeAt(this.offset + 1)]) {
 					return this.blockSequence()
 				} else {
-					return this.readScalar(false, this.column)
+					if (this.isDocumentSeparator(this.offset)) {
+						return
+					}
+					return this.readScalar(this.column)
 				}
-			case ".": return this.readScalar(false, this.column)
+			case ".":
+				if (this.isDocumentSeparator(this.offset)) {
+					return
+				}
+				return this.readScalar(this.column)
 			case "@": return this.error("reserved character '@'")
 			case "`": return this.error("reserved character '`'")
 			case undefined: return // EOF
-			default: return this.readScalar(false, this.column)
+			default: return this.readScalar(this.column)
 		}
 	}
 
-	protected isDocumentSeparator(offset: number) {
+	protected isDocumentSeparator(offset: number): boolean {
 		let ch = this.data.charCodeAt(offset)
+
 		if ((ch === CharCode.DOT || ch === CharCode.DASH)
 			&& this.data.charCodeAt(offset + 1) === ch
 			&& this.data.charCodeAt(offset + 2) === ch
@@ -215,6 +230,7 @@ export class Parser {
 			this._documentState = ch === CharCode.DOT ? DocumentState.CLOSED : DocumentState.NEW_STARTED
 			return true
 		}
+		return false
 	}
 
 	protected directive() {
@@ -476,30 +492,52 @@ export class Parser {
 
 	protected mappingKey(): any {
 		let key
-
 		switch (this.data.charCodeAt(this.offset)) {
-			case CharCode.QUOTE_DOUBLE:
-				key = this.readQuotedString("\"")
-				this.eatNBS()
-				return key
-
-			case CharCode.QUOTE_SINGLE:
-				key = this.readQuotedString("'")
-				this.eatNBS()
-				return key
-
 			case CharCode.QUESTION: return this.explicitKey(true)
 			case CharCode.COLON: return null
-			case CharCode.DASH:
-			case CharCode.DOT:
-				if (this.isDocumentSeparator(this.offset)) {
-					return
-				}
-				return this.readScalar(true)
-			case CharCode.LBRACE: return this.flowMapping()
-			case CharCode.LBRACKET: return this.flowSequence()
-			default: return this.readScalar(true)
+			case CharCode.QUOTE_DOUBLE:
+				key = this.readQuotedString("\"")
+			break
+
+			case CharCode.QUOTE_SINGLE:
+				key = this.readQuotedString("\'")
+			break
+
+			default:
+				++this._implicitKey
+				key = this.parseValue()
+				--this._implicitKey
 		}
+
+		while (IS_NBS[this.data.charCodeAt(this.offset++)]); --this.offset;
+		return key
+
+
+		// switch (this.data.charCodeAt(this.offset)) {
+		// 	case CharCode.QUOTE_DOUBLE:
+		// 		key = this.readQuotedString("\"")
+		// 		this.eatNBS()
+		// 		return key
+
+		// 	case CharCode.QUOTE_SINGLE:
+		// 		key = this.readQuotedString("'")
+		// 		this.eatNBS()
+		// 		return key
+
+		// 	case CharCode.QUESTION: return this.explicitKey(true)
+		// 	case CharCode.COLON: return null
+		// 	case CharCode.DASH:
+		// 	case CharCode.DOT:
+		// 		if (this.isDocumentSeparator(this.offset)) {
+		// 			return
+		// 		}
+		// 		return this.readScalar(true)
+		// 	case CharCode.LBRACE: return this.flowMapping()
+		// 	case CharCode.LBRACKET: return this.flowSequence()
+		// 	case CharCode.AMPERSAND: return this.anchor()
+		// 	case CharCode.ASTERIX: return this.alias()
+		// 	default: return this.readScalar(true)
+		// }
 	}
 
 	protected explicitKey(inMapping: boolean): any {
@@ -737,7 +775,7 @@ export class Parser {
 		}
 	}
 
-	protected readScalar(isMappingKey: boolean, column?: number) {
+	protected readScalar(column?: number) {
 		let startAt = this.offset,
 			position = this.offset - 1,
 			data = this.data,
@@ -784,7 +822,7 @@ export class Parser {
 					if (IS_WS[ch] || ((this._inFlowMapping || this._inFlowSequence) && IS_FLOW_INDICATOR[ch])) {
 						if (lastNl === null) {
 							let key = (startAt ? data.slice(startAt, position).trim() : null)
-							if (isMappingKey) {
+							if (this._implicitKey) {
 								this.offset = position
 								return key
 							} else {
@@ -796,7 +834,7 @@ export class Parser {
 								}
 							}
 						} else {
-							if (isMappingKey) {
+							if (this._implicitKey) {
 								this.error("Mapping key cannot contains new line character")
 								return null
 							}

@@ -5,4 +5,4 @@
 
 # --- [success] documents[0].content
 
-{"!<tag:yaml.org,2002:str>[QUOTE]\"foo\"": "!<!bar>[QUOTE]\"baz\""}
+{"!<tag:yaml.org,2002:str>[QUOTED]\"foo\"": "!<!bar>[QUOTED]\"baz\""}
