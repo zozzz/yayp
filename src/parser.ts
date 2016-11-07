@@ -497,11 +497,11 @@ export class Parser {
 			case CharCode.COLON: return null
 			case CharCode.QUOTE_DOUBLE:
 				key = this.readQuotedString("\"")
-			break
+				break
 
 			case CharCode.QUOTE_SINGLE:
 				key = this.readQuotedString("\'")
-			break
+				break
 
 			default:
 				++this._implicitKey
@@ -616,6 +616,9 @@ export class Parser {
 
 		tagHandler.document = this.doc
 		this.handlerStack.push(tagHandler)
+
+		// mi lenne ha valahogy azt jelezném, hogy a kulcsra kell meghívni a hendlert
+		// nem pedig a block mappingra
 
 		this.peek(1)
 		let value = this.parseValue()

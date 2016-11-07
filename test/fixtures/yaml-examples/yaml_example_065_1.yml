@@ -1,3 +1,4 @@
+# --- [skip]
 # --- [title] YAML Example / 6.23. Node Properties (1)
 
 !!str &a1 "foo":

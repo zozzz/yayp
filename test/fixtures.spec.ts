@@ -30,7 +30,11 @@ type FixtureFile = {
 	/**
 	 * Test only this fixture
 	 */
-	only?: boolean
+	only?: boolean,
+	/**
+	 * skip this
+	 */
+	skip?: boolean
 }
 
 
@@ -123,7 +127,8 @@ function parseFile(fileName: string): { title: string[], file: FixtureFile } {
 			yaml: "",
 			json: null,
 			properties: [],
-			only: false
+			only: false,
+			skip: false
 		}
 	}
 
@@ -138,6 +143,10 @@ function parseFile(fileName: string): { title: string[], file: FixtureFile } {
 
 			case "only":
 				result.file.only = true
+				break
+
+			case "skip":
+				result.file.skip = true
 				break
 
 			case "success":
@@ -226,7 +235,7 @@ function constructTestCases(group: Object) {
 		if (group[k].path) {
 			if (group[k].only) {
 				it.only(`${k} - (${path.basename(group[k].path)})`, createTestCase(<FixtureFile>group[k]))
-			} else {
+			} else if (!group[k].skip) {
 				it(`${k} - (${path.basename(group[k].path)})`, createTestCase(<FixtureFile>group[k]))
 			}
 		} else {
