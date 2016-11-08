@@ -13,6 +13,6 @@
   },
   "scripts": {
     "examples": "ts-node yaml-examples.ts",
-    "bench": "ts-node benchmark.ts"
+    "bench": " gulp --cwd .. compile && ts-node benchmark.ts"
   }
 }
