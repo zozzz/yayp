@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"charset": "utf-8",
+		"forceConsistentCasingInFileNames": true,
+		"module": "commonjs",
+		"noEmitOnError": true,
+		"noUnusedLocals": false,
+		"declaration": true,
+		"outDir": "./dist",
+		"pretty": true,
+		"rootDir": "../",
+		"target": "es6",
+		"sourceMap": true,
+		"moduleResolution": "node",
+		"experimentalDecorators": true,
+		"preserveConstEnums": false,
+		// "strictNullChecks": true,
+		"lib": [
+			"es2015",
+			"dom"
+		],
+		"types": [
+			"node"
+		]
+	},
+	"include": [
+		"*.ts"
+	],
+	"compileOnSave": true
+}
