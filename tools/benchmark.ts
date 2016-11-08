@@ -57,7 +57,7 @@ function* runners(): Iterable<Runner> {
 
 
 function currentVersionRunner(): Runner {
-	let yayp = require("../src"),
+	let yayp = require("../lib"),
 		pckg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "UTF-8"))
 
 	return {
@@ -81,5 +81,6 @@ function jsYaml() {
 for (let p of fs.readdirSync(FILES_PATH).sort()) {
 	if (/\.yaml$/i.test(p)) {
 		runSample(path.join(FILES_PATH, p))
+		break
 	}
 }

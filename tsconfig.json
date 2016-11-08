@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"charset": "utf-8",
 		"forceConsistentCasingInFileNames": true,
-		"module": "commonjs",
+		"module": "es6",
 		"noEmitOnError": true,
 		"noUnusedLocals": false,
 		"declaration": true,

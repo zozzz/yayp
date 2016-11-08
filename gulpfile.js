@@ -11,12 +11,14 @@ var coveralls = require("gulp-coveralls")
 var newer = require("gulp-newer")
 var replace = require("gulp-replace")
 var dts = require("dts-bundle")
-
+var rollup = require("gulp-rollup")
+var rollupNodeResolve = require("rollup-plugin-node-resolve")
+var babel = require("gulp-babel")
 
 var tsProject = ts.createProject("tsconfig.json");
 
 
-gulp.task("compile", function() {
+gulp.task("compile-ts", function () {
     var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], { base: "." })
         .pipe(newer({
             dest: "dist",
@@ -29,7 +31,7 @@ gulp.task("compile", function() {
     return merge([
         result.js
             .pipe(sourcemaps.write(".", {
-                mapSources: function(sourcePath) {
+                mapSources: function (sourcePath) {
                     return __dirname + sourcePath.substr(2)
                 }
             }))
@@ -41,7 +43,50 @@ gulp.task("compile", function() {
 })
 
 
-gulp.task("copy-test-files", function() {
+gulp.task("bundle-dts", ["compile-ts"], function () {
+    dts.bundle({
+        name: "yayp",
+        main: "dist/dts/src/index.d.ts",
+        baseDir: "dist/dts/src/",
+        out: "yayp.d.ts",
+        referenceExternals: true
+    });
+
+    return gulp.src("dist/dts/src/yayp.d.ts")
+        .pipe(gulp.dest("lib"))
+})
+
+
+gulp.task("rollup", ["bundle-dts"], function () {
+    return gulp.src("dist/src/**/*.js")
+        .pipe(sourcemaps.init())
+        .pipe(rollup({
+            entry: "./dist/src/index.js",
+            plugins: [
+                rollupNodeResolve({
+                    jsnext: true,
+                    browser: false,
+
+                })
+            ]
+        }))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest("./lib"))
+})
+
+
+gulp.task("compile", ["rollup"], function () {
+    return gulp.src("./lib/index.js")
+        .pipe(sourcemaps.init())
+        .pipe(babel({
+            presets: ["node6"]
+        }))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest("./lib"))
+})
+
+
+gulp.task("copy-test-files", function () {
     // TODO: lehetne tovább is optimalizálni...
     return gulp.src("test/fixtures/**/*.*", { base: "test" })
         .pipe(newer({
@@ -55,14 +100,14 @@ gulp.task("copy-test-files", function() {
 gulp.task("prepare-test", ["compile", "copy-test-files"])
 
 
-gulp.task("pre-test", ["prepare-test"], function() {
+gulp.task("pre-test", ["prepare-test"], function () {
     return gulp.src("dist/src/**/*.js")
         .pipe(istanbul())
         .pipe(istanbul.hookRequire())
 })
 
 
-gulp.task("test", ["prepare-test"], function() {
+gulp.task("test", ["prepare-test"], function () {
     return gulp.src("dist/test/**/*.spec.js", { read: false })
         .pipe(mocha({
             bail: true
@@ -70,10 +115,10 @@ gulp.task("test", ["prepare-test"], function() {
 })
 
 
-gulp.task("coverage-collect", ["pre-test"], function() {
+gulp.task("coverage-collect", ["pre-test"], function () {
     return gulp.src("dist/test/**/*.spec.js", { read: false })
         .pipe(mocha())
-        .on("error", function() {
+        .on("error", function () {
             process.exit(1)
         })
         .pipe(istanbul.writeReports({
@@ -83,7 +128,7 @@ gulp.task("coverage-collect", ["pre-test"], function() {
 })
 
 
-gulp.task("coverage-remap", ["coverage-collect"], function() {
+gulp.task("coverage-remap", ["coverage-collect"], function () {
     return gulp.src(".coverage/coverage-final.json")
         .pipe(remapIstanbul({
             reports: {
@@ -96,7 +141,7 @@ gulp.task("coverage-remap", ["coverage-collect"], function() {
 })
 
 
-gulp.task("coverage", ["coverage-remap"], function() {
+gulp.task("coverage", ["coverage-remap"], function () {
     return gulp.src(".coverage/coverage.lcov")
         // just dont see this line... :)
         // remove dist part from path, i cannot do with remap-istanbul
@@ -105,21 +150,7 @@ gulp.task("coverage", ["coverage-remap"], function() {
 })
 
 
-gulp.task("coveralls", ["coverage"], function() {
+gulp.task("coveralls", ["coverage"], function () {
     return gulp.src(".coverage/coverage.lcov")
         .pipe(coveralls())
-})
-
-
-gulp.task("bundle-dts", ["compile"], function() {
-    dts.bundle({
-        name: "yayp",
-        main: "dist/dts/src/index.d.ts",
-        baseDir: "dist/dts/src/",
-        out: "yayp.d.ts",
-        referenceExternals: true
-    });
-
-    return gulp.src("dist/dts/src/yayp.d.ts")
-        .pipe(gulp.dest("lib"))
 })
