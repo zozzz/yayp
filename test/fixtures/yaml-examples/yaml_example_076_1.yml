@@ -8,4 +8,4 @@ to a line feed, or 	\
 
 # --- [success] documents[0].content
 
-"folded  to a space,\t\nto a line feed, or \t \tnon-content"
+"folded to a space,\nto a line feed, or \t \tnon-content"

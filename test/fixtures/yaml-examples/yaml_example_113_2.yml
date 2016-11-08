@@ -15,6 +15,6 @@
 
 {
   "plain key": "in-line value",
-  "<null>": null,
+  "null": null,
   "quoted key": ["entry"]
 }

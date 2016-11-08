@@ -6,8 +6,8 @@
   !!null "",
   !!str "block node\n",
   !!seq [
-    !!str "one"
-    !!str "two",
+    !!str "one",
+    !!str "two"
   ],
   !!map {
     ? !!str "one"

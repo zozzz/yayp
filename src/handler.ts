@@ -46,7 +46,7 @@ export interface IScalarHandler {
 	/**
 	 * Called when an unqouted string found
 	 */
-	onScalar(value: string): any
+	onScalar(value: string | null): any
 
 	/**
 	 * Called when a single or double qouted string found

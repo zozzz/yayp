@@ -18,4 +18,4 @@ null
 
 # --- [success] documents[2].content
 
-"%!PS-Adobe-2.0\n"
+"%!PS-Adobe-2.0 # Not the first line\n"

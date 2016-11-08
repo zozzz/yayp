@@ -19,6 +19,7 @@ class SeqFactory extends TypeFactory {
 
 class StrFactory extends TypeFactory {
 	public onScalar(value: string): any {
+		console.log("YYY", typeof value, value)
 		return value ? value : ""
 	}
 

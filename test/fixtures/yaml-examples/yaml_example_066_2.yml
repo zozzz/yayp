@@ -1,3 +1,4 @@
+# --- [schema] test-type
 # --- [title] YAML Example / 6.24. Verbatim Tags (2)
 
 %YAML 1.2
@@ -9,4 +10,9 @@
 
 # --- [success] documents[0].content
 
-{"!<tag:yaml.org,2002:str>[QUOTED]\"foo\"": "!<!bar>[QUOTED]\"baz\""}
+{
+  "$type": "!<tag:yaml.org,2002:map>",
+  "$mapping": {
+    "!<tag:yaml.org,2002:str>[QUOTED]\"foo\"": "!<!bar>[QUOTED]\"baz\""
+  }
+}

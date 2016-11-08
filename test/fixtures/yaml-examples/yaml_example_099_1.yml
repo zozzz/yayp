@@ -6,7 +6,6 @@ clip: |
   text
 keep: |+
   text
-
 # --- [success] documents[0].content
 
 {"strip":"text","clip":"text\n","keep":"text\n"}

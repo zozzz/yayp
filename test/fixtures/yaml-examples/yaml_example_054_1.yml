@@ -9,4 +9,4 @@
 
 # --- [success] documents[0].content
 
-{"[object Object]":{"hr":65,"avg":0.278}}
+{"{\"first\":\"Sammy\",\"last\":\"Sosa\"}":{"hr":65,"avg":0.278}}

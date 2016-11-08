@@ -4,7 +4,7 @@ import * as path from "path"
 import { expect } from "chai"
 let getObjPath = require("get-object-path")
 
-import { Loader, YamlDocument, TypeFactory, SCHEMA_CORE, SchemaCollection, ISchema, Mapping, Sequence, Scalar } from "../src"
+import { Loader, YamlDocument, TypeFactory, SCHEMA_CORE, SchemaCollection, ISchema, Mapping, Sequence, Scalar, CoreSchema } from "../src"
 
 
 type FixtureFile = {
@@ -34,7 +34,8 @@ type FixtureFile = {
 	/**
 	 * skip this
 	 */
-	skip?: boolean
+	skip?: boolean,
+	schema: string
 }
 
 
@@ -77,33 +78,47 @@ class FakeTF extends TypeFactory {
 }
 
 
-class TestSchema implements ISchema {
+class TestSchema extends CoreSchema {
 	public resolveTag(qname: string): TypeFactory {
 		return new FakeTF(qname)
-	}
-
-	public resolveScalar() {
-		return undefined
 	}
 }
 
 
-const TEST_SCHEMA = new SchemaCollection([
+const TEST_TYPE_SCHEMA = new TestSchema()
+
+const TEST_DEFAULT_SCHEMA = new SchemaCollection([
 	SCHEMA_CORE,
-	new TestSchema()
+	TEST_TYPE_SCHEMA
 ])
 
 
-class TesterDocument extends YamlDocument {
-	public constructor(parser) {
-		super(parser, TEST_SCHEMA)
+abstract class TesterDocument extends YamlDocument {
+	public constructor(parser, schema) {
+		super(parser, schema)
 	}
 
 	public onMappingKey(mapping, key, value) {
 		if (key === null) {
 			key = "<null>"
+		} else if (Array.isArray(key) || `${key}` === "[object Object]") {
+			key = JSON.stringify(key)
 		}
 		return super.onMappingKey(mapping, key, value)
+	}
+}
+
+
+class TestDefaultDoc extends TesterDocument {
+	public constructor(parser) {
+		super(parser, TEST_DEFAULT_SCHEMA)
+	}
+}
+
+
+class TestTypeDoc extends TesterDocument {
+	public constructor(parser) {
+		super(parser, TEST_TYPE_SCHEMA)
 	}
 }
 
@@ -128,7 +143,8 @@ function parseFile(fileName: string): { title: string[], file: FixtureFile } {
 			json: null,
 			properties: [],
 			only: false,
-			skip: false
+			skip: false,
+			schema: "test-default"
 		}
 	}
 
@@ -147,6 +163,10 @@ function parseFile(fileName: string): { title: string[], file: FixtureFile } {
 
 			case "skip":
 				result.file.skip = true
+				break
+
+			case "schema":
+				result.file.schema = m[2].trim()
 				break
 
 			case "success":
@@ -202,7 +222,20 @@ function addToFixtures(fileName: string) {
 
 function createTestCase(file: FixtureFile): () => void {
 	return () => {
-		let p = new Loader(TesterDocument)
+		let p
+		switch (file.schema) {
+			case "test-default":
+				p = new Loader(TestDefaultDoc)
+				break
+
+			case "test-type":
+				p = new Loader(TestTypeDoc)
+				break
+
+			default:
+				throw new Error(`Unexpected schema definition in ${file.path}`)
+		}
+
 		let l = {
 			documents: p.load(file.yaml, file.path)
 		}

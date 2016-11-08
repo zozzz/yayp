@@ -6,4 +6,4 @@
 
 # --- [success] documents[0].content
 
-[[{"YAML":"separate"}],[{"null":"empty key entry"}],[{"[object Object]":"adjacent"}]]
+[[{"YAML":"separate"}],[{"<null>":"empty key entry"}],[{"{\"JSON\":\"like\"}":"adjacent"}]]

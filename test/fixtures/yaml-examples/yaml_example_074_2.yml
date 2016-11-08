@@ -7,6 +7,7 @@
   ? !!null ""   : !!str "bar",
 }
 
+# --- [comment] Itt nem gond, hogy a kulcs az null és nem <null>
 # --- [success] documents[0].content
 
-{"foo":null,"<null>":"bar"}
+{"foo":null,"null":"bar"}

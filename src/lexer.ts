@@ -133,10 +133,10 @@ export const RX_NB_CHARS = new RegExp(`[^\r\n]+`, "g")
 // export const RX_FLOAT_SECOND_PART = new RegExp(`(?:(?:(\\.[0-9]+)?([eE][-+]?[0-9]+)?)|inf|Inf|INF|nan|Nan|NAN)`, "g")
 export const YAML_DIRECTIVE_VALUE = new RegExp(`\\d+\\.\\d+`, "g")
 
-export const TAG_DIRECTIVE_HANDLE = new RegExp(`!([0-9A-Za-z]*!)?`, "g")
-export const TAG_DIRECTIVE_NS = new RegExp(`[0-9A-Za-z\\-\\#\\;\\/\\?\\:\\@\\&\\=\\+\\$\\,\\_\\.\\!\\~\\*\\'\\(\\)\\[\\]]+`, "g")
-export const TAG_NAME = new RegExp(`[0-9A-Za-z\\-\\#\\;\\/\\?\\:\\@\\&\\=\\+\\$\\_\\.\\~\\*\\'\\(\\)]+`, "g")
-export const RX_ANCHOR = new RegExp(`[^ \\t\\r\\n\\[\\]\\{\\}\\,]+`, "g")
+export const TAG_DIRECTIVE_HANDLE = /!([0-9A-Za-z]*!)?/g
+export const TAG_DIRECTIVE_NS = /(?:[0-9A-Za-z\-\#\;\/\?\:\@\&\=\+\$\,\_\.\!\~\*\'\(\)\[\]]|(?:\%[a-fA-F0-9]{2}))+/g
+export const TAG_NAME = /(?:[0-9A-Za-z\-\#\;\/\?\:\@\&\=\+\$\_\.\~\*\'\(\)]|(?:\%[a-fA-F0-9]{2}))+/g
+export const RX_ANCHOR = /[^ \t\r\n\[\]\{\}\,]+/g
 
 
 export const enum CharCode {
@@ -256,11 +256,12 @@ export const IS_DIGIT: { [key: number]: boolean } = {
 
 
 export const enum EscapeSequenceSpecial {
-	EOL = -1,
-	EMPTY = -2,
-	HEX_2 = -3,
-	HEX_4 = -4,
-	HEX_8 = -5
+	CR = -1,
+	LF = -2,
+	EMPTY = -3,
+	HEX_2 = -4,
+	HEX_4 = -5,
+	HEX_8 = -6
 }
 
 
@@ -282,8 +283,8 @@ export const ESCAPE_SEQUENCE: { [key: number]: number } = {
 	[0x75]: EscapeSequenceSpecial.HEX_4,  /* \u */
 	[0x55]: EscapeSequenceSpecial.HEX_8,  /* \U */
 
-	[CharCode.CR]: EscapeSequenceSpecial.EOL,
-	[CharCode.LF]: EscapeSequenceSpecial.EMPTY,
+	[CharCode.CR]: EscapeSequenceSpecial.CR,
+	[CharCode.LF]: EscapeSequenceSpecial.LF,
 	[CharCode.TAB]: EscapeSequenceSpecial.EMPTY,
 	[CharCode.SPACE]: EscapeSequenceSpecial.EMPTY,
 	[CharCode.UNICODE_SPACE]: CharCode.SPACE,

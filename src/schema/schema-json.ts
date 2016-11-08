@@ -31,9 +31,12 @@ export class FromScalarFactory extends TypeFactory {
 	}
 
 	public resolveFromScalar(document: YamlDocument, value: Scalar): any {
-		let match = value.match(this.pattern)
-		if (match) {
-			return this.converter(document, match)
+		// console.log("resolveFromScalar", typeof value, value, !!value)
+		if (value) {
+			let match = value.match(this.pattern)
+			if (match) {
+				return this.converter(document, match)
+			}
 		}
 	}
 }

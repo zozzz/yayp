@@ -1,4 +1,4 @@
-# --- [skip]
+# --- [schema] test-type
 # --- [title] YAML Example / 6.23. Node Properties (1)
 
 !!str &a1 "foo":
@@ -7,4 +7,7 @@
 
 # --- [success] documents[0].content
 
-{"foo":"bar","baz":"foo"}
+{
+  "!<tag:yaml.org,2002:str>[QUOTED]\"foo\"": "!<tag:yaml.org,2002:str>[SCALAR](bar)",
+  "baz": "!<tag:yaml.org,2002:str>[QUOTED]\"foo\""
+}

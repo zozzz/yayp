@@ -1,3 +1,4 @@
+# --- [schema] test-type
 # --- [title] YAML Example / 6.24. Verbatim Tags (1)
 
 !<tag:yaml.org,2002:str> foo :
@@ -5,4 +6,4 @@
 
 # --- [success] documents[0].content
 
-{"!<tag:yaml.org,2002:str>[QUOTED]\"foo\"": "!<!bar>[QUOTED]\"baz\""}
+{"!<tag:yaml.org,2002:str>[SCALAR](foo)": "!<!bar>[SCALAR](baz)"}

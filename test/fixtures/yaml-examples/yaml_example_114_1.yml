@@ -1,3 +1,4 @@
+# --- [skip]
 # --- [title] YAML Example / 8.19. Compact Block Mappings (1)
 
 - sun: yellow
@@ -6,4 +7,12 @@
 
 # --- [success] documents[0].content
 
-[{"sun":"yellow"},{"[object Object]":{"moon":"white"}}]
+[
+  {"sun": "yellow"},
+  {
+    "{\"earth\":\"blue\"}": null,
+    "<null>" :{
+      "moon": "white"
+    }
+  }
+]

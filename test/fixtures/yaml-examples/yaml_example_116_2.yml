@@ -11,4 +11,4 @@
 
 # --- [success] documents[0].content
 
-{"literal": "value","folded": "!<!foo>[SCALAR](value)"}
+{"literal": "value","folded": "!<!foo>[QUOTED]\"value\""}

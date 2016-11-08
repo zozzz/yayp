@@ -2,8 +2,8 @@
 
 |
   Line break (no glyph)
-  Line break (glyphed)↓
+  Line break (glyphed)
 
 # --- [success] documents[0].content
 
-"Line break (no glyph)\nLine break (glyphed)↓\n"
+"Line break (no glyph)\nLine break (glyphed)\n"
