@@ -14,7 +14,7 @@ const IntFactory = new FromScalarFactory(
 		"^(?:",
 		"([+-]?)",				// group 1: sign
 		"(?:",
-		"([1-9][0-9]*)",	// group 2: int / base 10
+		"((?:[1-9][0-9]*)|0)",	// group 2: int / base 10
 		"|",
 		"(0o[0-7]+)",		// group 3: int / base 8
 		"|",
@@ -36,20 +36,7 @@ const IntFactory = new FromScalarFactory(
 )
 
 const FloatFactory = new FromScalarFactory(
-	new RegExp([
-		"^(?:",
-		"(?:",
-		"([+-]?)", // group 1: sign
-		"(",
-		"(?:\\.[0-9]+|[0-9]+(?:\\.[0-9]*)?)(?:[eE][+-]?[0-9]+)?",
-		")", // group 2: number
-		"|",
-		"(\\.(?:inf|Inf|INF))", // group 3: Infinity
-		")",
-		"|",
-		"(\\.(?:nan|NaN|NAN))", // group 4: NaN
-		")$"
-	].join("")),
+	/^(?:([+-]?)(?:((?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][+-]?[0-9]+)?)|(\.(?:inf|Inf|INF))|(\.(?:nan|NaN|NAN))))$/,
 	(document, match) => {
 		if (match[2]) {
 			let res = parseFloat(match[2])
@@ -80,7 +67,7 @@ const TimestampFactory = new FromScalarFactory(
 		"(?:",
 		"([0-9][0-9][0-9][0-9]-[0-9]{1,2}-[0-9]{1,2})",
 		"(?:[Tt]|[ \t]+)",
-		"([0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}(?:\\.\\d+)?)",
+		"([0-9]{1,2}:[0-9]{2}:[0-9]{2}(?:\\.\\d+)?)",
 		"(?:[ \t]*(?:(Z)|([-+][0-9]{1,2}(?::?[0-9]{1,2})?)))?",
 		")",
 		")$"

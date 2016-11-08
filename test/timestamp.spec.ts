@@ -1,5 +1,5 @@
-import {expect} from "chai"
-import {Loader, YamlDocument} from "../src"
+import { expect } from "chai"
+import { Loader, YamlDocument } from "../src"
 
 
 describe("Timestamp parsing", () => {
@@ -49,10 +49,10 @@ describe("Timestamp parsing", () => {
 		test("2016-12-05T", "2016-12-05T")
 		test("2016-12-05T1", "2016-12-05T1")
 		test("2016-12-05T12", "2016-12-05T12")
-		test("2016-12-05T12:", "2016-12-05T12:")
+		test("2016-12-05T12:", { "2016-12-05T12": null })
 		test("2016-12-05T12:3", "2016-12-05T12:3")
 		test("2016-12-05T12:33", "2016-12-05T12:33")
-		test("2016-12-05T12:33:", "2016-12-05T12:33:")
+		test("2016-12-05T12:33:", { "2016-12-05T12:33": null })
 		test("2016-12-05T12:33:4", "2016-12-05T12:33:4")
 
 		test("2016-12-05T12:33:44+", "2016-12-05T12:33:44+")

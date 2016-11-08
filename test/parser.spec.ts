@@ -1,5 +1,5 @@
-import {expect} from "chai"
-import {Loader, YamlDocument} from "../src"
+import { expect } from "chai"
+import { Loader, YamlDocument } from "../src"
 
 
 describe("Parser basics", () => {
@@ -72,5 +72,14 @@ describe("Parser basics", () => {
 			let d = new Loader(YamlDocument).load(x)
 			expect(d[0]).to.have.property("content").and.eql("Hello World:xy")
 		})
+
+		it("Block scalar EOF", () => {
+			let x = `
+|
+a`
+			let d = new Loader(YamlDocument).load(x)
+			expect(d[0]).to.have.property("content").and.eql("a")
+		})
 	})
+
 })

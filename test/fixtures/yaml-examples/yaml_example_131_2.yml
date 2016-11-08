@@ -4,7 +4,7 @@
 ---
 !!map {
   !!str "A null" : !!null "null",
-  !!str "Booleans: !!seq [
+  !!str "Booleans": !!seq [
     !!bool "true", !!bool "false"
   ],
   !!str "Integers": !!seq [

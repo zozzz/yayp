@@ -248,8 +248,8 @@ function createTestCase(file: FixtureFile): () => void {
 			let c = getObjPath(l, prop.property)
 			c = JSON.parse(JSON.stringify(c))
 
-			console.log(require("util").inspect(c, { depth: null }))
-			console.log(require("util").inspect(JSON.parse(prop.json), { depth: null }))
+			// console.log(require("util").inspect(c, { depth: null }))
+			// console.log(require("util").inspect(JSON.parse(prop.json), { depth: null }))
 
 			expect(c).to.be.eql(JSON.parse(prop.json))
 		}

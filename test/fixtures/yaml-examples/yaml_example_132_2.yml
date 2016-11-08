@@ -6,7 +6,7 @@
   !!str "A null" : !!null "null",
   !!str "Also a null" : !!null "",
   !!str "Not a null" : !!str "",
-  !!str "Booleans: !!seq [
+  !!str "Booleans": !!seq [
     !!bool "true", !!bool "True",
     !!bool "false", !!bool "FALSE",
   ],
