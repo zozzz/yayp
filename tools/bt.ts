@@ -99,43 +99,84 @@ function IS_WS_F(ch) {
 const SPACE = 32
 const Z = 90
 
-bt("Is Whitespace", {
-	"Array": () => {
-		let a = IS_WS_A[SPACE]
-		let b = IS_WS_A[Z]
-		return a && b
-	},
+if (0)
+	bt("Is Whitespace", {
+		"Array": () => {
+			let a = IS_WS_A[SPACE]
+			let b = IS_WS_A[Z]
+			return a && b
+		},
 
-	"Mapping": () => {
-		let a = IS_WS_M[SPACE]
-		let b = IS_WS_M[Z]
-		return a && b
-	},
+		"Mapping": () => {
+			let a = IS_WS_M[SPACE]
+			let b = IS_WS_M[Z]
+			return a && b
+		},
 
-	"Function": () => {
-		let a = IS_WS_F(SPACE)
-		let b = IS_WS_F(Z)
-		return a && b
-	},
+		"Function": () => {
+			let a = IS_WS_F(SPACE)
+			let b = IS_WS_F(Z)
+			return a && b
+		},
 
-	"Inline switch": () => {
-		let a, b
-		switch (SPACE as any) {
-			case 32: a = true; break
-			case 160: a = true; break
-			case 9: a = true; break
-			case 13: a = true; break
-			case 10: a = true; break
+		"Inline switch": () => {
+			let a, b
+			switch (SPACE as any) {
+				case 32: a = true; break
+				case 160: a = true; break
+				case 9: a = true; break
+				case 13: a = true; break
+				case 10: a = true; break
+			}
+
+			switch (Z as any) {
+				case 32: b = true; break
+				case 160: b = true; break
+				case 9: b = true; break
+				case 13: b = true; break
+				case 10: b = true; break
+			}
+
+			return a && b
 		}
+	})
 
-		switch (Z as any) {
-			case 32: b = true; break
-			case 160: b = true; break
-			case 9: b = true; break
-			case 13: b = true; break
-			case 10: b = true; break
+
+const BOOL_RX = /true|True|TRUE|false|False|FALSE/
+const BOOL_ARRAY = ["true", "True", "TRUE", "false", "False", "FALSE"]
+const BOOL_MAP = { "true": true, "True": true, "TRUE": true, "false": true, "False": true, "FALSE": true }
+const BOOL_VALUE = "TRUE"
+
+bt("Regex vs indexOf vs Mapping", {
+	"regex": () => {
+		if (BOOL_RX.test(BOOL_VALUE)) {
+			return true
 		}
+	},
 
-		return a && b
+	"array": () => {
+		if (BOOL_ARRAY.indexOf(BOOL_VALUE) > -1) {
+			return true
+		}
+	},
+
+	"map": () => {
+		let v
+		if ((v = BOOL_MAP[BOOL_VALUE]) !== undefined) {
+			return v
+		}
+	},
+
+	"map2": () => {
+		let v = BOOL_MAP[BOOL_VALUE]
+		if (typeof v !== "undefined") {
+			return v
+		}
+	},
+
+	"map3": () => {
+		if (BOOL_MAP.hasOwnProperty(BOOL_VALUE)) {
+			return BOOL_MAP[BOOL_VALUE]
+		}
 	}
 })

@@ -4,7 +4,7 @@
 class AbstractSchema {
 	protected scalarDecision: {[key: int]: ScalarResolver}
 
-	public constructor(public readonly tags, public readonly scalars) {
+	public constructor(public readonly tags, public readonly scalars: ScalarResolver[]) {
 
 	}
 
