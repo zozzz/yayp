@@ -5,13 +5,15 @@ import { ITypeFactory } from "./handler"
 import {
 	CharCode,
 	EscapeSequenceSpecial,
-	IS_NBS,
-	IS_EOL,
-	IS_WS,
-	IS_INDICATOR,
-	IS_SCALAR_FIRST_CHAR_DECISION,
-	IS_FLOW_INDICATOR,
-	IS_DIGIT,
+
+	isNBS,
+	isWS,
+	isEOL,
+	isScalarDisallowedFirstChar,
+	isIndicator,
+	isFlowIndicator,
+	isDigit,
+
 	ESCAPE_SEQUENCE,
 
 	RX_NS_CHARS,
@@ -191,7 +193,7 @@ export class Parser {
 			case CharCode.ASTERIX: return this.alias()
 			case CharCode.QUESTION: return this.explicitKey(false)
 			case CharCode.DASH:
-				if (IS_WS[this.data.charCodeAt(this.offset + 1)]) {
+				if (isWS(this.data.charCodeAt(this.offset + 1))) {
 					return this.blockSequence()
 				} else {
 					if (this.isDocumentSeparator(this.offset)) {
@@ -217,7 +219,7 @@ export class Parser {
 		if ((ch === CharCode.DOT || ch === CharCode.DASH)
 			&& this.data.charCodeAt(offset + 1) === ch
 			&& this.data.charCodeAt(offset + 2) === ch
-			&& IS_WS[this.data.charCodeAt(offset + 3)]) {
+			&& isWS(this.data.charCodeAt(offset + 3))) {
 			this.offset = offset + 3
 			this._documentState = ch === CharCode.DOT ? DocumentState.CLOSED : DocumentState.NEW_STARTED
 			return true
@@ -432,7 +434,7 @@ export class Parser {
 			return false
 		}
 
-		while (IS_NBS[this.data.charCodeAt(this.offset++)]); --this.offset;
+		while (isNBS(this.data.charCodeAt(this.offset++))); --this.offset;
 
 		if (!this._explicitKey && this.data.charCodeAt(this.offset) === CharCode.COLON) {
 			return true
@@ -460,7 +462,7 @@ export class Parser {
 				case PeekResult.SAME_INDENT:
 					if (hasColon &&
 						this.data.charCodeAt(this.offset) === CharCode.DASH &&
-						IS_WS[this.data.charCodeAt(this.offset + 1)]) {
+						isWS(this.data.charCodeAt(this.offset + 1))) {
 
 						handler.onMappingKey(mapping, mappingKey, this.parseValue(column))
 
@@ -471,7 +473,7 @@ export class Parser {
 						handler.onMappingKey(mapping, mappingKey, null)
 					}
 
-					if (this._inFlowSequence && !IS_FLOW_INDICATOR[this.data.charCodeAt(this.offset)]) {
+					if (this._inFlowSequence && !isFlowIndicator(this.data.charCodeAt(this.offset))) {
 						this.error("Missed comma between flow collection entries")
 					}
 
@@ -491,7 +493,7 @@ export class Parser {
 					handler.onMappingKey(mapping, mappingKey, this.parseValue(column + 1))
 
 					if (this.peek(column) === PeekResult.SAME_INDENT) {
-						if (this._inFlowSequence && !IS_FLOW_INDICATOR[this.data.charCodeAt(this.offset)]) {
+						if (this._inFlowSequence && !isFlowIndicator(this.data.charCodeAt(this.offset))) {
 							this.error("Missed comma between flow collection entries")
 						}
 
@@ -529,7 +531,7 @@ export class Parser {
 				--this._implicitKey
 		}
 
-		while (IS_NBS[this.data.charCodeAt(this.offset++)]); --this.offset;
+		while (isNBS(this.data.charCodeAt(this.offset++))); --this.offset;
 		return key
 	}
 
@@ -786,7 +788,7 @@ export class Parser {
 					continue endless
 
 				case CharCode.HASH:
-					if (IS_WS[data.charCodeAt(position - 1)]) {
+					if (isWS(data.charCodeAt(position - 1))) {
 						endAt = position - 1
 						let commentStart = ++position
 
@@ -802,7 +804,7 @@ export class Parser {
 				case CharCode.COLON:
 					ch = data.charCodeAt(position + 1)
 					// block mapping key
-					if (IS_WS[ch] || ((this._inFlowMapping || this._inFlowSequence) && IS_FLOW_INDICATOR[ch])) {
+					if (isWS(ch) || ((this._inFlowMapping || this._inFlowSequence) && isFlowIndicator(ch))) {
 						// a kulcs közbeni sortörések figyelmen kívül hagyása
 						if ((this._explicitKey && !firstCharRule) || this._inFlowMapping) {
 							lastNl = null
@@ -816,9 +818,9 @@ export class Parser {
 					if (firstCharRule) {
 						firstCharRule = false
 
-						if (IS_SCALAR_FIRST_CHAR_DECISION[ch]) {
+						if (isScalarDisallowedFirstChar(ch)) {
 							ch = data.charCodeAt(position + 1)
-							if (IS_INDICATOR[ch] || IS_WS[ch]) {
+							if (isIndicator(ch) || isWS(ch)) {
 								if (lastNl === null) {
 									this.offset = position
 									return null
@@ -834,7 +836,7 @@ export class Parser {
 						startAt = position
 					}
 
-					if ((this._inFlowMapping || this._inFlowSequence) && IS_FLOW_INDICATOR[ch]) {
+					if ((this._inFlowMapping || this._inFlowSequence) && isFlowIndicator(ch)) {
 						lastNl = null
 						break endless
 					}
@@ -847,6 +849,7 @@ export class Parser {
 			this.offset = position = lastNl
 		}
 
+		// TODO: remove replace
 		data = data.slice(startAt, (endAt === null ? position : endAt)).trim()
 			.replace(/[ \t]*\r?\n[ \t]*/g, "\n") // a sortörések normalizálása
 			.replace(/([^\n])\n(?!\n)/g, "$1 ") // egy sortörés space-re cserélése
@@ -867,7 +870,7 @@ export class Parser {
 			chomping: Chomping = Chomping.CLIP
 
 		// TODO: more digit??? pls...
-		if (IS_DIGIT[ch]) {
+		if (isDigit(ch)) {
 			indentStartAtColumn = parseInt(data[this.offset], 10) + 1
 			if (indentStartAtColumn <= 0) {
 				this.error("Bad explicit indentation width of a block scalar; it cannot be less than 1")
@@ -884,7 +887,7 @@ export class Parser {
 			++this.offset
 		}
 
-		while (IS_NBS[data.charCodeAt(this.offset++)]); --this.offset;
+		while (isNBS(data.charCodeAt(this.offset++))); --this.offset;
 
 		if (data.charCodeAt(this.offset) === CharCode.HASH) {
 			let commentStart = this.offset
@@ -894,7 +897,7 @@ export class Parser {
 			this.loader.onComment(data.slice(commentStart + 1, this.offset).trim())
 		} else {
 			// Eat non linebreaks
-			while (IS_NBS[data.charCodeAt(this.offset++)]); --this.offset;
+			while (isNBS(data.charCodeAt(this.offset++))); --this.offset;
 		}
 
 		let position = this.offset - 1,
@@ -915,7 +918,7 @@ export class Parser {
 								startAt = position + 1
 							}
 
-							if ((chomping === Chomping.STRIP ? IS_WS : IS_NBS)[data.charCodeAt(position + 1)]) {
+							if ((chomping === Chomping.STRIP ? isWS : isNBS)(data.charCodeAt(position + 1))) {
 								continue peek
 							} else {
 								break peek
@@ -986,11 +989,11 @@ export class Parser {
 				}
 			} else if (isFolded) {
 				if (inFoldedMoreIndentedBlock) {
-					if (!IS_NBS[lineData.charCodeAt(0)]) {
+					if (!isNBS(lineData.charCodeAt(0))) {
 						inFoldedMoreIndentedBlock = false
 					}
 					result += eolSymbols
-				} else if (IS_NBS[lineData.charCodeAt(0)]) {
+				} else if (isNBS(lineData.charCodeAt(0))) {
 					inFoldedMoreIndentedBlock = true
 					result += eolSymbols
 				} else if (eolSymbols.length > 1) {
@@ -1048,21 +1051,21 @@ export class Parser {
 				case " ":
 				case "\t":
 					let spaceStart = offset
-					while (IS_NBS[data.charCodeAt(++offset)]);
+					while (isNBS(data.charCodeAt(++offset)));
 
-					if (IS_EOL[data.charCodeAt(spaceStart - 1)]) {	// beginning of a line
-						if (IS_EOL[data.charCodeAt(offset)]) {		// empty line
+					if (isEOL(data.charCodeAt(spaceStart - 1))) {	// beginning of a line
+						if (isEOL(data.charCodeAt(offset))) {		// empty line
 							--offset
 							continue endless
 						}
 
-						if (!IS_WS[result.charCodeAt(result.length - 1)] || escaped[result.length - 1]) {
+						if (!isWS(result.charCodeAt(result.length - 1)) || escaped[result.length - 1]) {
 							result += " "
 						}
 						--offset
 						continue endless
 					} else { 									// spaces in line
-						if (IS_EOL[data.charCodeAt(offset)]) {	// spaces at end of line
+						if (isEOL(data.charCodeAt(offset))) {	// spaces at end of line
 							--offset
 							continue endless
 						} else {
@@ -1073,7 +1076,7 @@ export class Parser {
 					break
 
 				case "\\":
-					if (eolCount === 1 && !IS_WS[result.charCodeAt(result.length - 1)]) {
+					if (eolCount === 1 && !isWS(result.charCodeAt(result.length - 1))) {
 						result += " "
 					}
 					eolCount = 0
@@ -1107,7 +1110,7 @@ export class Parser {
 
 							case EscapeSequenceSpecial.LF:
 								result += ""
-								while (IS_NBS[data.charCodeAt(++offset)]); --offset;
+								while (isNBS(data.charCodeAt(++offset))); --offset;
 
 								// Example 7.5. Double Quoted Line Breaks
 								if (data.charCodeAt(offset + 1) === CharCode.BACKSLASH
@@ -1141,7 +1144,7 @@ export class Parser {
 						}
 					}
 
-					if (eolCount === 1 && !IS_WS[result.charCodeAt(result.length - 1)]) {
+					if (eolCount === 1 && !isWS(result.charCodeAt(result.length - 1))) {
 						result += " "
 					}
 
@@ -1153,7 +1156,7 @@ export class Parser {
 					return null
 
 				default:
-					if (eolCount === 1 && !IS_WS[result.charCodeAt(result.length - 1)]) {
+					if (eolCount === 1 && !isWS(result.charCodeAt(result.length - 1))) {
 						result += " "
 					}
 					eolCount = 0

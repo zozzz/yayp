@@ -48,80 +48,68 @@ export const enum CharCode {
 }
 
 
-export const IS_NBS: { [key: number]: boolean } = {
-	[CharCode.SPACE]: true,
-	[CharCode.UNICODE_SPACE]: true,
-	[CharCode.TAB]: true
+export function isNBS(ch: number): boolean {
+	return CharCode.SPACE === ch
+		|| CharCode.TAB === ch
+		|| CharCode.UNICODE_SPACE === ch
+}
+
+export function isEOL(ch: number): boolean {
+	return CharCode.CR === ch
+		|| CharCode.LF === ch
+}
+
+export function isWS(ch: number): boolean {
+	return CharCode.SPACE === ch
+		|| CharCode.TAB === ch
+		|| CharCode.CR === ch
+		|| CharCode.LF === ch
+		|| CharCode.UNICODE_SPACE === ch
 }
 
 
-export const IS_EOL: { [key: number]: boolean } = {
-	[CharCode.CR]: true,
-	[CharCode.LF]: true,
-	[NaN]: true // EOF
+export function isScalarDisallowedFirstChar(ch: number): boolean {
+	return CharCode.DASH === ch
+		|| CharCode.QUESTION === ch
+		|| CharCode.COMMA === ch
 }
 
 
-export const IS_WS: { [key: number]: boolean } = {
-	[CharCode.SPACE]: true,
-	[CharCode.UNICODE_SPACE]: true,
-	[CharCode.TAB]: true,
-	[CharCode.CR]: true,
-	[CharCode.LF]: true
+export function isIndicator(ch: number): boolean {
+	return CharCode.DASH === ch
+		|| CharCode.QUESTION === ch
+		|| CharCode.COLON === ch
+		|| CharCode.COMMA === ch
+		|| CharCode.LBRACKET === ch
+		|| CharCode.RBRACKET === ch
+		|| CharCode.LBRACE === ch
+		|| CharCode.RBRACE === ch
+		|| CharCode.HASH === ch
+		|| CharCode.AMPERSAND === ch
+		|| CharCode.ASTERIX === ch
+		|| CharCode.EXCLAMATION === ch
+		|| CharCode.PIPE === ch
+		|| CharCode.RANGLE === ch
+		|| CharCode.LANGLE === ch
+		|| CharCode.QUOTE_SINGLE === ch
+		|| CharCode.QUOTE_DOUBLE === ch
+		|| CharCode.PERCENT === ch
+		|| CharCode.AT === ch
+		|| CharCode.BACKTICK === ch
 }
 
 
-export const IS_INDICATOR: { [key: number]: boolean } = {
-	[CharCode.DASH]: true,
-	[CharCode.QUESTION]: true,
-	[CharCode.COLON]: true,
-	[CharCode.COMMA]: true,
-	[CharCode.LBRACKET]: true,
-	[CharCode.RBRACKET]: true,
-	[CharCode.LBRACE]: true,
-	[CharCode.RBRACE]: true,
-	[CharCode.HASH]: true,
-	[CharCode.AMPERSAND]: true,
-	[CharCode.ASTERIX]: true,
-	[CharCode.EXCLAMATION]: true,
-	[CharCode.PIPE]: true,
-	[CharCode.RANGLE]: true,
-	[CharCode.LANGLE]: true,
-	[CharCode.QUOTE_SINGLE]: true,
-	[CharCode.QUOTE_DOUBLE]: true,
-	[CharCode.PERCENT]: true,
-	[CharCode.AT]: true,
-	[CharCode.BACKTICK]: true
+export function isFlowIndicator(ch: number): boolean {
+	return CharCode.COMMA === ch
+		|| CharCode.LBRACKET === ch
+		|| CharCode.RBRACKET === ch
+		|| CharCode.LBRACE === ch
+		|| CharCode.RBRACE === ch
 }
 
 
-export const IS_SCALAR_FIRST_CHAR_DECISION: { [key: number]: boolean } = {
-	[CharCode.DASH]: true,
-	[CharCode.QUESTION]: true,
-	[CharCode.COMMA]: true
-}
-
-
-export const IS_FLOW_INDICATOR: { [key: number]: boolean } = {
-	[CharCode.COMMA]: true,
-	[CharCode.LBRACKET]: true,
-	[CharCode.RBRACKET]: true,
-	[CharCode.LBRACE]: true,
-	[CharCode.RBRACE]: true,
-}
-
-
-export const IS_DIGIT: { [key: number]: boolean } = {
-	[0x30]: true,
-	[0x31]: true,
-	[0x32]: true,
-	[0x33]: true,
-	[0x34]: true,
-	[0x35]: true,
-	[0x36]: true,
-	[0x37]: true,
-	[0x38]: true,
-	[0x39]: true
+export function isDigit(ch: number): boolean {
+	return ch > 0x2F && ch < 0x3A
 }
 
 
