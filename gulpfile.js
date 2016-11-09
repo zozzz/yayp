@@ -97,7 +97,15 @@ gulp.task("copy-test-files", function () {
 })
 
 
-gulp.task("prepare-test", ["compile", "copy-test-files"])
+gulp.task("prepare-test", ["compile-ts", "copy-test-files"], function () {
+    return gulp.src("./dist/**/*.js", { base: "./dist" })
+        .pipe(sourcemaps.init())
+        .pipe(babel({
+            presets: ["node6"]
+        }))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest("./dist"))
+})
 
 
 gulp.task("pre-test", ["prepare-test"], function () {
