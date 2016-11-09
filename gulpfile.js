@@ -20,11 +20,11 @@ var tsProject = ts.createProject("tsconfig.json");
 
 gulp.task("compile-ts", function () {
     var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], { base: "." })
-        .pipe(newer({
-            dest: "dist",
-            ext: ".js",
-            extra: ["gulpfile.js", "package.json", "tsconfig.json"]
-        }))
+        // .pipe(newer({
+        //     dest: "dist",
+        //     ext: ".js",
+        //     extra: ["gulpfile.js", "package.json", "tsconfig.json"]
+        // }))
         .pipe(sourcemaps.init())
         .pipe(tsProject())
 

@@ -53,16 +53,19 @@ type Runner = {
 function* runners(): Iterable<Runner> {
 	yield currentVersionRunner()
 	yield jsYaml()
+	yield yamlJs()
 }
 
 
 function currentVersionRunner(): Runner {
 	let yayp = require("../lib"),
-		pckg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "UTF-8"))
+		pckg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "UTF-8")),
+		loader = new yayp.Loader(yayp.YamlDocument)
+
 
 	return {
 		title: `yayp@${pckg.version}`,
-		run: yayp.load
+		run: loader.load.bind(loader)
 	}
 }
 
@@ -78,8 +81,19 @@ function jsYaml() {
 }
 
 
+function yamlJs() {
+	let yaml = require("yaml-js"),
+		pckg = JSON.parse(fs.readFileSync(path.join(__dirname, "node_modules", "yaml-js", "package.json"), "UTF-8"))
+
+	return {
+		title: `yaml-js@${pckg.version}`,
+		run: yaml.load
+	}
+}
+
+
 for (let p of fs.readdirSync(FILES_PATH).sort()) {
-	if (/\.yaml$/i.test(p)) {
+	if (/\.yaml$/i.test(p) && p === "document_nodeca_application.yaml") {
 		runSample(path.join(FILES_PATH, p))
 		break
 	}

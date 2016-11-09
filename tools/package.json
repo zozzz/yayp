@@ -8,11 +8,15 @@
     "benchmark": "^2.1.2",
     "js-yaml": "^3.6.1",
     "jsdom": "^9.8.0",
+    "nodegrind": "^0.6.2",
     "ts-node": "^1.6.1",
-    "typescript": "^2.0.6"
+    "typescript": "^2.0.6",
+    "yaml-js": "^0.1.4"
   },
   "scripts": {
     "examples": "ts-node yaml-examples.ts",
-    "bench": " gulp --cwd .. compile && ts-node benchmark.ts"
+    "bt": "ts-node bt.ts",
+    "profile": "gulp --cwd .. compile && nodegrind -o callgrind.out profile.js && kcachegrind callgrind.out",
+    "bench": "gulp --cwd .. compile && ts-node benchmark.ts"
   }
 }

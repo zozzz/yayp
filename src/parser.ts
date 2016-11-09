@@ -92,6 +92,7 @@ export class Parser {
 	}
 
 	public parse(data: string, fileName: string): YamlDocument[] {
+		this._documentState = DocumentState.NEW_STARTED
 		this.linePosition = 0
 		this.offset = 0
 		this.data = (data.charCodeAt(0) === CharCode.BOM ? data.slice(1) : data)
@@ -178,26 +179,18 @@ export class Parser {
 	}
 
 	protected parseValue(minColumn?: number): any {
-		switch (this.data[this.offset]) {
-			case "'": return this.quotedString("'")
-			case "\"": return this.quotedString("\"")
-			case "[": return this.flowSequence()
-			case "{": return this.flowMapping()
-			case "|": return this.blockScalar(minColumn, false)
-			case ">": return this.blockScalar(minColumn, true)
-			case "!":
-				// if (this._tagFactory) {
-				// 	this.error("Tag constructors not supporting from tag values")
-				// }
-				return this.tag()
-			case "&": return this.anchor()
-			case "*":
-				// if (this._tagFactory) {
-				// 	this.error("Tag constructors not supporting from alias")
-				// }
-				return this.alias()
-			case "?": return this.explicitKey(false)
-			case "-":
+		switch (this.data.charCodeAt(this.offset)) {
+			case CharCode.QUOTE_SINGLE: return this.quotedString("'")
+			case CharCode.QUOTE_DOUBLE: return this.quotedString("\"")
+			case CharCode.LBRACKET: return this.flowSequence()
+			case CharCode.LBRACE: return this.flowMapping()
+			case CharCode.PIPE: return this.blockScalar(minColumn, false)
+			case CharCode.RANGLE: return this.blockScalar(minColumn, true)
+			case CharCode.EXCLAMATION: return this.tag()
+			case CharCode.AMPERSAND: return this.anchor()
+			case CharCode.ASTERIX: return this.alias()
+			case CharCode.QUESTION: return this.explicitKey(false)
+			case CharCode.DASH:
 				if (IS_WS[this.data.charCodeAt(this.offset + 1)]) {
 					return this.blockSequence()
 				} else {
@@ -206,13 +199,13 @@ export class Parser {
 					}
 					return this.scalar()
 				}
-			case ".":
+			case CharCode.DOT:
 				if (this.isDocumentSeparator(this.offset)) {
 					return this.popHandler().onScalar(null)
 				}
 				return this.scalar()
-			case "@": return this.error("reserved character '@'")
-			case "`": return this.error("reserved character '`'")
+			case CharCode.AT: return this.error("reserved character '@'")
+			case CharCode.BACKTICK: return this.error("reserved character '`'")
 			case undefined: return this.popHandler().onScalar(null) // EOF
 			default: return this.scalar()
 		}
@@ -709,33 +702,13 @@ export class Parser {
 		}
 	}
 
-	/**
-	 * A következő sorba mozgatja az aktuális pozíciót.
-	 *
-	 * Olyan módon csinálja ezt, hogy ha az aktuális sorban csak comment vagy whitespace
-	 * karakter van akkor megy a következő sor elejére. Ha az aktuális sor
-	 * szóközökkel kezdődik akkor a pozíciót tovább löki a legelső nem szóköz karakterre.
-	 *
-	 * @returns Az összes következő feltétel teljesülése után vissza tér az aktuális sor
-	 * 			első nem szóköz karakterének a pozíciójával a soron belül:
-	 *
-	 *  - Sikerült új sorba mozgatni a pzíciót
-	 *  - Ha megvolt adva a __minColumn__ paraméter akkor
-	 *    legalább ennyi szóköznek kell szerpelnie a következő sor elején
-	 *
-	 *  Ha nem teljesül akkor *false* értékkel tér vissza és
-	 *  a pozíciót is visszaállítja az utolsó whitespace utáni karakter
-	 * 	pozíciójára a kiinduális pozíciótól nézve.
-	 */
-
-
-
-	// át kell alakítani, hogy a PeekResult értékekkel térjen vissza
 	private peek(minColumn: number): PeekResult {
 		let data = this.data,
-			start = this.offset,
-			pos = start,
-			linePosition = null
+			pos = this.offset,
+			linePosition = null,
+			column
+
+		// 8.43
 
 		while (true) {
 			switch (data.charCodeAt(pos++)) {
@@ -752,13 +725,9 @@ export class Parser {
 					break
 
 				case CharCode.HASH:
-					// TODO: maybe merge comments
-					let commentStart = pos,
-						ch
+					let commentStart = pos, ch
 					// eat all chars expect linebreaks
-					do {
-						ch = data.charCodeAt(pos++)
-					} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
+					while ((ch = data[pos++]) && ch !== "\r" && ch !== "\n");
 					--pos // backtrack to CR or LF char
 					this.loader.onComment(data.slice(commentStart, pos))
 					break
@@ -769,12 +738,12 @@ export class Parser {
 					}
 					break
 
-				case undefined:
-					return PeekResult.DECREASE_INDENT
-
 				default:
-					if (linePosition !== null) {
-						let column = pos - linePosition
+					if (linePosition === null) {
+						this.offset = pos - 1
+						return PeekResult.SAME_LINE
+					} else {
+						column = pos - linePosition
 
 						if (minColumn === column) {
 							this.linePosition = linePosition
@@ -787,9 +756,6 @@ export class Parser {
 						} else {
 							return PeekResult.DECREASE_INDENT
 						}
-					} else {
-						this.offset = pos - 1
-						return PeekResult.SAME_LINE
 					}
 			}
 		}

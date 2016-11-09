@@ -6,6 +6,7 @@ coverage
 html-report
 tools/node_modules
 npm-debug.log
+callgrind.out
 .vscode
 .coverage
 .coveralls.yml
