@@ -1,5 +1,6 @@
 var path = require("path")
 
+var typescript = require("typescript")
 var gulp = require("gulp")
 var ts = require("gulp-typescript")
 var merge = require("merge2")
@@ -15,31 +16,45 @@ var rollup = require("gulp-rollup")
 var rollupNodeResolve = require("rollup-plugin-node-resolve")
 var babel = require("gulp-babel")
 
-var tsProject = ts.createProject("tsconfig.json");
 
+function createCompileTS(name, opts) {
+    var tsProject = ts.createProject("tsconfig.json", opts.ts);
 
-gulp.task("compile-ts", function () {
-    var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], { base: "." })
-        // .pipe(newer({
-        //     dest: "dist",
-        //     ext: ".js",
-        //     extra: ["gulpfile.js", "package.json", "tsconfig.json"]
-        // }))
-        .pipe(sourcemaps.init())
-        .pipe(tsProject())
+    gulp.task(name, function () {
+        var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], { base: "." })
 
-    return merge([
-        result.js
-            .pipe(sourcemaps.write(".", {
-                mapSources: function (sourcePath) {
-                    return __dirname + sourcePath.substr(2)
-                }
+        if (opts.test) {
+            result = result.pipe(newer({
+                dest: "dist",
+                ext: ".js",
+                extra: ["gulpfile.js", "package.json", "tsconfig.json"]
             }))
-            .pipe(gulp.dest("dist")),
+        }
 
-        result.dts
-            .pipe(gulp.dest("dist/dts"))
-    ])
+        result = result.pipe(sourcemaps.init())
+        result = result.pipe(tsProject())
+
+        return merge([
+            result.js
+                .pipe(sourcemaps.write(".", {
+                    mapSources: function (sourcePath) {
+                        return __dirname + sourcePath.substr(2)
+                    }
+                }))
+                .pipe(gulp.dest("dist")),
+
+            result.dts
+                .pipe(gulp.dest("dist/dts"))
+        ])
+    })
+}
+
+createCompileTS("compile-ts", {})
+createCompileTS("compile-ts-for-test", {
+    test: true,
+    ts: {
+        module: "commonjs"
+    }
 })
 
 
@@ -81,7 +96,11 @@ gulp.task("compile", ["rollup"], function () {
         .pipe(babel({
             presets: ["node6"]
         }))
-        .pipe(sourcemaps.write())
+        .pipe(sourcemaps.write(".", sourcemaps.write(".", {
+            mapSources: function (sourcePath) {
+                return __dirname + sourcePath.substr(2)
+            }
+        })))
         .pipe(gulp.dest("./lib"))
 })
 
@@ -97,14 +116,8 @@ gulp.task("copy-test-files", function () {
 })
 
 
-gulp.task("prepare-test", ["compile-ts", "copy-test-files"], function () {
-    return gulp.src("./dist/**/*.js", { base: "./dist" })
-        .pipe(sourcemaps.init())
-        .pipe(babel({
-            presets: ["node6"]
-        }))
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest("./dist"))
+gulp.task("prepare-test", ["compile-ts-for-test", "copy-test-files"], function () {
+
 })
 
 
