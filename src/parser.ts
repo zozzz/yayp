@@ -9,6 +9,7 @@ import {
 	isNBS,
 	isWS,
 	isEOL,
+	isPeekEOL,
 	isScalarDisallowedFirstChar,
 	isIndicator,
 	isFlowIndicator,
@@ -80,6 +81,7 @@ export class Parser {
 	protected documents: YamlDocument[]
 	protected doc: YamlDocument
 	protected linePosition: number
+	// protected column: number
 
 	private _inFlowSequence: number = 0
 	private _inFlowMapping: number = 0
@@ -675,6 +677,59 @@ export class Parser {
 
 	private peek(minColumn: number): PeekResult {
 		let data = this.data,
+			position = this.offset - 1,
+			linePosition = null,
+			column,
+			ch
+
+		while (isNBS(ch = data.charCodeAt(++position)));
+
+		if (CharCode.CR === ch || CharCode.LF === ch || CharCode.HASH === ch) {
+			while (true) {
+				switch (ch) {
+					case CharCode.CR:
+						if (data.charCodeAt(position + 1) === CharCode.LF) {
+							++position
+						}
+					case CharCode.LF:
+						linePosition = position + 1
+						break
+
+					case CharCode.HASH:
+						let commentStart = position + 1
+						// eat all chars expect linebreaks
+						while ((ch = data[++position]) && ch !== "\r" && ch !== "\n");
+						ch = data.charCodeAt(position) // backtrack to CR or LF char
+						this.loader.onComment(data.slice(commentStart, position).trim())
+						continue
+
+					default:
+						column = position + 1 - linePosition
+
+						if (minColumn === column) {
+							this.linePosition = linePosition
+							this.offset = position
+							return PeekResult.SAME_INDENT
+						} else if (minColumn < column) {
+							this.linePosition = linePosition
+							this.offset = position
+							return PeekResult.INCREASE_INDENT
+						} else {
+							this.offset = linePosition - 1 // last newline char
+							return PeekResult.DECREASE_INDENT
+						}
+				}
+
+				while (isNBS(ch = data.charCodeAt(++position)));
+			}
+		} else {
+			this.offset = position
+			return PeekResult.SAME_LINE
+		}
+	}
+
+	private __peek(minColumn: number): PeekResult {
+		let data = this.data,
 			pos = this.offset,
 			linePosition = null,
 			column
@@ -731,6 +786,73 @@ export class Parser {
 			}
 		}
 	}
+
+	// protected ___readScalar() {
+	// 	let position = this.offset,
+	// 		startAt = position,
+	// 		data = this.data,
+	// 		ch = data.charCodeAt(position)
+
+	// 	endless: while (true) {
+	// 		switch (ch) {
+	// 			case CharCode.CR:
+	// 				if (data.charCodeAt(position + 1) === CharCode.LF) {
+	// 					++position
+	// 				}
+	// 			case CharCode.LF:
+	// 				lastNl = position
+	// 				continue endless
+
+	// 			case CharCode.HASH:
+	// 				if (isWS(data.charCodeAt(position - 1))) {
+	// 					endAt = position - 1
+	// 					let commentStart = ++position
+
+	// 					do {
+	// 						ch = data.charCodeAt(++position)
+	// 					} while (ch && ch !== CharCode.CR && ch !== CharCode.LF)
+	// 					this.loader.onComment(data.slice(commentStart, position).trim())
+	// 					break endless
+	// 				} else {
+	// 					continue endless
+	// 				}
+
+	// 			case CharCode.COLON:
+	// 				ch = data.charCodeAt(position + 1)
+	// 				// block mapping key
+	// 				if (isWS(ch) || ((this._inFlowMapping || this._inFlowSequence) && isFlowIndicator(ch))) {
+	// 					// a kulcs közbeni sortörések figyelmen kívül hagyása
+	// 					if ((this._explicitKey && !firstCharRule) || this._inFlowMapping) {
+	// 						lastNl = null
+	// 					}
+	// 					break endless
+	// 				} else {
+	// 					continue endless
+	// 				}
+	// 		}
+
+	// 		while (isWS(ch = data.charCodeAt(++position)));
+
+	// 		// csak akkor kell ha van sortörés, minden egyéb esetet már a parseValue lekezelt
+	// 		// XXX-1
+	// 		if (isScalarDisallowedFirstChar(ch)) {
+	// 			ch = data.charCodeAt(position + 1)
+	// 			if (isIndicator(ch) || isWS(ch)) {
+	// 				if (lastNl === null) {
+	// 					this.offset = position
+	// 					return null
+	// 				}
+	// 				break endless
+	// 			}
+	// 		} else if (this.isDocumentSeparator(position)) {
+	// 			break endless
+	// 		}
+	// 		// XXX-1
+
+
+
+	// 	}
+	// }
 
 	protected readScalar() {
 		let startAt = this.offset,

@@ -59,6 +59,14 @@ export function isEOL(ch: number): boolean {
 		|| CharCode.LF === ch
 }
 
+
+export function isPeekEOL(ch: number): boolean {
+	return CharCode.CR === ch
+		|| CharCode.LF === ch
+		|| CharCode.HASH === ch
+}
+
+
 export function isWS(ch: number): boolean {
 	return CharCode.SPACE === ch
 		|| CharCode.TAB === ch

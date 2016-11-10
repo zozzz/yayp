@@ -93,7 +93,7 @@ function yamlJs() {
 
 
 for (let p of fs.readdirSync(FILES_PATH).sort()) {
-	if (/\.yaml$/i.test(p) && p === "random_data.yaml") {
+	if (/\.yaml$/i.test(p)) {
 		runSample(path.join(FILES_PATH, p))
 	}
 }
