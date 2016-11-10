@@ -1,3 +1,4 @@
+# --- [schema] test-type
 # --- [title] YAML Example / 2.25. Unordered Sets (1)
 
 # Sets are represented as a
@@ -10,4 +11,11 @@
 
 # --- [success] documents[0].content
 
-{"Mark McGwire":null,"Sammy Sosa":null,"Ken Griff":null}
+{
+  "$type": "!<tag:yaml.org,2002:set>",
+  "$mapping": {
+    "Mark McGwire": null,
+    "Sammy Sosa": null,
+    "Ken Griff": null
+  }
+}

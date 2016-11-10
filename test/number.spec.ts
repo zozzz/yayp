@@ -21,8 +21,8 @@ describe("Number parsing", () => {
 		})
 	}
 
-	function floatTest(num: string) {
-		let v = parseFloat(num)
+	function floatTest(num: string, v?: number) {
+		v = v === undefined ? parseFloat(num) : v
 		it(`FLOAT: ${num}`, () => {
 			let d = new Loader(YamlDocument).load(`${num}`)
 			expect(d[0]).to.have.property("content").and.eql(v)
@@ -52,10 +52,23 @@ describe("Number parsing", () => {
 	floatTest(".01")
 	floatTest("1e2")
 	floatTest("1.1e2")
+	floatTest("6.8523015e+5", 685230.15)
+	floatTest("685.230_15e+03", 685230.15)
+	floatTest("685_230.15", 685230.15)
+	floatTest("190:20:30.15", 685230.15)
+
+	floatTest(".Inf", Infinity)
+
+	// floatTest("1:60", )
 
 	it("HEX: 0x00CC33", () => {
 		let d = new Loader(YamlDocument).load(`0x00CC33`)
 		expect(d[0]).to.have.property("content").and.eql(0x00CC33)
+	})
+
+	it("NaN", () => {
+		let d = new Loader(YamlDocument).load(`.NaN`)
+		expect(d[0]).to.have.property("content").and.eql(NaN)
 	})
 
 	it("OCT: 0o00123", () => {

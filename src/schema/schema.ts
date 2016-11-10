@@ -8,7 +8,7 @@ export type TagMap = { [key: string]: TypeFactory }
 
 export interface ISchema {
 	/**
-	 * The system use this member to speed up well qualified names, like: !!str
+	 * The system use this member to speed up well qualified name resolves, like: tag:yaml.org,2002:null
 	 */
 	readonly tags: TagMap
 	readonly scalars: ScalarResolverSet

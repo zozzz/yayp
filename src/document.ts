@@ -51,6 +51,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * mapping object
 	 */
 	public onMappingEnd(mapping: Mapping): Mapping {
+		// TODO: ha minden érték null, esetleg visszatérhet Set-tel is
 		return mapping
 	}
 

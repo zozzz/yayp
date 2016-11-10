@@ -625,14 +625,11 @@ export class Parser {
 				value = handler.onTagEnd(this.parseValue())
 				--this._disallowBlockMapping
 
-				tagHandler.document = null
-
 				return this.isBlockMappingKey()
 					? this.blockMapping(this.popHandler(), column, value)
 					: value
 
 			default:
-				tagHandler.document = null
 				return handler.onTagEnd(this.parseValue())
 		}
 	}

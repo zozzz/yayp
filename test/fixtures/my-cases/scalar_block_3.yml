@@ -1,0 +1,10 @@
+# --- [title] Scalar / Block / Basic 2
+
+|2
+  a
+  b
+
+
+# --- [success] documents[0].content
+
+"a\nb\n"
