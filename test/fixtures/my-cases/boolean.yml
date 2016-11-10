@@ -3,21 +3,9 @@
 - true
 - True
 - TRUE
-- on
-- On
-- ON
-- yes
-- Yes
-- YES
 - false
 - False
 - FALSE
-- off
-- Off
-- OFF
-- no
-- No
-- NO
 
 # --- [success] documents[0].content
 
@@ -25,18 +13,6 @@
   true,
   true,
   true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  false,
-  false,
-  false,
-  false,
-  false,
-  false,
   false,
   false,
   false

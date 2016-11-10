@@ -3,7 +3,7 @@
 - !!str world
 - !!str "world"
 - !!str 'world'
-- !!str !!str !!str !!str !!str "Hello"
+- !!str "Hello"
 
 - !!map {"Hello": "World"}
 - !!map
@@ -16,9 +16,9 @@
   - 2
   - 3
 
-- !!bool on
-- !!bool On
-- !!bool ON
+- !!bool true
+- !!bool True
+- !!bool TRUE
 
 - [nulla, anull, truea, atrue, falsea, afalse]
 

@@ -90,10 +90,20 @@ export class ScalarResolverSet {
 	}
 
 	public resolve(document: YamlDocument, value: string): any {
-		let possible
-		return (possible = this.map[value.charCodeAt(0)]) === undefined
-			? undefined
-			: possible.resolve(document, value)
+		if (value) {
+			let resolvers: ScalarResolver[]
+			if ((resolvers = this.map[value.charCodeAt(0)]) === undefined) {
+				return undefined
+			} else {
+				let resolved
+				for (let resolver of resolvers) {
+					if ((resolved = resolver.resolve(document, value)) !== undefined) {
+						return resolved
+					}
+				}
+			}
+		}
+		return undefined
 	}
 
 	public merge(other: ScalarResolverSet | ScalarResolverSet[] | ScalarResolver[]) {
@@ -106,11 +116,11 @@ export class ScalarResolverSet {
 			if (obj instanceof ScalarResolverSet) {
 				for (let r of obj.resolvers) {
 					if (resolvers.indexOf(r) === -1) {
-						resolvers.push(r)
+						resolvers.unshift(r)
 					}
 				}
 			} else if (resolvers.indexOf(obj) === -1) {
-				resolvers.push(obj)
+				resolvers.unshift(obj)
 			}
 		}
 

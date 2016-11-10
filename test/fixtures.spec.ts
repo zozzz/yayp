@@ -4,7 +4,7 @@ import * as path from "path"
 import { expect } from "chai"
 let getObjPath = require("get-object-path")
 
-import { Loader, YamlDocument, TypeFactory, SCHEMA_CORE, SchemaCollection, ISchema, Mapping, Sequence, Scalar, CoreSchema } from "../src"
+import { Loader, YamlDocument, TypeFactory, SCHEMA_V12, SchemaCollection, ISchema, Mapping, Sequence, Scalar, Schema } from "../src"
 
 
 type FixtureFile = {
@@ -78,19 +78,20 @@ class FakeTF extends TypeFactory {
 }
 
 
-class TestSchema extends CoreSchema {
+class TestSchema extends Schema {
 	public resolveTag(qname: string): TypeFactory {
 		return new FakeTF(qname)
 	}
 }
 
 
-const TEST_TYPE_SCHEMA = new TestSchema()
-
 const TEST_DEFAULT_SCHEMA = new SchemaCollection([
-	SCHEMA_CORE,
-	TEST_TYPE_SCHEMA
+	SCHEMA_V12,
+	new TestSchema()
 ])
+
+
+// console.log(require("util").inspect(TEST_DEFAULT_SCHEMA, { depth: 8 }))
 
 
 abstract class TesterDocument extends YamlDocument {
@@ -117,8 +118,8 @@ class TestDefaultDoc extends TesterDocument {
 
 
 class TestTypeDoc extends TesterDocument {
-	public constructor(parser) {
-		super(parser, TEST_TYPE_SCHEMA)
+	public onTagStart(qname: string): TypeFactory {
+		return new FakeTF(qname)
 	}
 }
 

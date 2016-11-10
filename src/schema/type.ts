@@ -1,6 +1,7 @@
 import { YamlDocument } from "../document"
 import { Mapping, Sequence, Scalar } from "../node"
 import { ITypeFactory } from "../handler"
+export { Mapping, Sequence, Scalar }
 
 
 export abstract class TypeFactory implements ITypeFactory {

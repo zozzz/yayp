@@ -1,28 +1,26 @@
-import { YamlDocument } from "../document"
-import { ISchema, TypeFactory } from "./schema"
+import { ScalarResolverSet } from "./scalar"
+import { TypeFactory } from "./type"
+import { ISchema, TagMap } from "./schema"
 
 
 export class SchemaCollection implements ISchema {
-	public constructor(protected schemas: ISchema[]) {
+	public readonly tags: TagMap = {}
+	public readonly scalars: ScalarResolverSet = new ScalarResolverSet()
+
+	public constructor(public schemas: ISchema[]) {
+		for (let schema of schemas) {
+			Object.assign(this.tags, schema.tags)
+			this.scalars = this.scalars.merge(schema.scalars)
+		}
 	}
 
 	public resolveTag(qname: string): TypeFactory | null {
-		for (let s of this.schemas) {
-			let factory = s.resolveTag(qname)
-			if (factory) {
-				return factory
-			}
-		}
-		return null
-	}
-
-	public resolveScalar(document: YamlDocument, value: string) {
-		for (let s of this.schemas) {
-			let result = s.resolveScalar(document, value)
-			if (result !== undefined) {
+		let result
+		for (let schema of this.schemas) {
+			if (result = schema.resolveTag(qname)) {
 				return result
 			}
 		}
-		return undefined
+		return null
 	}
 }

@@ -89,7 +89,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * or NULL when not found a factory function
 	 */
 	public onTagStart(qname: string): TypeFactory {
-		return this.schema.resolveTag(qname)
+		return this.schema.tags[qname] || this.schema.resolveTag(qname)
 	}
 
 	/**
@@ -121,11 +121,10 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when an unqouted string found
 	 */
 	public onScalar(value: string): any {
-		let resolved = this.schema.resolveScalar(this, value)
-		if (resolved !== undefined) {
-			return resolved
-		}
-		return value
+		let v
+		return (v = this.schema.scalars.resolve(this, value)) === undefined
+			? value
+			: v
 	}
 
 	/**
