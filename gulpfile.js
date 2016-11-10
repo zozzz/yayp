@@ -23,13 +23,13 @@ function createCompileTS(name, opts) {
     gulp.task(name, function () {
         var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], { base: "." })
 
-        if (opts.test) {
-            result = result.pipe(newer({
-                dest: "dist",
-                ext: ".js",
-                extra: ["gulpfile.js", "package.json", "tsconfig.json"]
-            }))
-        }
+        // if (opts.test) {
+        //     result = result.pipe(newer({
+        //         dest: "dist",
+        //         ext: ".js",
+        //         extra: ["gulpfile.js", "package.json", "tsconfig.json"]
+        //     }))
+        // }
 
         result = result.pipe(sourcemaps.init())
         result = result.pipe(tsProject())
