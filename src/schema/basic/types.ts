@@ -51,7 +51,7 @@ class YamlSeq extends TypeFactory {
 
 class YamlStr extends TypeFactory {
 	public onScalar(value: string): any {
-		return value
+		return value ? value : ""
 	}
 
 	public onQuotedString(value: string, quote: string): any {
