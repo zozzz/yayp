@@ -678,114 +678,65 @@ export class Parser {
 	private peek(minColumn: number): PeekResult {
 		let data = this.data,
 			position = this.offset - 1,
-			linePosition = null,
-			column,
-			ch
-
-		while (isNBS(ch = data.charCodeAt(++position)));
-
-		if (CharCode.CR === ch || CharCode.LF === ch || CharCode.HASH === ch) {
-			while (true) {
-				switch (ch) {
-					case CharCode.CR:
-						if (data.charCodeAt(position + 1) === CharCode.LF) {
-							++position
-						}
-					case CharCode.LF:
-						linePosition = position + 1
-						break
-
-					case CharCode.HASH:
-						let commentStart = position + 1
-						// eat all chars expect linebreaks
-						while ((ch = data[++position]) && ch !== "\r" && ch !== "\n");
-						ch = data.charCodeAt(position) // backtrack to CR or LF char
-						this.loader.onComment(data.slice(commentStart, position).trim())
-						continue
-
-					default:
-						column = position + 1 - linePosition
-
-						if (minColumn === column) {
-							this.linePosition = linePosition
-							this.offset = position
-							return PeekResult.SAME_INDENT
-						} else if (minColumn < column) {
-							this.linePosition = linePosition
-							this.offset = position
-							return PeekResult.INCREASE_INDENT
-						} else {
-							this.offset = linePosition - 1 // last newline char
-							return PeekResult.DECREASE_INDENT
-						}
-				}
-
-				while (isNBS(ch = data.charCodeAt(++position)));
-			}
-		} else {
-			this.offset = position
-			return PeekResult.SAME_LINE
-		}
-	}
-
-	private __peek(minColumn: number): PeekResult {
-		let data = this.data,
-			pos = this.offset,
-			linePosition = null,
-			column
-
-		// 8.43
+			linePosition
 
 		while (true) {
-			switch (data.charCodeAt(pos++)) {
+			switch (data.charCodeAt(++position)) {
 				case CharCode.SPACE:
+				case CharCode.TAB:
 					continue
 
 				case CharCode.CR:
-					if (data.charCodeAt(pos) === CharCode.LF) {
-						++pos
-					}
-				// szándékosan nincs break
 				case CharCode.LF:
-					linePosition = pos
-					break
-
 				case CharCode.HASH:
-					let commentStart = pos, ch
-					// eat all chars expect linebreaks
-					while ((ch = data[pos++]) && ch !== "\r" && ch !== "\n");
-					--pos // backtrack to CR or LF char
-					this.loader.onComment(data.slice(commentStart, pos))
-					break
+					--position
+					while (true) {
+						switch (data.charCodeAt(++position)) {
+							case CharCode.SPACE:
+							case CharCode.TAB:
+								continue
 
-				case CharCode.TAB:
-					if (linePosition !== null && !this._inFlowSequence && !this._inFlowMapping) {
-						this.error("Document cannot contains tab character as indention character")
-					}
-					break
+							case CharCode.CR:
+								if (data.charCodeAt(position + 1) === CharCode.LF) {
+									++position
+								}
+							case CharCode.LF:
+								linePosition = position + 1
+								continue
 
-				default:
-					if (linePosition === null) {
-						this.offset = pos - 1
-						return PeekResult.SAME_LINE
-					} else {
-						column = pos - linePosition
+							case CharCode.HASH:
+								let commentStart = position + 1, ch
+								// eat all chars expect linebreaks
+								while ((ch = data.charCodeAt(++position)) && !isEOL(ch));
+								--position
+								this.loader.onComment(data.slice(commentStart, position).trim())
+								continue
 
-						if (minColumn === column) {
-							this.linePosition = linePosition
-							this.offset = pos - 1
-							return PeekResult.SAME_INDENT
-						} else if (minColumn < column) {
-							this.linePosition = linePosition
-							this.offset = pos - 1
-							return PeekResult.INCREASE_INDENT
-						} else {
-							return PeekResult.DECREASE_INDENT
+							default:
+								let column = position + 1 - linePosition
+
+								if (minColumn === column) {
+									this.linePosition = linePosition
+									this.offset = position
+									return PeekResult.SAME_INDENT
+								} else if (minColumn < column) {
+									this.linePosition = linePosition
+									this.offset = position
+									return PeekResult.INCREASE_INDENT
+								} else {
+									this.offset = linePosition - 1 // last newline char
+									return PeekResult.DECREASE_INDENT
+								}
 						}
 					}
+
+				default:
+					this.offset = position
+					return PeekResult.SAME_LINE
 			}
 		}
 	}
+
 
 	// protected ___readScalar() {
 	// 	let position = this.offset,
