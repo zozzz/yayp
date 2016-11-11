@@ -41,7 +41,7 @@ export const enum CharCode {
 	BACKSLASH = 0x5C, // \
 	BACKTICK = 0x60, // `
 	LBRACE = 0x7B, // {
-	RBRACE = 0x7D, // {
+	RBRACE = 0x7D, // }
 	PIPE = 0x7C, // |
 	TILDE = 0x7E, // ~
 	BOM = 0xFEFF

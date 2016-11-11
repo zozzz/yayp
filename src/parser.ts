@@ -377,15 +377,14 @@ export class Parser {
 					if (this.data[this.offset] === "}") {
 						--this._inFlowMapping
 						++this.offset
-						return this.isBlockMappingKey()
-							? this.blockMapping(handler, column, handler.onMappingEnd(mapping))
-							: handler.onMappingEnd(mapping)
+						return handler.onMappingEnd(mapping)
 					}
 					break
 
 				case "}":
 					--this._inFlowMapping
 					++this.offset
+					// TODO: Szerintem ez nem kell ide
 					return this.isBlockMappingKey()
 						? this.blockMapping(handler, column, handler.onMappingEnd(mapping))
 						: handler.onMappingEnd(mapping)
@@ -675,6 +674,9 @@ export class Parser {
 		}
 	}
 
+	// TODO: kipróbálni, hogy ha ahol nincs szükség a visszatérési értékre
+	// ott a minColumn 0 és abban az esetben nem számolja ki
+	// hogy mi történt az identálással, az segíti-e a sebességet
 	private peek(minColumn: number): PeekResult {
 		let data = this.data,
 			position = this.offset - 1,
