@@ -1,6 +1,6 @@
 
 export { Parser } from "./parser"
-export { Loader } from "./loader"
+export { Loader, YamlError } from "./loader"
 export * from "./document"
 export * from "./schema"
 export * from "./node"

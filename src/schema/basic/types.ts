@@ -14,7 +14,7 @@ class YamlOMap extends TypeFactory {
 		return []
 	}
 
-	public onMappingKey(omap, key, value) {
+	public onMappingKey(offset: number, omap: any, key: string, value: any) {
 		omap.push({ [key]: value })
 	}
 
@@ -22,20 +22,20 @@ class YamlOMap extends TypeFactory {
 		return []
 	}
 
-	public onSequenceEntry(sequence: Sequence, entry: any): void {
+	public onSequenceEntry(offset: number, sequence: Sequence, entry: any): void {
 		if (`${entry}` === "[object Object]") { // TODO: need a better way
 			switch (Object.keys(entry).length) {
 				case 1:
 					sequence.push(entry)
-					return
+					break
 
 				case 0:
-					this.document.error("Empty key value pair not supported")
-					return
+					this.document.error("Empty key value pair not supported", offset)
+					break
 
 				default:
-					this.document.error("Too many key value pair in ordered map")
-					return
+					this.document.error("Too many key value pair in ordered map", offset)
+					break
 			}
 		}
 	}
@@ -50,45 +50,53 @@ class YamlSeq extends TypeFactory {
 
 
 class YamlStr extends TypeFactory {
-	public onScalar(value: string): any {
+	public onScalar(offset: number, value: string): any {
 		return value ? value : ""
 	}
 
-	public onQuotedString(value: string, quote: string): any {
+	public onQuotedString(offset: number, value: string, quote: string): any {
 		return value
 	}
 
-	public onBlockString(value: string): any {
+	public onBlockString(offset: number, value: string): any {
 		return value
 	}
 }
 
 
 class YamlSet extends TypeFactory {
-	public onMappingStart() {
+	public onMappingStart(offset: number) {
 		return new Set()
 	}
 
-	public onMappingKey(set: Set<any>, entry: any, value: any) {
+	public onMappingKey(offset: number, set: Set<any>, entry: any, value: any) {
 		if (value !== null) {
-			this.document.error("Set is not a mapping, and not allow to specify value for keys")
+			this.document.error("Set is not a mapping, and not allow to specify value for keys", offset)
 		} else {
 			set.add(entry)
 		}
+	}
+
+	public onSequenceStart(offset: number) {
+		return new Set()
+	}
+
+	public onSequenceEntry(offset: number, sequence: any, entry: any): void {
+		sequence.add(entry)
 	}
 }
 
 
 class YamlBinary extends TypeFactory {
-	public onScalar(value: string): any {
+	public onScalar(offset: number, value: string): any {
 		return this.createFromBase64(value)
 	}
 
-	public onQuotedString(value: string): any {
+	public onQuotedString(offset: number, value: string): any {
 		return this.createFromBase64(value)
 	}
 
-	public onBlockString(value: string): any {
+	public onBlockString(offset: number, value: string): any {
 		return this.createFromBase64(value)
 	}
 

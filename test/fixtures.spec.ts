@@ -45,36 +45,36 @@ class FakeTF extends TypeFactory {
 		super()
 	}
 
-	public onMappingStart(): Mapping {
+	public onMappingStart(offset: number): Mapping {
 		return { "$type": `!<${this.qname}>`, "$mapping": {} }
 	}
 
-	public onMappingKey(mapping: Mapping, key: any, value: any): void {
+	public onMappingKey(offset: number, mapping: Mapping, key: any, value: any): void {
 		mapping["$mapping"][key] = value
 	}
 
-	public onSequenceStart(): any {
+	public onSequenceStart(offset: number): any {
 		return { "$type": `!<${this.qname}>`, "$sequence": [] }
 	}
 
-	public onSequenceEntry(sequence: any, entry: any): void {
+	public onSequenceEntry(offset: number, sequence: any, entry: any): void {
 		sequence["$sequence"].push(entry)
 	}
 
-	public onScalar(value: string): any {
+	public onScalar(offset: number, value: string): any {
 		return `!<${this.qname}>[SCALAR](${value})`
 	}
 
-	public onQuotedString(value: string, quote: string): any {
+	public onQuotedString(offset: number, value: string, quote: string): any {
 		return `!<${this.qname}>[QUOTED]${quote}${value}${quote}`
 	}
 
-	public onBlockString(value: string): any {
+	public onBlockString(offset: number, value: string): any {
 		return `!<${this.qname}>[BLOCK](${value})`
 	}
 
-	public onTagStart(qname: string): TypeFactory {
-		return this.document.onTagStart(qname)
+	public onTagStart(offset: number, qname: string): TypeFactory {
+		return this.document.onTagStart(offset, qname)
 	}
 }
 
@@ -100,13 +100,13 @@ abstract class TesterDocument extends YamlDocument {
 		super(parser, schema)
 	}
 
-	public onMappingKey(mapping, key, value) {
+	public onMappingKey(offset: number, mapping, key, value) {
 		if (key === null) {
 			key = "<null>"
 		} else if (Array.isArray(key) || `${key}` === "[object Object]") {
 			key = JSON.stringify(key)
 		}
-		return super.onMappingKey(mapping, key, value)
+		return super.onMappingKey(offset, mapping, key, value)
 	}
 }
 
@@ -119,7 +119,7 @@ class TestDefaultDoc extends TesterDocument {
 
 
 class TestTypeDoc extends TesterDocument {
-	public onTagStart(qname: string): TypeFactory {
+	public onTagStart(offset: number, qname: string): TypeFactory {
 		return new FakeTF(qname)
 	}
 }

@@ -42,7 +42,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when the mapping start (inline / block) and must return
 	 * something that store key / value pairs
 	 */
-	public onMappingStart(): Mapping {
+	public onMappingStart(offset: number): Mapping {
 		return {}
 	}
 
@@ -58,7 +58,7 @@ export class YamlDocument implements IDocumentHandler {
 	/**
 	 * Called when a mapping key found
 	 */
-	public onMappingKey(mapping: Mapping, key: any, value: any): void {
+	public onMappingKey(offset: number, mapping: Mapping, key: any, value: any): void {
 		mapping[key] = value
 	}
 
@@ -66,7 +66,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when a sequence start (inline / block) and must return
 	 * sumething that store numerical indexed entries
 	 */
-	public onSequenceStart(): Sequence {
+	public onSequenceStart(offset: number): Sequence {
 		return []
 	}
 
@@ -81,7 +81,7 @@ export class YamlDocument implements IDocumentHandler {
 	/**
 	 * Called when an sequence entry is found
 	 */
-	public onSequenceEntry(sequence: Sequence, entry: any): void {
+	public onSequenceEntry(offset: number, sequence: Sequence, entry: any): void {
 		sequence.push(entry)
 	}
 
@@ -89,7 +89,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when a tag start, and must return a factory function
 	 * or NULL when not found a factory function
 	 */
-	public onTagStart(qname: string): TypeFactory {
+	public onTagStart(offset: number, qname: string): TypeFactory {
 		return this.schema.tags[qname] || this.schema.resolveTag(qname)
 	}
 
@@ -104,16 +104,16 @@ export class YamlDocument implements IDocumentHandler {
 	/**
 	 * Called when a anchor found (&anchor)
 	 */
-	public onAnchor(name: string, value: any): void {
+	public onAnchor(offset: number, name: string, value: any): void {
 		this.references[name] = value
 	}
 
 	/**
 	 * Called when an alias found (*alias)
 	 */
-	public onAlias(name: string): any {
+	public onAlias(offset: number, name: string): any {
 		if (!this.references.hasOwnProperty(name)) {
-			this.error(`Missing reference for this name: '${name}'.`)
+			this.error(`Missing reference for this name: '${name}'.`, offset)
 		}
 		return this.references[name]
 	}
@@ -121,7 +121,7 @@ export class YamlDocument implements IDocumentHandler {
 	/**
 	 * Called when an unqouted string found
 	 */
-	public onScalar(value: string): any {
+	public onScalar(offset: number, value: string): any {
 		let v
 		return (v = this.schema.scalars.resolve(this, value)) === undefined
 			? value
@@ -131,19 +131,19 @@ export class YamlDocument implements IDocumentHandler {
 	/**
 	 * Called when a single or double qouted string found
 	 */
-	public onQuotedString(value: string, quote: string): any {
+	public onQuotedString(offset: number, value: string, quote: string): any {
 		return value
 	}
 
 	/**
 	 * Called when a block string found
 	 */
-	public onBlockString(value: string): any {
+	public onBlockString(offset: number, value: string): any {
 		return value
 	}
 
-	public error(message: string): void {
-		this.loader.onError(message, this.loader.parser.getLocation())
+	public error(message: string, offset?: number): void {
+		this.loader.onError(message, this.loader.parser.getLocation(offset))
 	}
 
 	public dispose() {

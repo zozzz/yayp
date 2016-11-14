@@ -7,46 +7,44 @@ export { Mapping, Sequence, Scalar }
 export abstract class TypeFactory implements ITypeFactory {
 	public document: YamlDocument
 
-	public onMappingStart(): Mapping {
-		this.document.error("Unsupported value")
-		return null
+	public onMappingStart(offset: number): any {
+		this.document.error("Unexpected value (mapping)", offset)
 	}
 
-	public onMappingEnd(mapping: Mapping): Mapping {
+	public onMappingEnd(mapping: any): any {
 		return mapping
 	}
 
-	public onMappingKey(mapping: Mapping, key: any, value: any): void {
+	public onMappingKey(offset: number, mapping: any, key: any, value: any): void {
 		mapping[key] = value
 	}
 
-	public onSequenceStart(): Sequence {
-		this.document.error("Unsupported value")
-		return null
+	public onSequenceStart(offset: number): any {
+		this.document.error("Unexpected value (sequence)", offset)
 	}
 
-	public onSequenceEnd(sequence: Sequence): Sequence {
+	public onSequenceEnd(sequence: any): any {
 		return sequence
 	}
 
-	public onSequenceEntry(sequence: Sequence, entry: any): void {
+	public onSequenceEntry(offset: number, sequence: any, entry: any): void {
 		sequence.push(entry)
 	}
 
-	public onScalar(value: string): any {
-		this.document.error("Unsupported value")
+	public onScalar(offset: number, value: string): any {
+		this.document.error("Unexpected value (scalar)", offset)
 	}
 
-	public onQuotedString(value: string, quote: string): any {
-		this.document.error("Unsupported value")
+	public onQuotedString(offset: number, value: string, quote: string): any {
+		this.document.error("Unexpected value (string)", offset)
 	}
 
-	public onBlockString(value: string): any {
-		this.document.error("Unsupported value")
+	public onBlockString(offset: number, value: string): any {
+		this.document.error("Unexpected value (string)", offset)
 	}
 
-	public onTagStart(qname: string): TypeFactory {
-		this.document.error("Unsupported value")
+	public onTagStart(offset: number, qname: string): TypeFactory {
+		this.document.error("Unexpected value (tag)", offset)
 		return null
 	}
 

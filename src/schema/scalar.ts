@@ -68,11 +68,11 @@ export class ScalarResolverAsType extends TypeFactory {
 		super()
 	}
 
-	public onScalar(value: string): any {
+	public onScalar(offset: number, value: string): any {
 		return this.sr.resolve(this.document, value)
 	}
 
-	public onQuotedString(value: string, quote: string): any {
+	public onQuotedString(offset: number, value: string, quote: string): any {
 		return this.sr.resolve(this.document, value)
 	}
 }
