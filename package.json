@@ -21,7 +21,7 @@
     "@types/node": "^6.0.46",
     "babel-preset-node6": "^11.0.0",
     "chai": "^3.5.0",
-    "coveralls": "^2.11.14",
+    "coveralls": "^2.11.15",
     "dts-bundle": "^0.6.1",
     "get-object-path": "0.0.3",
     "gulp": "^3.9.1",
