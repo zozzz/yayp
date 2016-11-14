@@ -147,36 +147,38 @@ const BOOL_ARRAY = ["true", "True", "TRUE", "false", "False", "FALSE"]
 const BOOL_MAP = { "true": true, "True": true, "TRUE": true, "false": true, "False": true, "FALSE": true }
 const BOOL_VALUE = "TRUE"
 
-bt("Regex vs indexOf vs Mapping", {
-	"regex": () => {
-		if (BOOL_RX.test(BOOL_VALUE)) {
-			return true
-		}
-	},
+if (0)
+	bt("Regex vs indexOf vs Mapping", {
+		"regex": () => {
+			if (BOOL_RX.test(BOOL_VALUE)) {
+				return true
+			}
+		},
 
-	"array": () => {
-		if (BOOL_ARRAY.indexOf(BOOL_VALUE) > -1) {
-			return true
-		}
-	},
+		"array": () => {
+			if (BOOL_ARRAY.indexOf(BOOL_VALUE) > -1) {
+				return true
+			}
+		},
 
-	"map": () => {
-		let v
-		if ((v = BOOL_MAP[BOOL_VALUE]) !== undefined) {
-			return v
-		}
-	},
+		"map": () => {
+			let v
+			if ((v = BOOL_MAP[BOOL_VALUE]) !== undefined) {
+				return v
+			}
+		},
 
-	"map2": () => {
-		let v = BOOL_MAP[BOOL_VALUE]
-		if (typeof v !== "undefined") {
-			return v
-		}
-	},
+		"map2": () => {
+			let v = BOOL_MAP[BOOL_VALUE]
+			if (typeof v !== "undefined") {
+				return v
+			}
+		},
 
-	"map3": () => {
-		if (BOOL_MAP.hasOwnProperty(BOOL_VALUE)) {
-			return BOOL_MAP[BOOL_VALUE]
+		"map3": () => {
+			if (BOOL_MAP.hasOwnProperty(BOOL_VALUE)) {
+				return BOOL_MAP[BOOL_VALUE]
+			}
 		}
-	}
-})
+	})
+

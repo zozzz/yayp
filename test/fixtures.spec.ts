@@ -5,6 +5,7 @@ import { expect } from "chai"
 let getObjPath = require("get-object-path")
 
 import { Loader, YamlDocument, TypeFactory, SCHEMA_V12, SchemaCollection, ISchema, Mapping, Sequence, Scalar, Schema } from "../src"
+import { PatchedLoader } from "./patched"
 
 
 type FixtureFile = {
@@ -226,11 +227,11 @@ function createTestCase(file: FixtureFile): () => void {
 		let p
 		switch (file.schema) {
 			case "test-default":
-				p = new Loader(TestDefaultDoc)
+				p = new PatchedLoader(TestDefaultDoc)
 				break
 
 			case "test-type":
-				p = new Loader(TestTypeDoc)
+				p = new PatchedLoader(TestTypeDoc)
 				break
 
 			default:
@@ -243,7 +244,7 @@ function createTestCase(file: FixtureFile): () => void {
 
 		expect(file.properties, "Missing expected result").to.have.property("length").and.gt(0)
 
-		// console.log(require("util").inspect(file, {depth: null}))
+		// console.log(require("util").inspect(l, { depth: 3 }))
 
 		for (let prop of file.properties) {
 			let c = getObjPath(l, prop.property)

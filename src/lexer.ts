@@ -76,6 +76,16 @@ export function isWS(ch: number): boolean {
 }
 
 
+export function isWSOrEOF(ch: number): boolean {
+	return CharCode.SPACE === ch
+		|| CharCode.TAB === ch
+		|| CharCode.CR === ch
+		|| CharCode.LF === ch
+		|| CharCode.UNICODE_SPACE === ch
+		|| !ch
+}
+
+
 export function isScalarDisallowedFirstChar(ch: number): boolean {
 	return CharCode.DASH === ch
 		|| CharCode.QUESTION === ch

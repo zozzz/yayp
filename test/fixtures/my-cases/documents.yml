@@ -1,23 +1,23 @@
 # --- [title] Documents / Multiple
 
 ---
-- array
+- array1
 - value
 
 ---
-["array", value]
+["array2", value]
 
 ---
-!!seq [array, value]
+!!seq [array3, value]
 
 ---
-mapping: value
+mapping1: value
 
 ---
-{mapping: value}
+{mapping2: value}
 
 ---
-!!map {mapping: value}
+!!map {mapping3: value}
 
 ---
 hello world
@@ -29,17 +29,17 @@ hello world
 'hello world'
 
 # --- [success] documents[0].content
-["array", "value"]
+["array1", "value"]
 # --- [success] documents[1].content
-["array", "value"]
+["array2", "value"]
 # --- [success] documents[2].content
-["array", "value"]
+["array3", "value"]
 # --- [success] documents[3].content
-{"mapping": "value"}
+{"mapping1": "value"}
 # --- [success] documents[4].content
-{"mapping": "value"}
+{"mapping2": "value"}
 # --- [success] documents[5].content
-{"mapping": "value"}
+{"mapping3": "value"}
 # --- [success] documents[6].content
 "hello world"
 # --- [success] documents[7].content
