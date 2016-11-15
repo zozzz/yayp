@@ -86,13 +86,6 @@ export function isWSorEOF(ch: number): boolean {
 }
 
 
-// export function isScalarDisallowedFirstChar(ch: number): boolean {
-// 	return CharCode.DASH === ch
-// 		|| CharCode.QUESTION === ch
-// 		|| CharCode.COMMA === ch
-// }
-
-
 export function isIndicator(ch: number): boolean {
 	return CharCode.DASH === ch
 		|| CharCode.QUESTION === ch
@@ -170,13 +163,3 @@ export const ESCAPE_SEQUENCE: { [key: number]: number } = {
 	[CharCode.BACKSLASH]: CharCode.BACKSLASH,
 	[CharCode.QUOTE_DOUBLE]: CharCode.QUOTE_DOUBLE
 }
-
-
-// export function isPrintable(charcode: number): boolean {
-// 	return charcode === CharCode.TAB
-// 		|| charcode === CharCode.LF
-// 		|| charcode === CharCode.CR
-// 		|| (charcode != 0x7F && charcode >= 0x20 && charcode <= 0xD7FF) // DEL is not printable
-// 		|| (charcode >= 0xE000 && charcode <= 0xFFFD)
-// 		|| (charcode >= 0x010000 && charcode <= 0x10FFFF)
-// }

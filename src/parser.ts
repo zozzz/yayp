@@ -11,7 +11,6 @@ import {
 	isWSorEOF,
 	isEOL,
 	isPeekEOL,
-	// isScalarDisallowedFirstChar,
 	isIndicator,
 	isFlowIndicator,
 	isDigit,
@@ -335,7 +334,6 @@ export class Parser {
 			}
 
 			handler.onSequenceEntry(this.offset, seq, this.parseValue(this.doc, substate, col))
-			// console.log("SEQ", value, require("util").inspect(this.data.substr(this.offset, 10)))
 			if (this._documentState !== DocumentState.PARSING) {
 				break endless
 			}
@@ -841,8 +839,6 @@ export class Parser {
 			backtrack,
 			end = false
 
-		// console.log("RS", require("util").inspect(data.substr(this.offset, 10)))
-
 		for (; ;) {
 			peek: for (; ;) {
 				switch (data.charCodeAt(++position) || undefined) {
@@ -907,20 +903,13 @@ export class Parser {
 
 			while (isWS(data.charCodeAt(--position))); // right trim line
 
-			// console.log({ startAt, position, end, backtrack })
-			// console.log("LD", require("util").inspect(data.slice(startAt, position + 1)))
-
 			result += data.slice(startAt, position + 1)
 
 			if (end) {
 				this.offset = backtrack
-				// console.log({ result })
-				// console.log("BT", require("util").inspect(data.substr(backtrack, 10)))
 				return result === "" ? null : result
 			} else {
 				position = backtrack
-
-				// console.log("BW", require("util").inspect(data.substr(position, 10)))
 
 				ws: for (; ;) {
 					switch (data.charCodeAt(++position) || undefined) {
@@ -941,13 +930,10 @@ export class Parser {
 							return result === "" ? null : result
 
 						default:
-							// console.log("DDD", data.charCodeAt(position))
 							startAt = position
 							break ws
 					}
 				}
-
-				// console.log("AW", require("util").inspect(data.substr(position, 10)))
 
 				let ch
 				switch (ch = data.charCodeAt(position)) {
@@ -955,7 +941,6 @@ export class Parser {
 					case CharCode.QUESTION:
 					case CharCode.COLON:
 						if (isWSorEOF(data.charCodeAt(position + 1)) || isIndicator(ch)) {
-							// console.log("CCCCCCC", require("util").inspect(this.data.substr(backtrack, 10)))
 							this.offset = backtrack
 							return result === "" ? null : result
 						}

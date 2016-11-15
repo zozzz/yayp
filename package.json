@@ -1,8 +1,12 @@
 {
   "name": "yayp",
-  "version": "1.0.0",
+  "version": "1.0.0-dev",
   "description": "Yet Another YAML Parser",
   "main": "lib/index.js",
+  "types": "lib/yayp.d.ts",
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "test": "gulp test",
     "compile": "gulp compile",

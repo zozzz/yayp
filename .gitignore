@@ -1,6 +1,5 @@
 dist
 build
-lib
 node_modules
 coverage
 html-report
@@ -10,3 +9,4 @@ callgrind.out
 .vscode
 .coverage
 .coveralls.yml
+*.tgz
