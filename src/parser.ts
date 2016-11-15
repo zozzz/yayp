@@ -8,7 +8,7 @@ import {
 
 	isNBS,
 	isWS,
-	isWSOrEOF,
+	isWSorEOF,
 	isEOL,
 	isPeekEOL,
 	// isScalarDisallowedFirstChar,
@@ -67,6 +67,23 @@ const enum DocumentState {
 }
 
 
+export const enum State {
+	ONLY_COMPACT_MAPPING = 1 << 0,
+	IN_EXPLICIT_KEY = 1 << 1,
+	IN_IMPLICIT_KEY = 1 << 2,
+	IN_FLOW_SEQ = 1 << 3,
+	IN_FLOW_MAP = 1 << 4,
+	IN_BLOCK_MAP = 1 << 5,
+	IN_BLOCK_SEQ = 1 << 6,
+
+	IN_NODE = State.IN_EXPLICIT_KEY | State.IN_IMPLICIT_KEY | State.IN_FLOW_SEQ | State.IN_FLOW_MAP | State.IN_BLOCK_MAP | State.IN_BLOCK_SEQ,
+	IN_FLOW = State.IN_FLOW_SEQ | State.IN_FLOW_MAP,
+	NO_BLOCK_MAPPING = State.IN_IMPLICIT_KEY | State.IN_FLOW_MAP,
+	MAPPING_KEY = State.IN_IMPLICIT_KEY | State.IN_EXPLICIT_KEY,
+	ALLOW_NL_IN_KEY = State.IN_EXPLICIT_KEY | State.IN_FLOW_MAP
+}
+
+
 export class Parser {
 	public fileName: string
 
@@ -77,13 +94,13 @@ export class Parser {
 	protected linePosition: number
 	// protected column: number
 
-	private _inFlowSequence: number = 0
-	private _inFlowMapping: number = 0
+	// private _inFlowSequence: number = 0
+	// private _inFlowMapping: number = 0
 	private _anchor: { anchor: string, offset: number }
-	private _explicitKey: number = 0
-	private _implicitKey: number = 0
+	// private _explicitKey: number = 0
+	// private _implicitKey: number = 0
 	private _documentState: DocumentState = DocumentState.NEW_STARTED
-	private _disallowBlockMapping: number = 0
+	// private _onlyCompactBlockMapping: number = 0
 
 	public constructor(protected loader: Loader) {
 	}
@@ -139,7 +156,7 @@ export class Parser {
 		this.doc = this.loader.onDocumentStart()
 		this._documentState = DocumentState.PARSING;
 
-		(this.doc as any).content = this.parseValue(this.doc, 1)
+		(this.doc as any).content = this.parseValue(this.doc, 0, 1)
 
 		this.peek(1)
 
@@ -165,38 +182,39 @@ export class Parser {
 		return false
 	}
 
-	protected parseValue(handler: ITypeFactory, minColumn?: number): any {
+	protected parseValue(handler: ITypeFactory, state: State, minColumn?: number): any {
 		switch (this.data.charCodeAt(this.offset)) {
-			case CharCode.QUOTE_SINGLE: return this.quotedString(handler, "'")
-			case CharCode.QUOTE_DOUBLE: return this.quotedString(handler, "\"")
-			case CharCode.LBRACKET: return this.flowSequence(handler)
-			case CharCode.LBRACE: return this.flowMapping(handler)
-			case CharCode.PIPE: return this.blockScalar(handler, minColumn, false)
-			case CharCode.RANGLE: return this.blockScalar(handler, minColumn, true)
-			case CharCode.EXCLAMATION: return this.tag(handler)
-			case CharCode.AMPERSAND: return this.anchor(handler)
+			case CharCode.QUOTE_SINGLE: return this.quotedString(handler, state, "'")
+			case CharCode.QUOTE_DOUBLE: return this.quotedString(handler, state, "\"")
+			case CharCode.LBRACKET: return this.flowSequence(handler, state)
+			case CharCode.LBRACE: return this.flowMapping(handler, state)
+			case CharCode.PIPE: return this.blockScalar(handler, state, minColumn, false)
+			case CharCode.RANGLE: return this.blockScalar(handler, state, minColumn, true)
+			case CharCode.EXCLAMATION: return this.tag(handler, state)
+			case CharCode.AMPERSAND: return this.anchor(handler, state)
 			case CharCode.ASTERIX: return this.alias()
-			case CharCode.QUESTION: return this.explicitKey(handler, false)
+			case CharCode.QUESTION: return this.explicitKey(handler, state)
 			case CharCode.DASH:
 				if (isWS(this.data.charCodeAt(this.offset + 1))) {
-					return this.blockSequence(handler)
+					return this.blockSequence(handler, state)
 				} else {
 					if (this.isDocumentStart(this.offset)) {
 						return handler.onScalar(this.offset, null)
 					}
-					return this.scalar(handler)
+					return this.scalar(handler, state)
 				}
 			case CharCode.DOT:
 				if (this.isDocumentEnd(this.offset)) {
 					return handler.onScalar(this.offset, null)
 				}
-				return this.scalar(handler)
+				return this.scalar(handler, state)
 			// case CharCode.AT: return this.error("reserved character '@'")
 			// case CharCode.BACKTICK: return this.error("reserved character '`'")
 			// case undefined: return handler.onScalar(null) // EOF
-			default: return this.scalar(handler)
+			default: return this.scalar(handler, state)
 		}
 	}
+
 
 	protected isDocumentSeparator(offset: number): boolean {
 		let ch = this.data.charCodeAt(offset)
@@ -279,13 +297,14 @@ export class Parser {
 		}
 	}
 
-	protected blockSequence(handler: ITypeFactory): any {
-		if (this._inFlowMapping || this._inFlowSequence) {
+	protected blockSequence(handler: ITypeFactory, state: State): any {
+		if (state & State.IN_FLOW) {
 			this.error("Block sequence is not allowed")
 		}
 
 		let col = this.column,
 			seq = this.storeAnchor(handler.onSequenceStart(this.offset)),
+			substate = state | State.IN_BLOCK_SEQ,
 			value
 
 		++this.offset
@@ -307,7 +326,7 @@ export class Parser {
 					}
 			}
 
-			handler.onSequenceEntry(this.offset, seq, this.parseValue(this.doc, col))
+			handler.onSequenceEntry(this.offset, seq, this.parseValue(this.doc, substate, col))
 			// console.log("SEQ", value, require("util").inspect(this.data.substr(this.offset, 10)))
 			if (this._documentState !== DocumentState.PARSING) {
 				break endless
@@ -334,19 +353,19 @@ export class Parser {
 		return handler.onSequenceEnd(seq)
 	}
 
-	protected flowSequence(handler: ITypeFactory): any {
-		let seq = this.storeAnchor(handler.onSequenceStart(this.offset))
+	protected flowSequence(handler: ITypeFactory, state: State): any {
+		let seq = this.storeAnchor(handler.onSequenceStart(this.offset)),
+			substate = (state | State.IN_FLOW_SEQ | State.ONLY_COMPACT_MAPPING) & ~State.IN_IMPLICIT_KEY
 
-		if (this.data[++this.offset] === "]") { // empty array
+		if (this.data.charCodeAt(++this.offset) === CharCode.RBRACKET) { // empty array
 			++this.offset
 			return handler.onSequenceEnd(seq)
 		}
 
-		++this._inFlowSequence
 		this.peek(1)
 
 		loop: while (true) {
-			handler.onSequenceEntry(this.offset, seq, this.parseValue(this.doc))
+			handler.onSequenceEntry(this.offset, seq, this.parseValue(this.doc, substate))
 			this.peek(1)
 
 			switch (this.data[this.offset]) {
@@ -365,38 +384,36 @@ export class Parser {
 					break loop
 
 				default:
-					--this._inFlowSequence
 					this.unexpected([",", "]"])
 					return null
 			}
 		}
 
-		--this._inFlowSequence
 		return handler.onSequenceEnd(seq)
 	}
 
-	protected flowMapping(handler: ITypeFactory) {
+	protected flowMapping(handler: ITypeFactory, state: State) {
 		let column = this.column,
 			offset,
 			mapping = this.storeAnchor(handler.onMappingStart(this.offset)),
-			key
+			key,
+			substate = (state | State.IN_FLOW_MAP) & ~State.IN_IMPLICIT_KEY
 
-		if (this.data[++this.offset] === "}") { // empty mapping
+		if (this.data.charCodeAt(++this.offset) === CharCode.RBRACE) { // empty mapping
 			++this.offset
 			return handler.onMappingEnd(mapping)
 		}
 
-		++this._inFlowMapping
 		this.peek(1)
 
 		while (true) {
 			offset = this.offset
-			key = this.mappingKey()
+			key = this.mappingKey(substate)
 
 			if (this.data[this.offset] === ":") {
 				++this.offset
 				this.peek(1)
-				handler.onMappingKey(offset, mapping, key, this.parseValue(this.doc))
+				handler.onMappingKey(offset, mapping, key, this.parseValue(this.doc, substate))
 				this.peek(1)
 			} else {
 				handler.onMappingKey(offset, mapping, key, null)
@@ -408,68 +425,81 @@ export class Parser {
 					this.peek(1)
 
 					if (this.data[this.offset] === "}") {
-						--this._inFlowMapping
 						++this.offset
 						return handler.onMappingEnd(mapping)
 					}
 					break
 
 				case "}":
-					--this._inFlowMapping
 					++this.offset
-					// TODO: Szerintem ez nem kell ide
-					return this.isBlockMappingKey()
-						? this.blockMapping(this.offset, handler, column, handler.onMappingEnd(mapping))
-						: handler.onMappingEnd(mapping)
 
+					if (state & State.NO_BLOCK_MAPPING) {
+						return handler.onMappingEnd(mapping)
+					} else {
+						return this.isBlockMappingKey(state)
+							? this.blockMapping(this.offset, handler, state, column, handler.onMappingEnd(mapping))
+							: handler.onMappingEnd(mapping)
+					}
 				default:
-					--this._inFlowMapping
 					this.unexpected([",", "}"])
 					return null
 			}
 		}
 	}
 
-	protected scalar(handler: ITypeFactory) {
-		let column = this.column,
-			offset = this.offset,
-			scalar = this.readScalar()
-
-		return this.isBlockMappingKey()
-			? this.blockMapping(offset, handler, column, scalar)
-			: this.storeAnchor(handler.onScalar(offset, scalar))
-	}
-
-	protected quotedString(handler: ITypeFactory, quote: string) {
-		let column = this.column,
-			offset = this.offset,
-			str = this.readQuotedString(quote)
-
-		return this.isBlockMappingKey()
-			? this.blockMapping(offset, handler, column, str)
-			: handler.onQuotedString(offset, str, quote)
-	}
-
-	protected isBlockMappingKey() {
-		if (this._implicitKey || this._disallowBlockMapping) {
-			return false
-		}
-
-		while (isNBS(this.data.charCodeAt(this.offset++))); --this.offset;
-
-		if (!this._explicitKey && this.data.charCodeAt(this.offset) === CharCode.COLON) {
-			return true
+	protected scalar(handler: ITypeFactory, state: State) {
+		if (state & State.NO_BLOCK_MAPPING) {
+			// TODO: utánajárni lehet-e anchor egy implicit mapping key-en
+			return this.storeAnchor(handler.onScalar(this.offset, this.readScalar(state)))
 		} else {
-			return false
+			let column = this.column,
+				offset = this.offset,
+				scalar = this.readScalar(state)
+
+			return this.isBlockMappingKey(state)
+				? this.blockMapping(offset, handler, state, column, scalar)
+				: this.storeAnchor(handler.onScalar(offset, scalar))
+		}
+
+	}
+
+	protected quotedString(handler: ITypeFactory, state: State, quote: string) {
+		if (state & State.NO_BLOCK_MAPPING) {
+			return this.storeAnchor(handler.onQuotedString(this.offset, this.readQuotedString(quote), quote))
+		} else {
+			let column = this.column,
+				offset = this.offset,
+				str = this.readQuotedString(quote)
+
+			return this.isBlockMappingKey(state)
+				? this.blockMapping(offset, handler, state, column, str)
+				: handler.onQuotedString(offset, str, quote)
+		}
+
+	}
+
+	protected isBlockMappingKey(state: State) {
+		while (isNBS(this.data.charCodeAt(this.offset++))); --this.offset;
+		if (this.data.charCodeAt(this.offset) === CharCode.COLON) {
+			if (state & State.ONLY_COMPACT_MAPPING) {
+				let bt = this.offset
+				while (isNBS(this.data.charCodeAt(++this.offset)));
+				if (isEOL(this.data.charCodeAt(this.offset))) {
+					this.offset = bt
+					return false
+				} else {
+					this.offset = bt
+					return true
+				}
+			} else {
+				return true
+			}
 		}
 	}
 
-	protected blockMapping(offset: number, handler: ITypeFactory, column: number, mappingKey: any): any {
-		if (this._inFlowMapping) {
-			this.error("Block mapping not allowed")
-		}
-
+	protected blockMapping(offset: number, handler: ITypeFactory, state: State, column: number, mappingKey: any): any {
 		let mapping = this.storeAnchor(handler.onMappingStart(this.offset)),
+			substate = state | State.IN_BLOCK_MAP,
 			hasColon
 
 		endless: while (true) {
@@ -485,7 +515,7 @@ export class Parser {
 						this.data.charCodeAt(this.offset) === CharCode.DASH &&
 						isWS(this.data.charCodeAt(this.offset + 1))) {
 
-						handler.onMappingKey(offset, mapping, mappingKey, this.parseValue(handler, column))
+						handler.onMappingKey(offset, mapping, mappingKey, this.parseValue(handler, substate, column))
 
 						if (this.peek(column) !== PeekResult.SAME_INDENT) {
 							break endless
@@ -494,12 +524,12 @@ export class Parser {
 						handler.onMappingKey(offset, mapping, mappingKey, null)
 					}
 
-					if (this._inFlowSequence && !isFlowIndicator(this.data.charCodeAt(this.offset))) {
-						this.error("Missed comma between flow collection entries")
+					if (state & State.ONLY_COMPACT_MAPPING) {
+						break endless
 					}
 
 					offset = this.offset
-					mappingKey = this.mappingKey()
+					mappingKey = this.mappingKey(state)
 
 					if (this._documentState !== DocumentState.PARSING) {
 						break endless
@@ -507,25 +537,25 @@ export class Parser {
 					continue endless
 
 				case PeekResult.DECREASE_INDENT:
+					if (state & State.ONLY_COMPACT_MAPPING) {
+						--this.offset
+						break endless
+					}
 					handler.onMappingKey(offset, mapping, mappingKey, null)
 					break
 
 				case PeekResult.INCREASE_INDENT:
 				case PeekResult.SAME_LINE:
-					handler.onMappingKey(offset, mapping, mappingKey, this.parseValue(this.doc, column + 1))
+					handler.onMappingKey(offset, mapping, mappingKey, this.parseValue(this.doc, substate, column + 1))
 
-					if (this._documentState !== DocumentState.PARSING) {
+					if ((state & State.ONLY_COMPACT_MAPPING) || this._documentState !== DocumentState.PARSING) {
 						break endless
 					}
 
 					if (this.peek(column) === PeekResult.SAME_INDENT) {
-						if (this._inFlowSequence && !isFlowIndicator(this.data.charCodeAt(this.offset))) {
-							this.error("Missed comma between flow collection entries")
-						}
-
 						// http://yaml.org/type/merge.html
 						offset = this.offset
-						mappingKey = this.mappingKey()
+						mappingKey = this.mappingKey(state)
 					} else {
 						break endless
 					}
@@ -536,40 +566,24 @@ export class Parser {
 		return handler.onMappingEnd(mapping)
 	}
 
-	protected mappingKey(): any {
-		let key
-		switch (this.data.charCodeAt(this.offset)) {
-			case CharCode.QUESTION: return this.explicitKey(this.doc, true)
-			case CharCode.COLON: return null
-			case CharCode.QUOTE_DOUBLE:
-				key = this.readQuotedString("\"")
-				break
-
-			case CharCode.QUOTE_SINGLE:
-				key = this.readQuotedString("\'")
-				break
-
-			default:
-				++this._implicitKey
-				key = this.parseValue(this.doc)
-				--this._implicitKey
+	protected mappingKey(state: State): any {
+		if (this.data.charCodeAt(this.offset) === CharCode.COLON) {
+			return null
+		} else {
+			let key = this.parseValue(this.doc, state | State.IN_IMPLICIT_KEY)
+			while (isNBS(this.data.charCodeAt(this.offset++))); --this.offset;
+			return key
 		}
-
-		while (isNBS(this.data.charCodeAt(this.offset++))); --this.offset;
-		return key
 	}
 
-	protected explicitKey(handler: ITypeFactory, inMapping: boolean): any {
+	protected explicitKey(handler: ITypeFactory, state: State): any {
 		let keyOffset = this.offset,
 			column = this.column
 
 		++this.offset
 		this.peek(1)
 
-		++this._explicitKey
-		let key = this.parseValue(this.doc)
-		--this._explicitKey
-
+		let key = this.parseValue(this.doc, state | State.ONLY_COMPACT_MAPPING | State.IN_EXPLICIT_KEY)
 		let offset = this.offset
 
 		this.peek(1)
@@ -578,14 +592,14 @@ export class Parser {
 			this.offset = offset
 		}
 
-		if (inMapping) {
+		if (state & State.NO_BLOCK_MAPPING) {
 			return key
 		} else {
-			return this.blockMapping(keyOffset, handler, column, key)
+			return this.blockMapping(keyOffset, handler, state, column, key)
 		}
 	}
 
-	protected tag(handler: ITypeFactory) {
+	protected tag(handler: ITypeFactory, state: State) {
 		let column = this.column,
 			offset = this.offset,
 			handle = this._read(TAG_DIRECTIVE_HANDLE),
@@ -635,22 +649,28 @@ export class Parser {
 		switch (this.peek(1)) {
 			case PeekResult.SAME_LINE:
 				offset = this.offset
-				++this._disallowBlockMapping
-				value = handler.onTagEnd(this.parseValue(tagHandler))
-				--this._disallowBlockMapping
+				value = handler.onTagEnd(this.parseValue(tagHandler,
+					state & State.IN_NODE
+						? state | State.ONLY_COMPACT_MAPPING
+						: state | State.ONLY_COMPACT_MAPPING | State.IN_IMPLICIT_KEY))
 
-				return this.isBlockMappingKey()
-					? this.blockMapping(offset, this.doc, column, value)
-					: value
-
+				if ((state & State.NO_BLOCK_MAPPING) || !this.isBlockMappingKey(state)) {
+					return value
+				} else {
+					return this.blockMapping(offset, this.doc, state, column, value)
+				}
 			default:
-				return handler.onTagEnd(this.parseValue(tagHandler))
+				return handler.onTagEnd(this.parseValue(tagHandler, state & ~State.ONLY_COMPACT_MAPPING))
 		}
 	}
 
+<<<<<<< HEAD
 	// csak 1 anchor lehet, ha van még1 anchor mielőtt fel lenne használva az előző az hiba
 	// TODO: refactor úgy hogy egy NachorHandler használjon, amit csak akkor példányosítson, amikor először szükséges
 	protected anchor(handler: ITypeFactory) {
+=======
+	protected anchor(handler: ITypeFactory, state: State) {
+>>>>>>> 37ff1f6abcce07640c819896cf1b9067a2bb226d
 		++this.offset
 		let anchor = this._read(RX_ANCHOR)
 		if (!anchor) {
@@ -658,7 +678,7 @@ export class Parser {
 		}
 		this._anchor = { anchor, offset: this.offset - 1 }
 		this.peek(1)
-		let result = this.parseValue(handler)
+		let result = this.parseValue(handler, state)
 		return this.storeAnchor(result)
 	}
 
@@ -785,7 +805,7 @@ export class Parser {
 	}
 
 
-	protected readScalar() {
+	protected readScalar(state: State) {
 		let data = this.data,
 			position = this.offset - 1,
 			startAt = this.offset,
@@ -815,21 +835,17 @@ export class Parser {
 						break peek
 
 					case CharCode.COLON:
-						if (this._inFlowMapping || this._inFlowSequence) {
-							let ch
-							if (isWSOrEOF(ch = data.charCodeAt(position + 1)) || isFlowIndicator(ch)) {
-								backtrack = position
-								end = true
-								break peek
-							}
-						} else if (isWSOrEOF(data.charCodeAt(position + 1))) {
-							// console.log("MK", { result, eol, pendingEol })
-							if (!pendingEol || this._explicitKey) {
+						let ch
+						if (isWSorEOF(ch = data.charCodeAt(position + 1))
+							|| ((state & State.IN_FLOW) && isFlowIndicator(ch))) {
+
+							if (!pendingEol || (state & State.ALLOW_NL_IN_KEY)) {
 								backtrack = position
 							} else {
 								this.offset = backtrack
 								return result === "" ? null : result
 							}
+
 							end = true
 							break peek
 						}
@@ -838,7 +854,7 @@ export class Parser {
 					case CharCode.COMMA:
 					case CharCode.RBRACE:
 					case CharCode.RBRACKET:
-						if (this._inFlowMapping || this._inFlowSequence) {
+						if (state & State.IN_FLOW) {
 							backtrack = position
 							end = true
 							break peek
@@ -913,7 +929,7 @@ export class Parser {
 					case CharCode.DASH:
 					case CharCode.QUESTION:
 					case CharCode.COLON:
-						if (isWSOrEOF(data.charCodeAt(position + 1)) || isIndicator(ch)) {
+						if (isWSorEOF(data.charCodeAt(position + 1)) || isIndicator(ch)) {
 							// console.log("CCCCCCC", require("util").inspect(this.data.substr(backtrack, 10)))
 							this.offset = backtrack
 							return result === "" ? null : result
@@ -936,7 +952,7 @@ export class Parser {
 					case CharCode.COMMA:
 					case CharCode.RBRACE:
 					case CharCode.RBRACKET:
-						if (this._inFlowMapping || this._inFlowSequence) {
+						if (state & State.IN_FLOW) {
 							this.offset = position
 							return result === "" ? null : result
 						}
@@ -952,8 +968,8 @@ export class Parser {
 	}
 
 
-	protected blockScalar(handler: ITypeFactory, minColumn: number, isFolded: boolean) {
-		if (this._inFlowMapping || this._inFlowSequence) {
+	protected blockScalar(handler: ITypeFactory, state: State, minColumn: number, isFolded: boolean) {
+		if (state & State.IN_FLOW) {
 			this.error("Block scalar not allowed")
 		}
 

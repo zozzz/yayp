@@ -182,3 +182,112 @@ if (0)
 		}
 	})
 
+
+const NO_BLOCK_MAPPING = 1;
+const ONLY_COMPACT_MAPPING = 2;
+const IN_FLOW_SEQ = 4;
+const IN_FLOW_MAP = 8;
+const IN_FLOW = IN_FLOW_SEQ | IN_FLOW_MAP; // 12
+const STATE = {
+	inFlowSeq: 0,
+	inFlowMap: 0,
+	iterations_1: 0,
+	iterations_2: 0,
+	iterations_3: 0,
+
+	parseValue_1: function (x) {
+		if (x > 0) {
+			if (x % 2 === 0) {
+				this.parseSeq_1(x)
+			} else {
+				this.parseMap_1(x)
+			}
+
+			if (this.inFlowSeq || this.inFlowMap) {
+				++this.iterations_1
+			}
+		}
+	},
+
+	parseSeq_1: function (x) {
+		++this.inFlowSeq
+		this.parseValue_1(x - 1)
+		--this.inFlowSeq
+	},
+
+	parseMap_1: function (x) {
+		++this.inFlowMap
+		this.parseValue_1(x - 1)
+		--this.inFlowMap
+	},
+
+
+	parseValue_2: function (x, state) {
+		if (x > 0) {
+			if (x % 2 === 0) {
+				this.parseSeq_2(x, state)
+			} else {
+				this.parseMap_2(x, state)
+			}
+
+			if (state & 12) {
+				++this.iterations_2
+			}
+		}
+	},
+
+	parseSeq_2: function (x, state) {
+		this.parseValue_2(x - 1, state | 4)
+	},
+
+	parseMap_2: function (x, state) {
+		this.parseValue_2(x - 1, state | 8)
+	},
+
+	parseValue_3: function (x, inFlowSeq, inFlowMap) {
+		if (x > 0) {
+			if (x % 2 === 0) {
+				this.parseSeq_3(x, inFlowSeq, inFlowMap)
+			} else {
+				this.parseMap_3(x, inFlowSeq, inFlowMap)
+			}
+
+			if (inFlowSeq || inFlowMap) {
+				++this.iterations_3
+			}
+		}
+	},
+
+	parseSeq_3: function (x, inFlowSeq, inFlowMap) {
+		this.parseValue_3(x - 1, true, inFlowMap)
+	},
+
+	parseMap_3: function (x, inFlowSeq, inFlowMap) {
+		this.parseValue_3(x - 1, inFlowSeq, true)
+	},
+}
+
+
+bt("Flags", {
+	// "Number": () => {
+	// 	STATE.parseValue_1(10)
+	// },
+
+	// "Flag": () => {
+	// 	STATE.parseValue_2(10, 0)
+	// },
+
+	// "Bool arg": () => {
+	// 	STATE.parseValue_3(10, false, false)
+	// },
+
+	"NotIn_1": () => {
+		let x = IN_FLOW
+		return ~x & IN_FLOW_MAP
+	},
+
+	"NotIn_2": () => {
+		let x = IN_FLOW
+		return !(x & IN_FLOW_MAP)
+	}
+})
