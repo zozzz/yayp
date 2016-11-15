@@ -1,12 +1,13 @@
 language: node_js
 node_js:
-  - "6"
+- '6'
 script:
-  - npm run travis
-# before_deploy:
-#   - npm compile
-# deploy:
-#   provider: npm
-#   api_key: ...
-#   on:
-#     tags: true
+- npm run travis
+before_deploy:
+- npm compile
+deploy:
+  provider: npm
+  api_key:
+    secure: fhhvUv9Ckm4nSGTRUz7ScGb1NYQJTlp+dIcnVRoTGbQMQPgFEyiOOSd6RET6J7wmCuysIfCVzvAg+WEnsXolkijkrXcHXUpJ9omWtXLEb9fLRsq8PTMr4/7huXlc5PhrYIzLC62QckWxvSdYsluJky0+/3jPyjF5NdOu15H7za01mN+m2Zzs3KHOcboYRHUJ+6ZJuVazZphQRdd491RRGI7TZtZfMgPuXBjIWwg9REQOctlZ/jVxxkVk1mjd8lnmnjoawblygrMWmAOs9DqjlffCiiZsOGYCPKaB9LsrnXsjlU52G2+/qvMaxISlzZ6jk0Ormx28Kl96s7yMe83/4oP7g5VgiqiTV9sarhek+nSk9rwtL3UjZRiDc/bdM6iBFtTs25zDbpMEDLQIpv7iDT/ttGJj94Tc+I8Anzdu6caqsB2AOOiHNrzdX+4lOPQPG0RVWzq2z2y8nCpvSwz0G98q2pvH6U5EJcPCN+VVTxcV7Y5c3T13xXAwWbgISPueMgPNdvaK9lq5DNcbdBwNZC4285swXfda4NC9RJc9FjIlu0+Nl/Dezssr1lU9Gmg8ucU/gn9lJWZ2ACc1A7+Vz5wUdES8CZwaig+jhbYOLNGqozG+wE9Q8GtfSvkCGP/pG0avy1bWurQL8HHJVY3O3Nc1/piiQeNu5P+HUBvaFqM=
+  on:
+    tags: true
