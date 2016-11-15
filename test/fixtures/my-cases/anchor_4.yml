@@ -1,0 +1,11 @@
+# --- [title] Anchor / Scalar
+
+anchor: &XY 10
+value: *XY
+
+# --- [success] documents[0].content
+
+{
+  "anchor": 10,
+  "value": 10
+}

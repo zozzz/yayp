@@ -1,0 +1,12 @@
+# --- [title] Anchor / Mapping
+
+anchor: &XY
+  mapping: 1
+value: *XY
+
+# --- [success] documents[0].content
+
+{
+  "anchor": {"mapping": 1},
+  "value": {"mapping": 1}
+}

@@ -1,0 +1,12 @@
+# --- [title] Anchor / Block string
+
+anchor: &XY |-
+  block string ...
+value: *XY
+
+# --- [success] documents[0].content
+
+{
+  "anchor": "block string ...",
+  "value": "block string ..."
+}

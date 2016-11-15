@@ -1,0 +1,12 @@
+# --- [schema] test-type
+# --- [title] Anchor / Tag 2
+
+anchor: !!str &XY OK
+value: *XY
+
+# --- [success] documents[0].content
+
+{
+  "anchor": "!<tag:yaml.org,2002:str>[SCALAR](OK)",
+  "value": "!<tag:yaml.org,2002:str>[SCALAR](OK)"
+}

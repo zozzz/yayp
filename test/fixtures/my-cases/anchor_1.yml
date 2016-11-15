@@ -1,0 +1,11 @@
+# --- [title] Anchor / Sequence
+
+anchor: &XY [10, 20]
+value: *XY
+
+# --- [success] documents[0].content
+
+{
+  "anchor": [10, 20],
+  "value": [10, 20]
+}

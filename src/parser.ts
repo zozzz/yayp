@@ -253,26 +253,43 @@ export class Parser {
 	protected directive() {
 		for (; ;) {
 			if (this.data.charCodeAt(this.offset) === CharCode.PERCENT) {
-				++this.offset
-
+				let offset = this.offset++
 				let name = this.read(RX_NS_CHARS)
+
 				if (!name) {
-					return this.unexpected()
+					return this.error("Missing directive name")
 				}
+
+				offset = this.offset
 
 				if (this.peek(1) !== PeekResult.SAME_LINE) {
+					this.offset = offset
 					this.error("Missing directive value")
 				}
+
+				offset = this.offset
 
 				switch (name) {
 					case "YAML":
 						this.loader.onDirective(name, this.read(YAML_DIRECTIVE_VALUE))
+						if (offset === this.offset) {
+							this.error("Missing or invalid YAML version")
+						}
 						break
 
 					case "TAG":
+						let handle = this.read(TAG_DIRECTIVE_HANDLE)
+						if (handle === null) {
+							this.error("Missing or invalid tag handle")
+						}
+						this.eatNBS()
+						let ns = this.read(TAG_DIRECTIVE_NS)
+						if (ns === null) {
+							this.error("Missing or invalid tag uri")
+						}
 						this.loader.onDirective(name, {
-							handle: this.read(TAG_DIRECTIVE_HANDLE),
-							namespace: this.eatNBS() || decodeURIComponent(this.read(TAG_DIRECTIVE_NS))
+							handle: handle,
+							namespace: decodeURIComponent(ns)
 						})
 						break
 
@@ -309,16 +326,12 @@ export class Parser {
 			// akkor ha kijjebb kezdődik a következő sor, mint az ahol elkezdődött a lista
 			// egyértelműen meg kell szakítani.
 
-			switch (this.peek(col)) {
-				case PeekResult.DECREASE_INDENT:
-					break endless
-
-				case PeekResult.SAME_INDENT:
-					if (this.data.charCodeAt(this.offset) === CharCode.DASH) {
-						++this.offset
-						handler.onSequenceEntry(this.offset - 1, seq, null)
-						continue endless
-					}
+			if (this.peek(col) === PeekResult.SAME_INDENT) {
+				if (this.data.charCodeAt(this.offset) === CharCode.DASH) {
+					++this.offset
+					handler.onSequenceEntry(this.offset - 1, seq, null)
+					continue endless
+				}
 			}
 
 			handler.onSequenceEntry(this.offset, seq, this.parseValue(this.doc, substate, col))
@@ -379,7 +392,11 @@ export class Parser {
 					break loop
 
 				default:
-					this.unexpected([",", "]"])
+					if (!this.data[this.offset]) {
+						this.error("Unterminated flow sequence", this.offset - 1)
+					} else {
+						this.unexpected([",", "]"])
+					}
 					return null
 			}
 		}
@@ -436,7 +453,11 @@ export class Parser {
 							: handler.onMappingEnd(mapping)
 					}
 				default:
-					this.unexpected([",", "}"])
+					if (!this.data[this.offset]) {
+						this.error("Unterminated flow mapping", this.offset - 1)
+					} else {
+						this.unexpected([",", "}"])
+					}
 					return null
 			}
 		}
@@ -474,21 +495,7 @@ export class Parser {
 
 	protected isBlockMappingKey(state: State) {
 		while (isNBS(this.data.charCodeAt(this.offset++))); --this.offset;
-		if (this.data.charCodeAt(this.offset) === CharCode.COLON) {
-			if (state & State.ONLY_COMPACT_MAPPING) {
-				let bt = this.offset
-				while (isNBS(this.data.charCodeAt(++this.offset)));
-				if (isEOL(this.data.charCodeAt(this.offset))) {
-					this.offset = bt
-					return false
-				} else {
-					this.offset = bt
-					return true
-				}
-			} else {
-				return true
-			}
-		}
+		return this.data.charCodeAt(this.offset) === CharCode.COLON
 	}
 
 	protected blockMapping(offset: number, handler: ITypeFactory, state: State, column: number, mappingKey: any): any {
