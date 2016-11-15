@@ -664,13 +664,9 @@ export class Parser {
 		}
 	}
 
-<<<<<<< HEAD
 	// csak 1 anchor lehet, ha van még1 anchor mielőtt fel lenne használva az előző az hiba
 	// TODO: refactor úgy hogy egy NachorHandler használjon, amit csak akkor példányosítson, amikor először szükséges
-	protected anchor(handler: ITypeFactory) {
-=======
 	protected anchor(handler: ITypeFactory, state: State) {
->>>>>>> 37ff1f6abcce07640c819896cf1b9067a2bb226d
 		++this.offset
 		let anchor = this._read(RX_ANCHOR)
 		if (!anchor) {
