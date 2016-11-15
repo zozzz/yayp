@@ -1,14 +1,15 @@
 import { expect } from "chai"
-import { Loader, YamlDocument, YamlError } from "../src"
+import { YamlDocument, YamlError } from "../src"
+import { PatchedLoader } from "./patched"
 import { SCHEMA_COMMON, SCHEMA_JSON } from "../src"
 
 
 describe("Schema", () => {
 	describe("Common", () => {
-		let loader: Loader
+		let loader: PatchedLoader
 
 		beforeEach(() => {
-			loader = new Loader(YamlDocument, { schema: SCHEMA_COMMON })
+			loader = new PatchedLoader(YamlDocument, { schema: SCHEMA_COMMON })
 		})
 
 		describe("String", () => {
@@ -199,13 +200,13 @@ describe("Schema", () => {
 				])
 			})
 
-			it.skip("!!omap [one: 1, two: 2, three : 3]", () => {
+			it("!!omap [one: 1, two: 2, three : 3]", () => {
 				let d = loader.load("!!omap [one: 1, two: 2, three : 3]")
 
 				expect(d[0]).to.have.property("content").and.eql([
-					{ one: 1 },
-					{ two: 2 },
-					{ three: 3 },
+					{ one: "1" },
+					{ two: "2" },
+					{ three: "3" },
 				])
 			})
 
@@ -226,10 +227,10 @@ describe("Schema", () => {
 	})
 
 	describe("JSON", () => {
-		let loader: Loader
+		let loader: PatchedLoader
 
 		beforeEach(() => {
-			loader = new Loader(YamlDocument, { schema: SCHEMA_JSON })
+			loader = new PatchedLoader(YamlDocument, { schema: SCHEMA_JSON })
 		})
 
 		describe("Booleans", () => {

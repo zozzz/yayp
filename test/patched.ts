@@ -16,6 +16,7 @@ export class PatchedParser extends Parser {
 		"blockSequence",
 		"flowSequence",
 		"flowMapping",
+		// "scalar",
 		"readScalar",
 		"readQuotedString",
 		"blockMapping",
@@ -31,7 +32,7 @@ export class PatchedParser extends Parser {
 
 	public constructor(loader) {
 		super(loader)
-		// this.patch()
+		this.patch()
 	}
 
 	public patch() {

@@ -76,7 +76,7 @@ export function isWS(ch: number): boolean {
 }
 
 
-export function isWSOrEOF(ch: number): boolean {
+export function isWSorEOF(ch: number): boolean {
 	return CharCode.SPACE === ch
 		|| CharCode.TAB === ch
 		|| CharCode.CR === ch
