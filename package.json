@@ -1,6 +1,6 @@
 {
   "name": "yayp",
-  "version": "1.0.0-dev",
+  "version": "1.0.0-alpha",
   "description": "Yet Another YAML Parser",
   "main": "lib/index.js",
   "types": "lib/yayp.d.ts",
