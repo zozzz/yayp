@@ -1,5 +1,4 @@
 import { Mapping, Sequence, Scalar } from "./node"
-import { TypeFactory } from "./schema"
 
 
 export interface IMappingHandler {
@@ -65,7 +64,7 @@ export interface ITagHandler {
 	 * Called when a tag start, and must return a factory function
 	 * or NULL when not found a factory function
 	 */
-	onTagStart(offset: number, qname: string): TypeFactory
+	onTagStart(offset: number, qname: string): ITypeFactory
 
 	/**
 	 * Called when a tag is parsed and return value uased as final

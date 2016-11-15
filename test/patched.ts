@@ -26,13 +26,13 @@ export class PatchedParser extends Parser {
 		"tag",
 		"anchor",
 		"alias",
-		"storeAnchor",
+		// "storeAnchor",
 		"peek"
 	]
 
 	public constructor(loader) {
 		super(loader)
-		this.patch()
+		// this.patch()
 	}
 
 	public patch() {

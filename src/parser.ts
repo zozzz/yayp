@@ -1,7 +1,7 @@
 import { inspect } from "util"
 import { YamlDocument } from "./document"
 import { Loader } from "./loader"
-import { ITypeFactory } from "./handler"
+import { ITypeFactory, IDocumentHandler } from "./handler"
 import {
 	CharCode,
 	EscapeSequenceSpecial,
@@ -94,7 +94,7 @@ export class Parser {
 	protected linePosition: number
 	// protected column: number
 
-	private _anchor: { anchor: string, offset: number }
+	private _anchor: Anchor
 	private _documentState: DocumentState = DocumentState.NEW_STARTED
 
 	public constructor(protected loader: Loader) {
@@ -255,7 +255,7 @@ export class Parser {
 			if (this.data.charCodeAt(this.offset) === CharCode.PERCENT) {
 				++this.offset
 
-				let name = this._read(RX_NS_CHARS)
+				let name = this.read(RX_NS_CHARS)
 				if (!name) {
 					return this.unexpected()
 				}
@@ -266,18 +266,18 @@ export class Parser {
 
 				switch (name) {
 					case "YAML":
-						this.loader.onDirective(name, this._read(YAML_DIRECTIVE_VALUE))
+						this.loader.onDirective(name, this.read(YAML_DIRECTIVE_VALUE))
 						break
 
 					case "TAG":
 						this.loader.onDirective(name, {
-							handle: this._read(TAG_DIRECTIVE_HANDLE),
-							namespace: this.eatNBS() || decodeURIComponent(this._read(TAG_DIRECTIVE_NS))
+							handle: this.read(TAG_DIRECTIVE_HANDLE),
+							namespace: this.eatNBS() || decodeURIComponent(this.read(TAG_DIRECTIVE_NS))
 						})
 						break
 
 					default:
-						this.loader.onDirective(name, this._read(RX_NB_CHARS))
+						this.loader.onDirective(name, this.read(RX_NB_CHARS))
 						break
 				}
 
@@ -298,7 +298,7 @@ export class Parser {
 		}
 
 		let col = this.column,
-			seq = this.storeAnchor(handler.onSequenceStart(this.offset)),
+			seq = handler.onSequenceStart(this.offset),
 			substate = state | State.IN_BLOCK_SEQ,
 			value
 
@@ -349,7 +349,7 @@ export class Parser {
 	}
 
 	protected flowSequence(handler: ITypeFactory, state: State): any {
-		let seq = this.storeAnchor(handler.onSequenceStart(this.offset)),
+		let seq = handler.onSequenceStart(this.offset),
 			substate = (state | State.IN_FLOW_SEQ | State.ONLY_COMPACT_MAPPING) & ~State.IN_IMPLICIT_KEY
 
 		if (this.data.charCodeAt(++this.offset) === CharCode.RBRACKET) { // empty array
@@ -390,7 +390,7 @@ export class Parser {
 	protected flowMapping(handler: ITypeFactory, state: State) {
 		let column = this.column,
 			offset,
-			mapping = this.storeAnchor(handler.onMappingStart(this.offset)),
+			mapping = handler.onMappingStart(this.offset),
 			key,
 			substate = (state | State.IN_FLOW_MAP) & ~State.IN_IMPLICIT_KEY
 
@@ -444,8 +444,7 @@ export class Parser {
 
 	protected scalar(handler: ITypeFactory, state: State) {
 		if (state & State.NO_BLOCK_MAPPING) {
-			// TODO: utánajárni lehet-e anchor egy implicit mapping key-en
-			return this.storeAnchor(handler.onScalar(this.offset, this.readScalar(state)))
+			return handler.onScalar(this.offset, this.readScalar(state))
 		} else {
 			let column = this.column,
 				offset = this.offset,
@@ -453,14 +452,14 @@ export class Parser {
 
 			return this.isBlockMappingKey(state)
 				? this.blockMapping(offset, handler, state, column, scalar)
-				: this.storeAnchor(handler.onScalar(offset, scalar))
+				: handler.onScalar(offset, scalar)
 		}
 
 	}
 
 	protected quotedString(handler: ITypeFactory, state: State, quote: string) {
 		if (state & State.NO_BLOCK_MAPPING) {
-			return this.storeAnchor(handler.onQuotedString(this.offset, this.readQuotedString(quote), quote))
+			return handler.onQuotedString(this.offset, this.readQuotedString(quote), quote)
 		} else {
 			let column = this.column,
 				offset = this.offset,
@@ -493,7 +492,7 @@ export class Parser {
 	}
 
 	protected blockMapping(offset: number, handler: ITypeFactory, state: State, column: number, mappingKey: any): any {
-		let mapping = this.storeAnchor(handler.onMappingStart(this.offset)),
+		let mapping = handler.onMappingStart(this.offset),
 			substate = state | State.IN_BLOCK_MAP,
 			hasColon
 
@@ -541,14 +540,16 @@ export class Parser {
 
 				case PeekResult.INCREASE_INDENT:
 				case PeekResult.SAME_LINE:
-					let xxx
-					handler.onMappingKey(offset, mapping, mappingKey, xxx = this.parseValue(this.doc, substate, column + 1))
+					handler.onMappingKey(offset, mapping, mappingKey, this.parseValue(this.doc, substate, column + 1))
 
 					if ((state & State.ONLY_COMPACT_MAPPING) || this._documentState !== DocumentState.PARSING) {
 						break endless
 					}
 
 					if (this.peek(column) === PeekResult.SAME_INDENT) {
+						if (this.isDocumentSeparator(this.offset)) {
+							break endless
+						}
 						// http://yaml.org/type/merge.html
 						offset = this.offset
 						mappingKey = this.mappingKey(state)
@@ -581,17 +582,39 @@ export class Parser {
 
 		let key = this.parseValue(this.doc, state | State.ONLY_COMPACT_MAPPING | State.IN_EXPLICIT_KEY)
 		let offset = this.offset
+		let isBlockMapping
 
 		this.peek(1)
 
-		if (this.data.charCodeAt(this.offset) !== CharCode.COLON) {
-			this.offset = offset
+		switch (this.data.charCodeAt(this.offset)) {
+			case CharCode.QUESTION:
+				this.offset = offset
+			case CharCode.COLON:
+				isBlockMapping = true
+				break
+
+			case CharCode.COMMA:
+			case CharCode.RBRACE:
+			case CharCode.RBRACKET:
+				if (key === null && !(state & State.IN_FLOW_MAP)) {
+					let mapping = handler.onMappingStart(this.offset)
+					handler.onMappingKey(offset, mapping, key, null)
+					return handler.onMappingEnd(mapping)
+				} else {
+					isBlockMapping
+				}
+
+				break
+
+			default:
+				this.offset = offset
+				isBlockMapping = false
 		}
 
 		if (state & State.NO_BLOCK_MAPPING) {
 			return key
 		} else {
-			return this.isBlockMappingKey(state)
+			return isBlockMapping
 				? this.blockMapping(keyOffset, handler, state, column, key)
 				: key
 		}
@@ -600,7 +623,7 @@ export class Parser {
 	protected tag(handler: ITypeFactory, state: State) {
 		let column = this.column,
 			offset = this.offset,
-			handle = this._read(TAG_DIRECTIVE_HANDLE),
+			handle = this.read(TAG_DIRECTIVE_HANDLE),
 			tagHandler, qname
 
 		if (this.data.charCodeAt(this.offset) === CharCode.LANGLE) {
@@ -608,14 +631,14 @@ export class Parser {
 				this.unexpected("URI")
 			}
 			++this.offset
-			qname = decodeURIComponent(this._read(TAG_DIRECTIVE_NS))
+			qname = decodeURIComponent(this.read(TAG_DIRECTIVE_NS))
 			if (this.data.charCodeAt(this.offset) === CharCode.RANGLE) {
 				++this.offset
 			} else {
 				this.unexpected(">")
 			}
 		} else {
-			let name = this._read(TAG_NAME)
+			let name = this.read(TAG_NAME)
 
 			if (!name) {
 				// http://www.yaml.org/spec/1.2/spec.html#id2785512
@@ -665,30 +688,32 @@ export class Parser {
 	// csak 1 anchor lehet, ha van még1 anchor mielőtt fel lenne használva az előző az hiba
 	// TODO: refactor úgy hogy egy NachorHandler használjon, amit csak akkor példányosítson, amikor először szükséges
 	protected anchor(handler: ITypeFactory, state: State) {
+		if (!this._anchor) {
+			this._anchor = new Anchor()
+		}
+
 		++this.offset
-		let anchor = this._read(RX_ANCHOR)
-		if (!anchor) {
+		if (!(this._anchor.name = this.read(RX_ANCHOR))) {
 			this.unexpected("Any char expect : ',', '[' ']', '{' '}', ' ', '\\r', '\\n', '\\t'")
 		}
-		this._anchor = { anchor, offset: this.offset - 1 }
 		this.peek(1)
-		let result = this.parseValue(handler, state)
-		return this.storeAnchor(result)
+		this._anchor.reset(this.offset, this.doc, handler)
+		return this.parseValue(this._anchor, state)
 	}
 
-	protected storeAnchor(value: any): any {
-		if (this._anchor) {
-			let id = this._anchor.anchor,
-				offset = this._anchor.offset
-			this._anchor = null
-			this.doc.onAnchor(offset, id, value)
-		}
-		return value
-	}
+	// protected storeAnchor(value: any): any {
+	// 	if (this._anchor) {
+	// 		let id = this._anchor.anchor,
+	// 			offset = this._anchor.offset
+	// 		this._anchor = null
+	// 		this.doc.onAnchor(offset, id, value)
+	// 	}
+	// 	return value
+	// }
 
 	protected alias(): any {
 		let offset = this.offset++,
-			id = this._read(RX_ANCHOR)
+			id = this.read(RX_ANCHOR)
 		if (!id) {
 			this.unexpected("Any char expect : ',', '[' ']', '{' '}', ' ', '\\r', '\\n', '\\t'")
 		}
@@ -708,7 +733,7 @@ export class Parser {
 		this.loader.onError(message, this.getLocation(offset))
 	}
 
-	protected _read(rx: RegExp) {
+	protected read(rx: RegExp) {
 		rx.lastIndex = this.offset
 		let m = rx.exec(this.data)
 		if (m && m.index === this.offset) {
@@ -797,7 +822,6 @@ export class Parser {
 			}
 		}
 	}
-
 
 	protected readScalar(state: State) {
 		let data = this.data,
@@ -960,7 +984,6 @@ export class Parser {
 			}
 		}
 	}
-
 
 	protected blockScalar(handler: ITypeFactory, state: State, minColumn: number, isFolded: boolean) {
 		if (state & State.IN_FLOW) {
@@ -1270,5 +1293,76 @@ export class Parser {
 
 		this.offset = offset
 		return result
+	}
+}
+
+
+class Anchor implements ITypeFactory {
+	public handler: ITypeFactory
+	public document: IDocumentHandler
+	public name: string
+	public offset: number
+	private storeAnchor: (value: any) => any
+
+	constructor() {
+		this.storeAnchor = this._storeAnchor
+	}
+
+	reset(offset: number, document: IDocumentHandler, handler: ITypeFactory) {
+		this.storeAnchor = this._storeAnchor
+		this.offset = offset
+		this.document = document
+		this.handler = handler
+	}
+
+	onMappingStart(offset: number): any {
+		return this.storeAnchor(this.handler.onMappingStart(offset))
+	}
+
+	onSequenceStart(offset: number): any {
+		return this.storeAnchor(this.handler.onSequenceStart(offset))
+	}
+
+	onScalar(offset: number, value: string | null): any {
+		return this.storeAnchor(this.handler.onScalar(offset, value))
+	}
+
+	onQuotedString(offset: number, value: string, quote: string): any {
+		return this.storeAnchor(this.handler.onQuotedString(offset, value, quote))
+	}
+
+	onBlockString(offset: number, value: string): any {
+		return this.storeAnchor(this.handler.onBlockString(offset, value))
+	}
+
+	onTagStart(offset: number, qname: string): ITypeFactory {
+		this.handler = this.handler.onTagStart(offset, qname)
+		return this
+	}
+
+	onMappingEnd(mapping: any): any {
+		return this.handler.onMappingEnd(mapping)
+	}
+
+	onMappingKey(offset: number, mapping: any, key: any, value: any): void {
+		return this.handler.onMappingKey(offset, mapping, key, value)
+	}
+
+	onSequenceEnd(sequence: any): any {
+		return this.handler.onSequenceEnd(sequence)
+	}
+
+	onSequenceEntry(offset: number, sequence: any, entry: any): void {
+		return this.handler.onSequenceEntry(offset, sequence, entry)
+	}
+
+	onTagEnd(value: any): any {
+		return this.handler.onTagEnd(value)
+	}
+
+	private _storeAnchor(any): any {
+		this.document.onAnchor(this.offset, this.name, any)
+		this.storeAnchor = (value) => value
+		return any
 	}
 }
