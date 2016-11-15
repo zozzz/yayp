@@ -53,7 +53,7 @@ type Runner = {
 function* runners(): Iterable<Runner> {
 	yield currentVersionRunner()
 	yield jsYaml()
-	yield yamlJs()
+	// yield yamlJs()
 }
 
 

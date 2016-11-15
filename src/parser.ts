@@ -94,13 +94,8 @@ export class Parser {
 	protected linePosition: number
 	// protected column: number
 
-	// private _inFlowSequence: number = 0
-	// private _inFlowMapping: number = 0
 	private _anchor: { anchor: string, offset: number }
-	// private _explicitKey: number = 0
-	// private _implicitKey: number = 0
 	private _documentState: DocumentState = DocumentState.NEW_STARTED
-	// private _onlyCompactBlockMapping: number = 0
 
 	public constructor(protected loader: Loader) {
 	}
@@ -546,7 +541,8 @@ export class Parser {
 
 				case PeekResult.INCREASE_INDENT:
 				case PeekResult.SAME_LINE:
-					handler.onMappingKey(offset, mapping, mappingKey, this.parseValue(this.doc, substate, column + 1))
+					let xxx
+					handler.onMappingKey(offset, mapping, mappingKey, xxx = this.parseValue(this.doc, substate, column + 1))
 
 					if ((state & State.ONLY_COMPACT_MAPPING) || this._documentState !== DocumentState.PARSING) {
 						break endless
@@ -595,7 +591,9 @@ export class Parser {
 		if (state & State.NO_BLOCK_MAPPING) {
 			return key
 		} else {
-			return this.blockMapping(keyOffset, handler, state, column, key)
+			return this.isBlockMappingKey(state)
+				? this.blockMapping(keyOffset, handler, state, column, key)
+				: key
 		}
 	}
 

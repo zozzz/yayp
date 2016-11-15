@@ -32,7 +32,7 @@ export class PatchedParser extends Parser {
 
 	public constructor(loader) {
 		super(loader)
-		// this.patch()
+		this.patch()
 	}
 
 	public patch() {
@@ -55,11 +55,11 @@ export class PatchedParser extends Parser {
 				st = this.readableState(a4)
 			}
 
-			console.log(`${this.indent(this.callStack)}-> ${name} ${st}  ${inspect(this.data.substr(this.offset, 10))}`)
+			console.log(`${this.indent(this.callStack)}>> ${name} ${st}  ${inspect(this.data.substr(this.offset, 10))}`)
 			++this.callStack
 			let res = fn.call(this, a1, a2, a3, a4, a5, a6, a7)
 			--this.callStack
-			console.log(`${this.indent(this.callStack)}<- ${res} ${inspect(this.data.substr(this.offset, 10))}`)
+			console.log(`${this.indent(this.callStack)}== ${res} ${inspect(this.data.substr(this.offset, 10))}`)
 			return res
 		}
 	}
@@ -67,10 +67,12 @@ export class PatchedParser extends Parser {
 	private readableState(state) {
 		let res = []
 
-		if (state & State.IN_EXPLICIT_KEY) { res.push("IN_EXPLICIT_KEY") }
-		if (state & State.IN_IMPLICIT_KEY) { res.push("IN_IMPLICIT_KEY") }
 		if (state & State.IN_FLOW_MAP) { res.push("IN_FLOW_MAP") }
 		if (state & State.IN_FLOW_SEQ) { res.push("IN_FLOW_SEQ") }
+		if (state & State.IN_BLOCK_SEQ) { res.push("IN_BLOCK_SEQ") }
+		if (state & State.IN_BLOCK_MAP) { res.push("IN_BLOCK_MAP") }
+		if (state & State.IN_EXPLICIT_KEY) { res.push("IN_EXPLICIT_KEY") }
+		if (state & State.IN_IMPLICIT_KEY) { res.push("IN_IMPLICIT_KEY") }
 		if (state & State.ONLY_COMPACT_MAPPING) { res.push("ONLY_COMPACT_MAPPING") }
 
 		return `[${res.join(" | ")}]`
