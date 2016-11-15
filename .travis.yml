@@ -3,8 +3,10 @@ node_js:
   - "6"
 script:
   - npm run travis
-before_deploy:
-  - npm compile
-deploy:
-  on:
-    tags: true
+# before_deploy:
+#   - npm compile
+# deploy:
+#   provider: npm
+#   api_key: ...
+#   on:
+#     tags: true
