@@ -269,15 +269,25 @@ const STATE = {
 
 
 bt("Flags", {
-	"Number": () => {
-		STATE.parseValue_1(10)
+	// "Number": () => {
+	// 	STATE.parseValue_1(10)
+	// },
+
+	// "Flag": () => {
+	// 	STATE.parseValue_2(10, 0)
+	// },
+
+	// "Bool arg": () => {
+	// 	STATE.parseValue_3(10, false, false)
+	// },
+
+	"NotIn_1": () => {
+		let x = IN_FLOW
+		return ~x & IN_FLOW_MAP
 	},
 
-	"Flag": () => {
-		STATE.parseValue_2(10, 0)
-	},
-
-	"Bool arg": () => {
-		STATE.parseValue_3(10, false, false)
+	"NotIn_2": () => {
+		let x = IN_FLOW
+		return !(x & IN_FLOW_MAP)
 	}
 })
