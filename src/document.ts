@@ -4,11 +4,6 @@ import { Mapping, Sequence } from "./node"
 import { IDocumentHandler } from "./handler"
 
 
-export type YamlDocumentClass = {
-	new (loader: Loader, schema?: ISchema): YamlDocument
-}
-
-
 export class YamlDocument implements IDocumentHandler {
 	public readonly version: number = 1.2
 	public readonly content: any = null
@@ -17,7 +12,7 @@ export class YamlDocument implements IDocumentHandler {
 		"!!": "tag:yaml.org,2002:"
 	}
 
-	protected references = {}
+	protected references: { [key: string]: any } = {}
 
 
 	public constructor(public readonly loader: Loader, public readonly schema: ISchema) {
@@ -150,5 +145,6 @@ export class YamlDocument implements IDocumentHandler {
 		delete this.content
 		delete this.references
 		delete this.schema
+		delete this.loader
 	}
 }

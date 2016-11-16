@@ -227,11 +227,11 @@ function createTestCase(file: FixtureFile): () => void {
 		let p
 		switch (file.schema) {
 			case "test-default":
-				p = new PatchedLoader(TestDefaultDoc)
+				p = new PatchedLoader(TestDefaultDoc, { allowMultipleDocuments: true })
 				break
 
 			case "test-type":
-				p = new PatchedLoader(TestTypeDoc)
+				p = new PatchedLoader(TestTypeDoc, { allowMultipleDocuments: true })
 				break
 
 			default:

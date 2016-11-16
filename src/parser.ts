@@ -88,10 +88,9 @@ export class Parser {
 
 	protected offset: number
 	protected data: string
-	protected documents: YamlDocument[]
+	protected documents: YamlDocument[] = []
 	protected doc: YamlDocument
 	protected linePosition: number
-	// protected column: number
 
 	private _anchor: Anchor
 	private _documentState: DocumentState = DocumentState.NEW_STARTED
@@ -115,7 +114,9 @@ export class Parser {
 			while (this.parseFile());
 		}
 
-		return this.documents
+		let documents = this.documents
+		this.documents = []
+		return documents
 	}
 
 	public getLocation(offset: number = null): Location {
@@ -216,7 +217,7 @@ export class Parser {
 		if ((ch === CharCode.DOT || ch === CharCode.DASH)
 			&& this.data.charCodeAt(offset + 1) === ch
 			&& this.data.charCodeAt(offset + 2) === ch
-			&& isWS(this.data.charCodeAt(offset + 3))) {
+			&& isWSorEOF(this.data.charCodeAt(offset + 3))) {
 			this.offset = offset + 3
 			this._documentState = ch === CharCode.DOT ? DocumentState.CLOSED : DocumentState.NEW_STARTED
 			return true
@@ -230,7 +231,7 @@ export class Parser {
 	protected isDocumentStart(offset: number) {
 		if (this.data.charCodeAt(offset + 1) === CharCode.DASH
 			&& this.data.charCodeAt(offset + 2) === CharCode.DASH
-			&& isWS(this.data.charCodeAt(offset + 3))) {
+			&& isWSorEOF(this.data.charCodeAt(offset + 3))) {
 			this.offset = offset + 3
 			this._documentState = DocumentState.NEW_STARTED
 			return true
@@ -241,7 +242,7 @@ export class Parser {
 	protected isDocumentEnd(offset: number) {
 		if (this.data.charCodeAt(offset + 1) === CharCode.DOT
 			&& this.data.charCodeAt(offset + 2) === CharCode.DOT
-			&& isWS(this.data.charCodeAt(offset + 3))) {
+			&& isWSorEOF(this.data.charCodeAt(offset + 3))) {
 			this.offset = offset + 3
 			this._documentState = DocumentState.CLOSED
 			return true
