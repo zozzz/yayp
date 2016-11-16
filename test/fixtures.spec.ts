@@ -4,7 +4,7 @@ import * as path from "path"
 import { expect } from "chai"
 let getObjPath = require("get-object-path")
 
-import { Loader, YamlDocument, TypeFactory, SCHEMA_V12, SchemaCollection, ISchema, Mapping, Sequence, Scalar, Schema } from "../src"
+import { Loader, YamlDocument, TypeFactory, SCHEMA_V12, SchemaCollection, ISchema, Schema } from "../src"
 import { PatchedLoader } from "./patched"
 
 
@@ -45,11 +45,11 @@ class FakeTF extends TypeFactory {
 		super()
 	}
 
-	public onMappingStart(offset: number): Mapping {
+	public onMappingStart(offset: number): any {
 		return { "$type": `!<${this.qname}>`, "$mapping": {} }
 	}
 
-	public onMappingKey(offset: number, mapping: Mapping, key: any, value: any): void {
+	public onMappingKey(offset: number, mapping: any, key: any, value: any): void {
 		mapping["$mapping"][key] = value
 	}
 

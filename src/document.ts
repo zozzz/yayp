@@ -1,6 +1,5 @@
 import { Loader } from "./loader"
 import { ISchema, TypeFactory } from "./schema"
-import { Mapping, Sequence } from "./node"
 import { IDocumentHandler } from "./handler"
 
 
@@ -37,7 +36,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when the mapping start (inline / block) and must return
 	 * something that store key / value pairs
 	 */
-	public onMappingStart(offset: number): Mapping {
+	public onMappingStart(offset: number): any {
 		return {}
 	}
 
@@ -45,7 +44,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when the mapping parsed and return value used as final
 	 * mapping object
 	 */
-	public onMappingEnd(mapping: Mapping): Mapping {
+	public onMappingEnd(mapping: any): any {
 		// TODO: ha minden érték null, esetleg visszatérhet Set-tel is
 		return mapping
 	}
@@ -53,7 +52,7 @@ export class YamlDocument implements IDocumentHandler {
 	/**
 	 * Called when a mapping key found
 	 */
-	public onMappingKey(offset: number, mapping: Mapping, key: any, value: any): void {
+	public onMappingKey(offset: number, mapping: any, key: any, value: any): void {
 		mapping[key] = value
 	}
 
@@ -61,7 +60,7 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when a sequence start (inline / block) and must return
 	 * sumething that store numerical indexed entries
 	 */
-	public onSequenceStart(offset: number): Sequence {
+	public onSequenceStart(offset: number): any {
 		return []
 	}
 
@@ -69,14 +68,14 @@ export class YamlDocument implements IDocumentHandler {
 	 * Called when the sequence parsed and return value uased as final
 	 * sequence object
 	 */
-	public onSequenceEnd(sequence: Sequence): Sequence {
+	public onSequenceEnd(sequence: any): any {
 		return sequence
 	}
 
 	/**
 	 * Called when an sequence entry is found
 	 */
-	public onSequenceEntry(offset: number, sequence: Sequence, entry: any): void {
+	public onSequenceEntry(offset: number, sequence: any, entry: any): void {
 		sequence.push(entry)
 	}
 

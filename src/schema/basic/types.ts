@@ -1,16 +1,16 @@
-import { TypeFactory, Mapping, Sequence } from "../type"
+import { TypeFactory } from "../type"
 import { Schema } from "../schema"
 
 
 class YamlMap extends TypeFactory {
-	public onMappingStart(): Mapping {
+	public onMappingStart(): any {
 		return {}
 	}
 }
 
 
 class YamlOMap extends TypeFactory {
-	public onMappingStart(): Mapping {
+	public onMappingStart(): any {
 		return []
 	}
 
@@ -18,11 +18,11 @@ class YamlOMap extends TypeFactory {
 		omap.push({ [key]: value })
 	}
 
-	public onSequenceStart(): Sequence {
+	public onSequenceStart(): any {
 		return []
 	}
 
-	public onSequenceEntry(offset: number, sequence: Sequence, entry: any): void {
+	public onSequenceEntry(offset: number, sequence: any[], entry: any): void {
 		if (`${entry}` === "[object Object]") { // TODO: need a better way
 			switch (Object.keys(entry).length) {
 				case 1:
@@ -43,7 +43,7 @@ class YamlOMap extends TypeFactory {
 
 
 class YamlSeq extends TypeFactory {
-	public onSequenceStart(): Sequence {
+	public onSequenceStart(): any[] {
 		return []
 	}
 }

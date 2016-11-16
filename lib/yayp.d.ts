@@ -5,7 +5,6 @@ declare module 'yayp' {
     export { Loader, YamlError } from "yayp/loader";
     export * from "yayp/document";
     export * from "yayp/schema";
-    export * from "yayp/node";
     export * from "yayp/handler";
     export * from "yayp/shorthands";
 }
@@ -83,7 +82,7 @@ declare module 'yayp/parser' {
 }
 
 declare module 'yayp/loader' {
-    import { YamlDocument, YamlDocumentClass } from "yayp/document";
+    import { YamlDocument } from "yayp/document";
     import { Parser, Location } from "yayp/parser";
     import { ISchema } from "yayp/schema";
     export interface TagDirective {
@@ -93,41 +92,57 @@ declare module 'yayp/loader' {
     export type LoaderOptions = {
             /**
                 * If YAML document dont specifiy the version in directives, than use
-                * this version value
+                * this version value.
+                *
+                * default value: 1.2
                 */
             defaultVersion?: number;
             /**
-                * Always use this version in documents
+                * Always use this version in documents.
+                *
+                * default value: -
                 */
             forcedVersion?: number;
             /**
-                * Use this schema + version schema in documents
+                * Use this schema + version schema in documents.
+                *
+                * default value: -
                 */
             extraSchema?: ISchema;
             /**
-                * Onkly use this schema in documents
+                * Only use this schema in documents.
+                *
+                * default value: -
                 */
             schema?: ISchema;
             /**
-                * Control parser ot call the onComment method or not
+                * Control parser ot call the onComment method or not.
+                *
+                * default value: false
                 */
             needComments?: boolean;
+            /**
+                * Control loader to allow multiple documents in the same file
+                *
+                * default value: false
+                */
+            allowMultipleDocuments?: boolean;
     };
     export class YamlError extends Error {
             location: Location;
             constructor(message: string, location: Location, content?: string);
     }
     export class Loader {
-            readonly documentClass: YamlDocumentClass;
+            readonly documentClass: typeof YamlDocument;
             options: LoaderOptions;
             readonly parser: Parser;
             protected namespaces: {
                     [key: string]: string;
             };
             protected version: number;
-            constructor(documentClass: YamlDocumentClass, options?: LoaderOptions);
+            protected docCount: number;
+            constructor(documentClass: typeof YamlDocument, options?: LoaderOptions);
             load(data: string, fileName?: string): YamlDocument[];
-            loadFile(fileName: string, encoding?: string): YamlDocument[];
             /**
                 * Called when the directive found, not test if the directive is available
                 * in the YAML spec.
@@ -149,17 +164,14 @@ declare module 'yayp/loader' {
                 * Called when error occured
                 */
             onError(message: string, location: Location): void;
+            dispose(): void;
     }
 }
 
 declare module 'yayp/document' {
     import { Loader } from "yayp/loader";
     import { ISchema, TypeFactory } from "yayp/schema";
-    import { Mapping, Sequence } from "yayp/node";
     import { IDocumentHandler } from "yayp/handler";
-    export type YamlDocumentClass = {
-            new (loader: Loader, schema?: ISchema): YamlDocument;
-    };
     export class YamlDocument implements IDocumentHandler {
             readonly loader: Loader;
             readonly schema: ISchema;
@@ -168,7 +180,9 @@ declare module 'yayp/document' {
             readonly namespaces: {
                     [key: string]: string;
             };
-            protected references: {};
+            protected references: {
+                    [key: string]: any;
+            };
             constructor(loader: Loader, schema: ISchema);
             addNamespace(handle: string, namespace: string): void;
             getNamespace(handle: string): string;
@@ -176,30 +190,30 @@ declare module 'yayp/document' {
                 * Called when the mapping start (inline / block) and must return
                 * something that store key / value pairs
                 */
-            onMappingStart(offset: number): Mapping;
+            onMappingStart(offset: number): any;
             /**
                 * Called when the mapping parsed and return value used as final
                 * mapping object
                 */
-            onMappingEnd(mapping: Mapping): Mapping;
+            onMappingEnd(mapping: any): any;
             /**
                 * Called when a mapping key found
                 */
-            onMappingKey(offset: number, mapping: Mapping, key: any, value: any): void;
+            onMappingKey(offset: number, mapping: any, key: any, value: any): void;
             /**
                 * Called when a sequence start (inline / block) and must return
                 * sumething that store numerical indexed entries
                 */
-            onSequenceStart(offset: number): Sequence;
+            onSequenceStart(offset: number): any;
             /**
                 * Called when the sequence parsed and return value uased as final
                 * sequence object
                 */
-            onSequenceEnd(sequence: Sequence): Sequence;
+            onSequenceEnd(sequence: any): any;
             /**
                 * Called when an sequence entry is found
                 */
-            onSequenceEntry(offset: number, sequence: Sequence, entry: any): void;
+            onSequenceEntry(offset: number, sequence: any, entry: any): void;
             /**
                 * Called when a tag start, and must return a factory function
                 * or NULL when not found a factory function
@@ -244,15 +258,6 @@ declare module 'yayp/schema' {
     export * from "yayp/schema/json";
     export * from "yayp/schema/version-1.1";
     export * from "yayp/schema/version-1.2";
-}
-
-declare module 'yayp/node' {
-    export interface Mapping extends Object {
-        [key: string]: any;
-    }
-    export interface Sequence extends Array<any> {
-    }
-    export type Scalar = string;
 }
 
 declare module 'yayp/handler' {
@@ -331,10 +336,20 @@ declare module 'yayp/handler' {
 }
 
 declare module 'yayp/shorthands' {
+    import { LoaderOptions } from "yayp/loader";
     import { YamlDocument } from "yayp/document";
-    export type LoadOptions = {};
-    export function load(data: string, options?: LoadOptions): YamlDocument[];
-    export function loadFile(filePath: string, options?: LoadOptions): YamlDocument[];
+    export type LoadOptions = LoaderOptions & {
+            /**
+                * Use this document class to construct document(s) in the file
+                */
+            document?: typeof YamlDocument;
+            /**
+                * Use this filename in the error messages
+                */
+            filename?: string;
+    };
+    export function load(data: string, options?: LoadOptions): any;
+    export function loadAll(data: string, options?: LoadOptions): any;
 }
 
 declare module 'yayp/schema/schema' {
@@ -365,9 +380,7 @@ declare module 'yayp/schema/schema' {
 
 declare module 'yayp/schema/type' {
     import { YamlDocument } from "yayp/document";
-    import { Mapping, Sequence, Scalar } from "yayp/node";
     import { ITypeFactory } from "yayp/handler";
-    export { Mapping, Sequence, Scalar };
     export abstract class TypeFactory implements ITypeFactory {
         document: YamlDocument;
         onMappingStart(offset: number): any;

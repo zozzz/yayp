@@ -21,7 +21,8 @@ function createCompileTS(name, opts) {
     var tsProject = ts.createProject("tsconfig.json", opts.ts);
 
     gulp.task(name, function () {
-        var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], { base: "." })
+        var result = gulp.src(["./src/**/*.ts", "./test/**/*.ts"], { base: "." }),
+            failed = false
 
         // if (opts.test) {
         //     result = result.pipe(newer({
@@ -33,6 +34,14 @@ function createCompileTS(name, opts) {
 
         result = result.pipe(sourcemaps.init())
         result = result.pipe(tsProject())
+            .on("error", () => {
+                failed = true
+            })
+            .on("finish", () => {
+                if (failed) {
+                    process.exit(1)
+                }
+            })
 
         return merge([
             result.js

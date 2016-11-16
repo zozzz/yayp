@@ -1,5 +1,3 @@
-import { Mapping, Sequence, Scalar } from "./node"
-
 
 export interface IMappingHandler {
 	/**
