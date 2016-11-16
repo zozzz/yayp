@@ -1,7 +1,9 @@
 CHANGELOG
 =========
 
-## NEXT
+## Next
+
+## 1.2.0 _(2016. 11. 16.)_
 
 * Add documentation
 
