@@ -4,7 +4,7 @@ node_js:
 script:
 - npm run travis
 before_deploy:
-- npm compile
+- npm run compile
 deploy:
   provider: npm
   api_key:

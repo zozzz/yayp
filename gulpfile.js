@@ -172,7 +172,6 @@ gulp.task("coverage", ["coverage-remap"], function () {
 
 
 gulp.task("coveralls", ["coverage"], function () {
-    console.log(process.env)
     return gulp.src(".coverage/coverage.lcov")
         .pipe(coveralls())
 })
