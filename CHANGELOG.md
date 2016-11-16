@@ -3,6 +3,7 @@ CHANGELOG
 
 ## NEXT
 
+* Add documentation
 
 ## 1.1.0 _(2016. 11. 16.)_
 
