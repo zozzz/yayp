@@ -34,6 +34,13 @@ describe("Schema", () => {
 				expect(d[0]).to.have.property("content").and.equal("")
 			})
 
+			it("!!str \\n|\\n hello world", () => {
+				let d = loader.load("!!str \n|\n hello world")
+
+				expect(d.length).to.eq(1)
+				expect(d[0]).to.have.property("content").and.equal("hello world")
+			})
+
 			it("!!str null", () => {
 				let d = loader.load("!!str null")
 
@@ -125,6 +132,20 @@ describe("Schema", () => {
 			it("!!seq true -> unexpected", () => {
 				expect(function () { loader.load("!!seq true") })
 					.to.throw(YamlError, /^Unexpected value \(scalar\)/)
+					.and.has.property("location")
+					.and.eql({ line: 1, column: 7, offset: 6, file: "<string>" })
+			})
+
+			it("!!seq \\n|\\n hello world -> unexpected", () => {
+				expect(function () { loader.load("!!seq \n|\n hello world") })
+					.to.throw(YamlError, /^Unexpected value \(string\)/)
+					.and.has.property("location")
+					.and.eql({ line: 2, column: 1, offset: 7, file: "<string>" })
+			})
+
+			it("!!seq !!str OK -> unexpected", () => {
+				expect(function () { loader.load("!!seq !!str OK") })
+					.to.throw(YamlError, /^Unexpected value \(tag\)/)
 					.and.has.property("location")
 					.and.eql({ line: 1, column: 7, offset: 6, file: "<string>" })
 			})
