@@ -10,7 +10,6 @@ import {
 	isWS,
 	isWSorEOF,
 	isEOL,
-	isPeekEOL,
 	isIndicator,
 	isFlowIndicator,
 	isDigit,
