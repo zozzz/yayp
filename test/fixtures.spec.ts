@@ -298,5 +298,4 @@ function addFromDirectory(dirPath: string) {
 addFromDirectory(path.join(__dirname, "fixtures"))
 
 
-
 constructTestCases(fixtures)
