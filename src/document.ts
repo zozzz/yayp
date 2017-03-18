@@ -141,9 +141,9 @@ export class YamlDocument implements IDocumentHandler {
 	}
 
 	public dispose() {
-		delete this.content
-		delete this.references
-		delete this.schema
-		delete this.loader
+		delete (<any>this).content
+		delete (<any>this).references
+		delete (<any>this).schema
+		delete (<any>this).loader
 	}
 }
