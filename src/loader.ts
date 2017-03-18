@@ -144,8 +144,8 @@ export class Loader {
 	}
 
 	public dispose() {
-		delete this.parser
-		delete this.options
-		delete this.documentClass
+		delete (<any>this).parser
+		delete (<any>this).options
+		delete (<any>this).documentClass
 	}
 }
