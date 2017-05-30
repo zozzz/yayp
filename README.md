@@ -1,12 +1,11 @@
 # Yet Another YAML Parser (yayp)
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/zozzz/yayp.svg)](https://greenkeeper.io/)
-
 [![Travis](https://img.shields.io/travis/zozzz/yayp/master.svg?style=flat-square)](https://travis-ci.org/zozzz/yayp)
 [![Coveralls](https://img.shields.io/coveralls/zozzz/yayp/master.svg?style=flat-square)](https://coveralls.io/github/zozzz/yayp)
 [![npm](https://img.shields.io/npm/v/yayp.svg?style=flat-square)](https://www.npmjs.com/package/yayp)
 [![npm](https://img.shields.io/npm/l/yayp.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![npm](https://img.shields.io/npm/dt/yayp.svg?style=flat-square)](https://www.npmjs.com/package/yayp)
+[![Greenkeeper](https://badges.greenkeeper.io/zozzz/yayp.svg)](https://greenkeeper.io/)
 
 This library is fully written in TypeScript, but not is the main maotivation. The motivation is the
 "event" based parsing with reasonable performance plus freer type handling.
