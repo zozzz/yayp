@@ -47,5 +47,10 @@
     "remap-istanbul": "^0.9.1",
     "rollup-plugin-node-resolve": "^3.0.0",
     "typescript": "^2.2.1"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "gulp-mocha"
+    ]
   }
 }
