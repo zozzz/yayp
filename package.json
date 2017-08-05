@@ -27,7 +27,7 @@
     "@types/mocha": "^2.2.32",
     "@types/node": "^8.0.0",
     "babel-preset-node6": "^11.0.0",
-    "chai": "^4.0.0",
+    "chai": "^4.1.1",
     "coveralls": "^2.11.15",
     "dts-bundle": "^0.7.1",
     "get-object-path": "0.0.3",
