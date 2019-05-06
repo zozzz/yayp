@@ -31,7 +31,7 @@
     "coveralls": "^3.0.0",
     "dts-bundle": "^0.7.1",
     "get-object-path": "0.0.3",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-babel": "^6.1.2",
     "gulp-coveralls": "^0.1.4",
     "gulp-debug": "^3.0.0",
